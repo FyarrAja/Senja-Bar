@@ -38,24 +38,30 @@ func TestRealOverflowHideEventPostsClose(t *testing.T) {
 		return hwnd
 	}
 	popup, overflow := makeWindow(), makeWindow()
+	if trayWindowPresented(overflow) {
+		t.Fatal("hidden overflow must cancel a late popup open")
+	}
 	defer destroyWindow.Call(popup)
 	defer destroyWindow.Call(overflow)
 	stop := watchTrayOverflow(popup, overflow)
 	defer stop()
 	cssCommandGrace = time.Time{}
-	user32.NewProc("NotifyWinEvent").Call(0x8003, overflow, 0, 0)
-	deadline := time.Now().Add(time.Second)
-	var message msg
-	for !closed && time.Now().Before(deadline) {
-		ok, _, _ := user32.NewProc("PeekMessageW").Call(uintptr(unsafe.Pointer(&message)), 0, 0, 0, 1)
-		if ok != 0 {
-			dispatchMessageW.Call(uintptr(unsafe.Pointer(&message)))
-		} else {
-			time.Sleep(time.Millisecond)
+	for _, event := range []struct{ id, object uintptr }{{0x8003, 0}, {0x8003, ^uintptr(3)}, {0x8017, 0}, {0x8001, 0}} {
+		closed = false
+		user32.NewProc("NotifyWinEvent").Call(event.id, overflow, event.object, 0)
+		deadline := time.Now().Add(time.Second)
+		var message msg
+		for !closed && time.Now().Before(deadline) {
+			ok, _, _ := user32.NewProc("PeekMessageW").Call(uintptr(unsafe.Pointer(&message)), 0, 0, 0, 1)
+			if ok != 0 {
+				dispatchMessageW.Call(uintptr(unsafe.Pointer(&message)))
+			} else {
+				time.Sleep(time.Millisecond)
+			}
 		}
-	}
-	if !closed {
-		t.Fatal("real overflow hide did not dismiss the popup")
+		if !closed {
+			t.Fatalf("overflow event 0x%X object %d did not dismiss popup", event.id, event.object)
+		}
 	}
 }
 

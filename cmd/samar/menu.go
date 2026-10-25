@@ -63,6 +63,7 @@ func selectCommand(hwnd syscall.Handle, command uint32, cfg *config) {
 			logError("config.save", "unable to save startup state", err)
 		}
 	case cmdRefresh:
+		invalidateTAPSurfaces()
 		newCfg := loadConfig()
 		*cfg = newCfg
 		applyStyle(cfg.style)

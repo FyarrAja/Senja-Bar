@@ -19,7 +19,7 @@ import (
 	"github.com/jchv/go-webview2/pkg/edge"
 )
 
-//go:embed ui/menu.html ui/menu.css ui/menu.js
+//go:embed ui/menu.html ui/menu.css ui/menu.js ui/commands.js
 var cssAssets embed.FS
 
 const cssMenuClass = "SenjaCSSMenu"
@@ -27,6 +27,8 @@ const wmNativeMenu = wmApp + 21
 const wmCSSCommand = wmApp + 22
 const wmCSSResult = wmApp + 23
 const wmCSSFrame = wmApp + 24
+const wmCSSToggle = wmApp + 25
+const wmCSSShutdown = wmApp + 26
 
 type cssState struct {
 	Style   int  `json:"style"`
@@ -59,6 +61,33 @@ var cssFadeMaxGap time.Duration
 var cssFadeStop chan struct{}
 var cssFadeQueued chan struct{}
 var cssFadeGeneration uintptr
+var cssNativeFrame rect
+var cssBasePopup rect
+var cssSlide, cssSlideFrom, cssSlideTo float64
+var cssKeepWarm bool
+var cssAfterHide func()
+var cssReopen func(point, uintptr)
+
+func finishCSSDismiss(hwnd uintptr) {
+	user32.NewProc("KillTimer").Call(hwnd, 0x534f)
+	if cssKeepWarm && cssAfterHide != nil {
+		user32.NewProc("ShowWindow").Call(hwnd, 0)
+		_ = cssBrowser.Hide()
+		cssActivated = false
+		cssAfterHide()
+		user32.NewProc("SetTimer").Call(hwnd, 0x5351, 2000, 0)
+		logEvent("INFO", "menu.hidden", "hidden immediately; two-second reopen cache")
+		return
+	}
+	destroyWindow.Call(hwnd)
+}
+
+func clipCSSPopup(hwnd uintptr, bounds rect) {
+	rgn, _, _ := createRoundRectRgn.Call(0, 0, uintptr(bounds.right-bounds.left), uintptr(bounds.bottom-bounds.top), uintptr(menuPx(56)), uintptr(menuPx(56)))
+	if rgn != 0 {
+		setWindowRgn.Call(hwnd, rgn, 1)
+	}
+}
 
 func stopCSSFade(hwnd uintptr) {
 	if cssFadeStop != nil {
@@ -87,11 +116,15 @@ func beginCSSFade(hwnd uintptr, target byte, duration time.Duration) bool {
 		cssAlpha = target
 		user32.NewProc("SetLayeredWindowAttributes").Call(hwnd, 0, uintptr(target), 2)
 		if cssClosing {
-			destroyWindow.Call(hwnd)
+			finishCSSDismiss(hwnd)
 		}
 		return true
 	}
 	cssFadeFrom, cssFadeTo = cssAlpha, target
+	cssSlideFrom, cssSlideTo = cssSlide, 0
+	if target == 0 {
+		cssSlideTo = float64(menuPx(10))
+	}
 	cssFadeStart, cssFadeDuration = time.Now(), duration
 	cssFadeLast, cssFadeMaxGap, cssFadeFrames = cssFadeStart, 0, 0
 	// Request fine timer resolution only for this finite transition. Never
@@ -134,18 +167,19 @@ func pointerInsideCSSPopup() bool {
 	return popupContainsPoint(cssPopupBounds, position)
 }
 
-func watchPopupOutsideClicks(hwnd uintptr, bounds rect) func() {
+func watchPopupOutsideClicks(hwnd uintptr) func() {
 	callback := syscall.NewCallback(func(code int32, message, data uintptr) uintptr {
 		if code >= 0 && (message == 0x0201 || message == 0x0204 || message == 0x0207 || message == 0x020b) {
 			position := *(*point)(unsafe.Pointer(data))
-			if !popupContainsPoint(bounds, position) {
-				postMessageW.Call(hwnd, wmClose, 0, 0)
+			if !popupContainsPoint(cssPopupBounds, position) {
+				postMessageW.Call(hwnd, wmClose, 1, 0)
 			}
 		}
 		result, _, _ := user32.NewProc("CallNextHookEx").Call(0, uintptr(code), message, data)
 		return result
 	})
 	hook, _, _ := user32.NewProc("SetWindowsHookExW").Call(14, callback, uintptr(getModuleHandle()), 0)
+	logEvent("INFO", "menu.dismiss", fmt.Sprintf("outside hook=%d", hook))
 	if hook == 0 {
 		logEvent("ERROR", "menu.dismiss", "outside-click hook unavailable")
 	}
@@ -163,17 +197,17 @@ func watchTrayOverflow(hwnd, overflow uintptr) func() {
 		return func() {}
 	}
 	callback := syscall.NewCallback(func(_ uintptr, event uint32, window uintptr, object, child int32, _ uint32, _ uint32) uintptr {
-		if window == overflow && object == 0 && child == 0 && (event == 0x8001 || event == 0x8003) {
+		if window == overflow && (object == 0 || object == -4) && child == 0 && (event == 0x8001 || event == 0x8003 || event == 0x8017) {
 			// Applying a material can hide Explorer's overflow as a side effect.
 			// A click inside Senja must not dismiss the mode chooser.
 			if event == 0x8003 && suppressOverflowHide(time.Now().Before(cssCommandGrace), pointerInsideCSSPopup()) {
 				return 0
 			}
-			postMessageW.Call(hwnd, wmClose, 0, 0)
+			postMessageW.Call(hwnd, wmClose, 2, uintptr(event))
 		}
 		return 0
 	})
-	hook, _, _ := user32.NewProc("SetWinEventHook").Call(0x8001, 0x8003, 0, callback, 0, 0, 0)
+	hook, _, _ := user32.NewProc("SetWinEventHook").Call(0x8001, 0x8017, 0, callback, 0, 0, 0)
 	return func() {
 		if hook != 0 {
 			user32.NewProc("UnhookWinEvent").Call(hook)
@@ -185,6 +219,16 @@ func watchTrayOverflow(hwnd, overflow uintptr) func() {
 // never suppress a real tray dismissal. The exemption expires after the ack.
 func suppressOverflowHide(grace, inside bool) bool {
 	return inside && grace
+}
+
+func trayWindowPresented(window uintptr) bool {
+	visible, _, _ := user32.NewProc("IsWindowVisible").Call(window)
+	if visible == 0 {
+		return false
+	}
+	var cloaked uint32
+	hr, _, _ := dwmapi.NewProc("DwmGetWindowAttribute").Call(window, 14, uintptr(unsafe.Pointer(&cloaked)), 4)
+	return int32(hr) < 0 || cloaked == 0
 }
 
 func trayOverflowAt(anchor point) uintptr {
@@ -207,6 +251,21 @@ func trayOverflowAt(anchor point) uintptr {
 			}
 		}
 	}
+	// New Explorer builds can rename the XAML overflow host. Resolve the
+	// root under the actual tray icon, and verify it belongs to Explorer.
+	packed := uintptr(uint64(uint32(anchor.x)) | uint64(uint32(anchor.y))<<32)
+	under, _, _ := user32.NewProc("WindowFromPoint").Call(packed)
+	root, _, _ := user32.NewProc("GetAncestor").Call(under, 2)
+	name := getWindowClassName(syscall.Handle(root))
+	if root != 0 && name != "Shell_TrayWnd" && name != "Shell_SecondaryTrayWnd" && name != "Progman" && name != "WorkerW" {
+		tray, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr("Shell_TrayWnd"))), 0)
+		var rootPID, trayPID uint32
+		user32.NewProc("GetWindowThreadProcessId").Call(root, uintptr(unsafe.Pointer(&rootPID)))
+		user32.NewProc("GetWindowThreadProcessId").Call(tray, uintptr(unsafe.Pointer(&trayPID)))
+		if rootPID != 0 && rootPID == trayPID {
+			return root
+		}
+	}
 	return 0
 }
 
@@ -227,17 +286,13 @@ func cssWindowHandle() uintptr {
 }
 func closeCSSMenu() {
 	if h := cssWindowHandle(); h != 0 {
-		postMessageW.Call(h, wmClose, 0, 0)
+		postMessageW.Call(h, wmCSSShutdown, 0, 0)
 	}
 }
 
 // CSS runs in an on-demand helper. Closing the menu releases its WebView process;
 // the tray/taskbar engine keeps its existing low-memory native message loop.
 func launchCSSMenu(parent syscall.Handle) bool {
-	if h := cssWindowHandle(); h != 0 {
-		postMessageW.Call(h, wmClose, 0, 0)
-		return true
-	}
 	exe, err := os.Executable()
 	if err != nil {
 		return false
@@ -246,10 +301,16 @@ func launchCSSMenu(parent syscall.Handle) bool {
 	getCursorPos.Call(uintptr(unsafe.Pointer(&cursor)))
 	// Anchor to the icon itself, including its location in Explorer's overflow.
 	// The pointer may already have moved by the time the helper starts.
+	var overflow uintptr
 	if anchor, ok := cssTrayAnchor(parent); ok {
 		cursor = anchor
+		overflow = trayOverflowAt(cursor)
 	}
-	overflow := trayOverflowAt(cursor)
+	if h := cssWindowHandle(); h != 0 {
+		packed := uintptr(uint64(uint32(cursor.x)) | uint64(uint32(cursor.y))<<32)
+		postMessageW.Call(h, wmCSSToggle, packed, overflow)
+		return true
+	}
 	child := exec.Command(exe, "--css-menu", strconv.Itoa(int(cursor.x)), strconv.Itoa(int(cursor.y)), strconv.FormatUint(uint64(overflow), 10))
 	child.Dir = filepath.Dir(exe)
 	child.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
@@ -323,12 +384,30 @@ func cssHTML(state cssState, backdrop string) string {
 		stylesheet = append(stylesheet, []byte("\nbody{--desktop:url(\""+backdrop+"\");}")...)
 	}
 	js, _ := cssAssets.ReadFile("ui/menu.js")
+	commands, _ := cssAssets.ReadFile("ui/commands.js")
+	js = append(append(commands, '\n'), js...)
 	stateJSON, _ := json.Marshal(state)
 	return strings.NewReplacer("__CSS__", string(stylesheet), "__STATE__", string(stateJSON), "__JS__", string(js)).Replace(string(template))
 }
 
 func cssMenuProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 	switch message {
+	case wmCSSShutdown:
+		cssKeepWarm = false
+		visible, _, _ := user32.NewProc("IsWindowVisible").Call(hwnd)
+		if cssClosing && visible == 0 {
+			destroyWindow.Call(hwnd)
+		} else {
+			postMessageW.Call(hwnd, wmClose, 0, 0)
+		}
+		return 0
+	case wmCSSToggle:
+		if cssShown && cssClosing && cssReopen != nil {
+			cssReopen(point{int32(uint32(wParam)), int32(uint32(uint64(wParam) >> 32))}, lParam)
+		} else {
+			postMessageW.Call(hwnd, wmClose, 0, 0)
+		}
+		return 0
 	case 0x0021: // WM_MOUSEACTIVATE: keep Explorer's overflow active.
 		if cssOverflow != 0 {
 			return 3 // MA_NOACTIVATE: clicks still reach the WebView.
@@ -365,6 +444,12 @@ func cssMenuProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 		if cssClosing {
 			return 0
 		}
+		if wParam == 1 {
+			logEvent("INFO", "menu.dismiss", "outside click")
+		}
+		if wParam == 2 {
+			logEvent("INFO", "menu.dismiss", fmt.Sprintf("overflow event=0x%X", lParam))
+		}
 		if cssShown && cssBrowser != nil {
 			cssClosing = true
 			cssBrowser.Eval("window.senjaDismiss?.()")
@@ -375,6 +460,13 @@ func cssMenuProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 		destroyWindow.Call(hwnd)
 		return 0
 	case 0x0113: // WM_TIMER: close watchdog if the renderer becomes unresponsive.
+		if wParam == 0x5351 {
+			user32.NewProc("KillTimer").Call(hwnd, wParam)
+			if cssClosing {
+				destroyWindow.Call(hwnd)
+			}
+			return 0
+		}
 		if wParam == 0x534f {
 			destroyWindow.Call(hwnd) // Renderer-unresponsive close fallback.
 			return 0
@@ -391,12 +483,18 @@ func cssMenuProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 			cssFadeLast = now
 			cssFadeFrames++
 			cssAlpha = fadeAlpha(cssFadeFrom, cssFadeTo, elapsed, cssFadeDuration)
+			t := min(1.0, float64(elapsed)/float64(cssFadeDuration))
+			ease := 1 - (1-t)*(1-t)*(1-t)
+			cssSlide = cssSlideFrom + (cssSlideTo-cssSlideFrom)*ease
+			y := int32(cssSlide + .5)
+			cssPopupBounds = rect{cssBasePopup.left, cssBasePopup.top + y, cssBasePopup.right, cssBasePopup.bottom + y}
+			user32.NewProc("SetWindowPos").Call(hwnd, 0, uintptr(cssNativeFrame.left), uintptr(cssNativeFrame.top+y), 0, 0, 0x0015)
 			user32.NewProc("SetLayeredWindowAttributes").Call(hwnd, 0, uintptr(cssAlpha), 2)
 			if elapsed >= cssFadeDuration {
 				stopCSSFade(hwnd)
 				logEvent("INFO", "menu.motion", fmt.Sprintf("alpha=%d frames=%d elapsed=%s maxGap=%s", cssAlpha, cssFadeFrames, elapsed.Round(time.Millisecond), cssFadeMaxGap.Round(time.Millisecond)))
 				if cssClosing {
-					destroyWindow.Call(hwnd)
+					finishCSSDismiss(hwnd)
 				}
 			}
 			return 0
@@ -413,6 +511,7 @@ func cssMenuProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 
 func runCSSMenu(preview bool) error {
 	cssPreview = preview
+	cssKeepWarm = !preview
 	previewActions := preview && (len(os.Args) < 2 || os.Args[1] != "--css-check")
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
@@ -455,6 +554,7 @@ func runCSSMenu(preview bool) error {
 		bounds = cssBounds(point{mi.Work.left + (mi.Work.right-mi.Work.left)/2 - menuPx(68), mi.Work.top + (mi.Work.bottom-mi.Work.top)/2 + menuPx(282)}, menuDPI, mi.Work)
 	}
 	cssPopupBounds = bounds
+	cssBasePopup = bounds
 	backdrop := "" // Live native compositor; no desktop capture or PNG allocation.
 	className := utf16ptr(cssMenuClass)
 	class := wndClassEx{cbSize: uint32(unsafe.Sizeof(wndClassEx{})), lpfnWndProc: syscall.NewCallback(cssMenuProc), hInstance: getModuleHandle(), lpszClassName: className}
@@ -466,10 +566,8 @@ func runCSSMenu(preview bool) error {
 	exStyle, style := uintptr(wsExToolWindow|0x00000008), uintptr(wsPopup)
 	if !preview && len(os.Args) > 4 {
 		if overflow, err := strconv.ParseUint(os.Args[4], 10, 64); err == nil && overflow != 0 {
-			if visible, _, _ := user32.NewProc("IsWindowVisible").Call(uintptr(overflow)); visible != 0 {
-				cssOverflow = uintptr(overflow)
-				exStyle |= wsExNoActivate
-			}
+			cssOverflow = uintptr(overflow)
+			exStyle |= wsExNoActivate
 		}
 	}
 	frame := bounds
@@ -482,7 +580,8 @@ func runCSSMenu(preview bool) error {
 	// Keep an independent lifetime: hiding Explorer's owner during a material
 	// change would automatically hide an owned popup even without WM_CLOSE.
 	exStyle |= 0x00080000 // WS_EX_LAYERED: fade the entire HWND, not just HTML.
-	hwnd, _, err := createWindowExW.Call(exStyle, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(utf16ptr("Senja — Tampilan taskbar"))), style, uintptr(frame.left), uintptr(frame.top), uintptr(frame.right-frame.left), uintptr(frame.bottom-frame.top), 0, 0, uintptr(getModuleHandle()), 0)
+	cssNativeFrame, cssSlide = frame, float64(menuPx(12))
+	hwnd, _, err := createWindowExW.Call(exStyle, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(utf16ptr("Senja — Tampilan taskbar"))), style, uintptr(frame.left), uintptr(frame.top+menuPx(12)), uintptr(frame.right-frame.left), uintptr(frame.bottom-frame.top), 0, 0, uintptr(getModuleHandle()), 0)
 	if hwnd == 0 {
 		return fmt.Errorf("cannot create CSS menu: %v", err)
 	}
@@ -494,14 +593,9 @@ func runCSSMenu(preview bool) error {
 	cssAlpha = 0
 	user32.NewProc("SetLayeredWindowAttributes").Call(hwnd, 0, 0, 2)
 	defer destroyWindow.Call(hwnd)
-	if cssOverflow != 0 {
-		stopWatching := watchTrayOverflow(hwnd, cssOverflow)
-		defer stopWatching()
-	}
-	if !preview {
-		stopClicks := watchPopupOutsideClicks(hwnd, bounds)
-		defer stopClicks()
-	}
+	stopWatching, stopClicks := func() {}, func() {}
+	defer func() { stopWatching(); stopClicks() }()
+	cssAfterHide = func() { stopWatching(); stopClicks(); stopWatching, stopClicks = func() {}, func() {} }
 	rgn, _, _ := createRoundRectRgn.Call(0, 0, uintptr(bounds.right-bounds.left+1), uintptr(bounds.bottom-bounds.top+1), uintptr(menuPx(56)), uintptr(menuPx(56)))
 	if rgn != 0 && !preview {
 		setWindowRgn.Call(hwnd, rgn, 0)
@@ -523,6 +617,55 @@ func runCSSMenu(preview bool) error {
 		message, _ := json.Marshal(errorText)
 		cssBrowser.Eval("window.senjaUpdate(" + string(value) + "," + string(message) + ")")
 	}
+	cssReopen = func(anchor point, overflow uintptr) {
+		if overflow != 0 && !trayWindowPresented(overflow) {
+			return
+		}
+		user32.NewProc("KillTimer").Call(hwnd, 0x5351)
+		user32.NewProc("KillTimer").Call(hwnd, 0x534f)
+		cssAfterHide()
+		packed := uintptr(uint64(uint32(anchor.x)) | uint64(uint32(anchor.y))<<32)
+		monitor, _, _ := user32.NewProc("MonitorFromPoint").Call(packed, 2)
+		mi.Size = uint32(unsafe.Sizeof(mi))
+		user32.NewProc("GetMonitorInfoW").Call(monitor, uintptr(unsafe.Pointer(&mi)))
+		shcore.NewProc("GetDpiForMonitor").Call(monitor, 0, uintptr(unsafe.Pointer(&dpiX)), uintptr(unsafe.Pointer(&dpiY)))
+		menuDPI = int32(dpiX)
+		bounds = cssBounds(anchor, menuDPI, mi.Work)
+		cssBasePopup, cssNativeFrame, cssPopupBounds = bounds, bounds, bounds
+		if cssAlpha == 0 {
+			cssSlide = float64(menuPx(12))
+		}
+		cssOverflow, cssClosing, cssActivated = overflow, false, false
+		ex, _, _ := user32.NewProc("GetWindowLongPtrW").Call(hwnd, ^uintptr(19)) // GWL_EXSTYLE -20
+		if overflow != 0 {
+			ex |= wsExNoActivate
+		} else {
+			ex &^= wsExNoActivate
+		}
+		user32.NewProc("SetWindowLongPtrW").Call(hwnd, ^uintptr(19), ex)
+		user32.NewProc("SetWindowPos").Call(hwnd, 0, uintptr(bounds.left), uintptr(bounds.top+int32(cssSlide)), uintptr(bounds.right-bounds.left), uintptr(bounds.bottom-bounds.top), 0x14)
+		clipCSSPopup(hwnd, bounds)
+		show := uintptr(5)
+		if overflow != 0 {
+			show = 4
+		}
+		user32.NewProc("ShowWindow").Call(hwnd, show)
+		user32.NewProc("SetWindowPos").Call(hwnd, ^uintptr(0), 0, 0, 0, 0, 0x0013)
+		_ = cssBrowser.Show()
+		cssBrowser.Resize()
+		if overflow == 0 {
+			setForegroundWindow.Call(hwnd)
+			cssBrowser.Focus()
+		}
+		stopClicks = watchPopupOutsideClicks(hwnd)
+		if overflow != 0 {
+			stopWatching = watchTrayOverflow(hwnd, overflow)
+		}
+		state = currentCSSState()
+		value, _ := json.Marshal(state)
+		cssBrowser.Eval("window.senjaReset(" + string(value) + ")")
+		logEvent("INFO", "menu.reopen", "reused hidden WebView; no process or document startup")
+	}
 	cssBrowser.MessageCallback = func(raw string) {
 		var message struct {
 			Type          string `json:"type"`
@@ -534,6 +677,12 @@ func runCSSMenu(preview bool) error {
 		}
 		switch message.Type {
 		case "ready":
+			if cssOverflow != 0 && !trayWindowPresented(cssOverflow) {
+				// The user can dismiss the tray while WebView is still loading.
+				// Never show a late orphan popup after that cancelled open.
+				postMessageW.Call(hwnd, wmClose, 0, 0)
+				return
+			}
 			cssReducedMotion = message.ReducedMotion
 			if cssShown && !cssClosing {
 				cssBrowser.Eval("window.senjaReveal?.()")
@@ -563,18 +712,27 @@ func runCSSMenu(preview bool) error {
 					setForegroundWindow.Call(hwnd)
 					cssBrowser.Focus()
 				}
+				// Install low-level hooks only after WebView startup. Blocking
+				// Embed/load work can otherwise hit LowLevelHooksTimeout and
+				// Windows silently removes the hook before the popup appears.
+				if !preview {
+					stopClicks = watchPopupOutsideClicks(hwnd)
+					if cssOverflow != 0 {
+						stopWatching = watchTrayOverflow(hwnd, cssOverflow)
+					}
+				}
 				visible, _, _ := user32.NewProc("IsWindowVisible").Call(hwnd)
-				logEvent("INFO", "menu.css.ready", fmt.Sprintf("CSS renderer ready; visible=%d bounds=%+v", visible, bounds))
+				logEvent("INFO", "menu.css.ready", fmt.Sprintf("CSS renderer ready; visible=%d bounds=%+v overflow=%d class=%s", visible, bounds, cssOverflow, getWindowClassName(syscall.Handle(cssOverflow))))
 			}
 		case "motion":
-			target, duration := byte(255), 300*time.Millisecond
+			target, duration := byte(255), 180*time.Millisecond
 			if cssClosing {
-				target, duration = 0, 200*time.Millisecond
+				target, duration = 0, 140*time.Millisecond
 			}
 			if !beginCSSFade(hwnd, target, duration) {
 				user32.NewProc("SetLayeredWindowAttributes").Call(hwnd, 0, uintptr(target), 2)
 				if cssClosing {
-					destroyWindow.Call(hwnd)
+					finishCSSDismiss(hwnd)
 				}
 			}
 		case "close":
@@ -643,6 +801,11 @@ func runCSSMenu(preview bool) error {
 	}
 	if !setNativeAccent(syscall.Handle(hwnd), styleGlass) {
 		return fmt.Errorf("live menu backdrop unavailable")
+	}
+	if !preview {
+		// Applying the native material can change its clip. Set the exact
+		// rounded region afterward, including the previously exposed corners.
+		clipCSSPopup(hwnd, bounds)
 	}
 	logEvent("INFO", "menu.material", "live neutral Windows blur; no captured backdrop")
 	defer func() {

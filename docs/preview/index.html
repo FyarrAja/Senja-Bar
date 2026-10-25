@@ -1,9 +1,8 @@
-<!doctype html><html><meta charset="utf-8"><title>Senja Bar — GUI preview</title><style>*{box-sizing:border-box}body{margin:0;background:#0e1015;color:#eef1f8;font-family:Segoe UI,sans-serif}header{margin:28px 32px 20px}h1{font-size:25px;margin:0}p{color:#b4becf;margin:6px 0 0;font-size:13px}.gallery{display:flex;gap:24px;margin:0 32px}h2{font-size:12px;font-weight:500;color:#aeb9cc;margin:0 0 10px}iframe{display:block;width:360px;height:548px;border:0;border-radius:28px;box-shadow:0 14px 32px #0004}</style><header><h1>Senja Bar</h1><p>One interface. Every background.</p></header><main class="gallery"><section><h2>Night</h2><iframe title="Senja Night" srcdoc="&lt;!doctype html&gt;
-
+<!doctype html><html><meta charset="utf-8"><title>Senja Bar — GUI preview</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#0e1015;color:#eef1f8;font-family:Segoe UI,sans-serif}header{margin:28px 32px 20px}h1{font-size:25px;margin:0}p{color:#b4becf;margin:6px 0 0;font-size:13px}.gallery{display:flex;gap:24px;margin:0 32px}h2{font-size:12px;font-weight:500;color:#aeb9cc;margin:0 0 10px}iframe{display:block;width:360px;height:548px;border:0;border-radius:28px;box-shadow:0 14px 32px #0004}</style>
+<header><h1>Senja Bar</h1><p>One interface. Every background.</p></header><main class="gallery"><section><h2>Night</h2><iframe title="Senja Night" srcdoc="&lt;!doctype html&gt;
 &lt;html lang=&quot;id&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
-
 &lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; style-src &#x27;unsafe-inline&#x27;; script-src &#x27;unsafe-inline&#x27;; img-src data:; font-src data:; connect-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
-
 &lt;title&gt;Senja — Tampilan taskbar&lt;/title&gt;&lt;style&gt;/* Senja — HyperOS-inspired control surface. Local CSS; no remote resources. */
 
 :root {
@@ -146,7 +145,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 :root { --ease-out: cubic-bezier(.215,.61,.355,1); }
 
-.panel { transform-origin: 50% 100%; opacity: 0; }
+.panel { opacity: 1; }
 
 .panel.entering { opacity: 1; }
 
@@ -158,7 +157,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 .style[aria-checked=&quot;true&quot;] .check { opacity: 1; transform: scale(1); }
 
-.switch { transition: background 280ms var(--ease-out); }
+.switch { transition: background 180ms var(--ease-out); }
 
 .setting, .action, .exit { position: relative; overflow: hidden; transition: background 180ms ease-out, color 180ms ease-out; }
 
@@ -170,35 +169,23 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 .style-grid { position: relative; isolation: isolate; }
 
-.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 420ms var(--ease-out); }
+.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 280ms var(--ease-out); }
 
 .style { z-index: 1; }
 
 .style[aria-checked=&quot;true&quot;], .style[aria-checked=&quot;true&quot;]:hover { background: transparent; border-color: transparent; }
 
-/* Native compositor handles opacity for the complete panel and its edges. */
-
-.panel.entering { will-change: transform; animation: smooth-arrive 300ms cubic-bezier(.215,.61,.355,1) both; }
-
-.panel.leaving { will-change: transform; animation: smooth-leave 200ms cubic-bezier(.215,.61,.355,1) both; }
-
-@keyframes smooth-arrive { from { opacity: 1; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
-
-@keyframes smooth-leave { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(10px) scale(.97); } }
-
-
-
-
+/* Native compositor handles whole-window opacity and movement together. */
 
 /* User-enabled Senja motion, including when Windows animations are disabled. */
 
 .switch::after { content: none; }
 
-.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 280ms cubic-bezier(.4,0,.2,1); }
+.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 180ms cubic-bezier(.4,0,.2,1); }
 
 .setting[aria-checked=&quot;true&quot;] .switch-thumb { transform: translateX(17px); }
 
-.selection-plate { transition: transform 420ms var(--ease-out); will-change: transform; }
+.selection-plate { transition: transform 280ms var(--ease-out); will-change: transform; }
 
 
 
@@ -265,277 +252,205 @@ footer { padding-top: 10px; }
 .update-action:not(:disabled) { cursor: pointer; }
 
 .update-action:not(:disabled):hover { background: rgb(255 255 255 / 14%); }
-
-
-
-html{background:transparent}body{background:#11151d}.panel{opacity:1;backdrop-filter:blur(4px)}&lt;/style&gt;&lt;/head&gt;
-
+body{background:#11151d}.panel{opacity:1;backdrop-filter:blur(4px)}&lt;/style&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;panel&quot; aria-label=&quot;Pengaturan Senja&quot;&gt;
-
 &lt;header class=&quot;brand&quot;&gt;&lt;svg class=&quot;logo&quot; viewBox=&quot;0 0 40 40&quot; aria-hidden=&quot;true&quot;&gt;&lt;path fill=&quot;currentColor&quot; d=&quot;M5 21a15 15 0 0 1 30 0H5Z&quot;/&gt;&lt;path d=&quot;M5 25h30M11 31h18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;3.5&quot; stroke-linecap=&quot;round&quot;/&gt;&lt;/svg&gt;&lt;div&gt;&lt;h1&gt;Senja&lt;/h1&gt;&lt;p&gt;Tampilan taskbar&lt;/p&gt;&lt;/div&gt;&lt;/header&gt;
-
 &lt;fieldset class=&quot;styles&quot;&gt;&lt;legend&gt;Pilih tampilan&lt;/legend&gt;&lt;div class=&quot;style-grid&quot; role=&quot;radiogroup&quot; aria-label=&quot;Gaya taskbar&quot;&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;100&quot; data-style=&quot;1&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;m7 15 5-6m0 6 5-6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Kaca&lt;/strong&gt;&lt;small&gt;Blur lembut&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;101&quot; data-style=&quot;2&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M7 9h10M7 12h10M7 15h6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Akrilik&lt;/strong&gt;&lt;small&gt;Blur lebih pekat&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;102&quot; data-style=&quot;3&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M8 9h3M8 12h8&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Bening&lt;/strong&gt;&lt;small&gt;Transparan penuh&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;103&quot; data-style=&quot;4&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M4 5h7v6H4zm9 0h7v6h-7zM4 13h7v6H4zm9 0h7v6h-7z&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Solid&lt;/strong&gt;&lt;small&gt;Gelap tanpa blur&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;/div&gt;&lt;/fieldset&gt;
-
 &lt;section class=&quot;preferences&quot; aria-label=&quot;Preferensi&quot;&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;105&quot; id=&quot;rounded&quot;&gt;&lt;span&gt;Sudut membulat&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;110&quot; id=&quot;startup&quot;&gt;&lt;span&gt;Mulai bersama Windows&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;/section&gt;
-
 &lt;section class=&quot;quick-actions&quot; aria-label=&quot;Tindakan aplikasi&quot;&gt;&lt;button class=&quot;action&quot; data-command=&quot;111&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M20 7v5h-5M4 17v-5h5M5.4 8a7 7 0 0 1 11.8-2L20 9M4 15l2.8 3A7 7 0 0 0 18.6 16&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Segarkan taskbar&lt;/span&gt;&lt;/button&gt;
-
 &lt;button class=&quot;action update-action&quot; data-command=&quot;112&quot; aria-label=&quot;Pembaruan: buka release terbaru&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Pembaruan&lt;/span&gt;&lt;small&gt;Release terbaru&lt;/small&gt;&lt;/button&gt;&lt;/section&gt;
-
 &lt;footer&gt;&lt;span class=&quot;save-status&quot; id=&quot;status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;&gt;&lt;/span&gt;&lt;button class=&quot;exit&quot; data-command=&quot;140&quot;&gt;Keluar&lt;/button&gt;&lt;/footer&gt;
+&lt;/main&gt;&lt;script&gt;window.__SENJA_STATE__={&quot;style&quot;: 1, &quot;rounded&quot;: true, &quot;startup&quot;: true};&lt;/script&gt;&lt;script&gt;let previewEngineState={...window.__SENJA_STATE__};
+window.chrome={webview:{postMessage(raw){const m=JSON.parse(raw);if(m.type===&#x27;command&#x27;){
+if(m.command&gt;=100&amp;&amp;m.command&lt;=103)previewEngineState.style=m.command-99;
+if(m.command===105)previewEngineState.rounded=!previewEngineState.rounded;
+if(m.command===110)previewEngineState.startup=!previewEngineState.startup;
+setTimeout(()=&gt;window.senjaUpdate({...previewEngineState}),180);
+}}}};// One in-flight engine command; rapid input keeps the latest desired state.
+// Shared by the shipped WebView and the dependency-free regression tests.
+(function (root) {
+  function createCommands(initial, paint, send) {
+    let confirmed = { ...initial }, desired = { ...initial }, pending = false;
+    let pendingField = null, pendingValue;
+    const fields = [&#x27;style&#x27;, &#x27;rounded&#x27;, &#x27;startup&#x27;];
+    const dirty = new Set(), actions = [];
+    function flush() {
+      if (pending) return;
+      let command;
+      pendingField = null;
+      for (const field of fields) {
+        if (desired[field] !== confirmed[field]) {
+          command = field === &#x27;style&#x27; ? desired.style + 99 : field === &#x27;rounded&#x27; ? 105 : 110;
+          pendingField = field; pendingValue = desired[field];
+          break;
+        }
+      }
+      if (command === undefined) command = actions.shift();
+      if (command === undefined) return;
+      pending = true;
+      paint({ ...desired }, &#x27;&#x27;, pending);
+      send(command);
+    }
+    return {
+      choose(field, value) {
+        if (!fields.includes(field)) return;
+        desired[field] = value;
+        dirty.add(field);
+        paint({ ...desired }, &#x27;&#x27;, pending);
+        flush();
+      },
+      action(command) {
+        if (command === 140) { send(command); return; }
+        if (!actions.includes(command)) actions.push(command);
+        flush();
+      },
+      acknowledge(next, error = &#x27;&#x27;) {
+        if (pendingField &amp;&amp; next[pendingField] !== pendingValue &amp;&amp; next[pendingField] !== desired[pendingField]) {
+          error ||= &#x27;Efek belum diterapkan. Coba lagi.&#x27;;
+        }
+        confirmed = { ...next };
+        pending = false;
+        pendingField = null;
+        for (const field of fields) {
+          if (!dirty.has(field) || error) desired[field] = next[field];
+          if (desired[field] === next[field]) dirty.delete(field);
+        }
+        if (error) { dirty.clear(); actions.length = 0; }
+        paint({ ...desired }, error, pending);
+        if (!error) flush();
+      },
+      reset(next) {
+        confirmed = { ...next }; desired = { ...next }; pending = false;
+        pendingField = null;
+        dirty.clear(); actions.length = 0;
+        paint({ ...desired }, &#x27;&#x27;, pending);
+      }
+    };
+  }
+  if (typeof module !== &#x27;undefined&#x27;) module.exports = createCommands;
+  else root.createSenjaCommands = createCommands;
+})(typeof window === &#x27;undefined&#x27; ? globalThis : window);
 
-&lt;/main&gt;&lt;script&gt;window.__SENJA_STATE__={&quot;style&quot;: 1, &quot;rounded&quot;: true, &quot;startup&quot;: true};&lt;/script&gt;&lt;script&gt;window.chrome={webview:{postMessage(raw){const m=JSON.parse(raw);if(m.type===&#x27;command&#x27;){const s={...window.__SENJA_STATE__};if(m.command&gt;=100&amp;&amp;m.command&lt;=103)s.style=m.command-99;if(m.command===105)s.rounded=!s.rounded;if(m.command===110)s.startup=!s.startup;window.senjaUpdate(s)}}}};(() =&gt; {
-
+(() =&gt; {
   const state = window.__SENJA_STATE__;
-
-  let busy = false;
-
   // The user explicitly enabled full motion in Senja, independently of
-
   // Windows&#x27; disabled animation setting. Leave the system setting untouched.
-
   const reducedMotion = { matches: false };
-
   const grid = document.querySelector(&#x27;.style-grid&#x27;);
-
   const plate = document.createElement(&#x27;i&#x27;);
-
   plate.className = &#x27;selection-plate&#x27;;
-
   plate.setAttribute(&#x27;aria-hidden&#x27;, &#x27;true&#x27;);
-
   grid.prepend(plate);
-
   let platePlaced = false;
-
   let plateGeometry = &quot;&quot;;
-
   function positionSelection() {
-
     const selected = grid.querySelector(`[data-style=&quot;${state.style}&quot;]`);
-
     if (!selected) return;
-
     const geometry = [selected.offsetLeft, selected.offsetTop, selected.offsetWidth, selected.offsetHeight];
-
     if (geometry.join(&#x27;,&#x27;) === plateGeometry) return;
-
     plateGeometry = geometry.join(&#x27;,&#x27;);
-
     if (!platePlaced) plate.style.transition = &#x27;none&#x27;;
-
     plate.style.width = `${geometry[2]}px`;
-
     plate.style.height = `${geometry[3]}px`;
-
     plate.style.transform = `translate(${geometry[0]}px, ${geometry[1]}px)`;
-
     if (!platePlaced) {
-
       platePlaced = true;
-
       requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt; plate.style.removeProperty(&#x27;transition&#x27;)));
-
     }
-
   }
-
   new ResizeObserver(positionSelection).observe(grid);
-
   const panel = document.querySelector(&#x27;.panel&#x27;);
-
   let revealed = false;
-
   let dismissing = false;
-
   window.senjaReveal = () =&gt; {
-
     if (revealed || dismissing) return;
-
     revealed = true;
-
     requestAnimationFrame(() =&gt; {
-
       if (dismissing) return;
-
       panel.classList.add(&#x27;entering&#x27;);
-
       send(&#x27;motion&#x27;);
-
     });
-
   };
-
   window.senjaDismiss = () =&gt; {
-
     if (dismissing) return;
-
     dismissing = true;
-
-    // Freeze the current presentation before reversing, including mid-entry.
-
-    const current = getComputedStyle(panel).transform;
-
-    const animation = panel.animate([
-
-      { transform: current === &#x27;none&#x27; ? &#x27;matrix(1,0,0,1,0,0)&#x27; : current },
-
-      { transform: &#x27;translateY(10px) scale(.97)&#x27; }
-
-    ], { duration: 200, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27;, fill: &#x27;forwards&#x27; });
-
+    // The native compositor moves and fades the whole window as one unit.
+    // Scaling HTML separately from its live backdrop creates edge judder.
     panel.style.pointerEvents = &#x27;none&#x27;;
-
-    panel.classList.remove(&#x27;entering&#x27;);
-
-    panel.style.opacity = &#x27;1&#x27;;
-
     send(&#x27;motion&#x27;);
-
-    animation.finished.catch(() =&gt; {});
-
   };
-
-  panel.addEventListener(&#x27;animationend&#x27;, () =&gt; panel.style.willChange = &#x27;auto&#x27;);
-
+  window.senjaReset = next =&gt; {
+    revealed = false;
+    dismissing = false;
+    panel.style.pointerEvents = &#x27;&#x27;;
+    panel.classList.remove(&#x27;entering&#x27;);
+    commands.reset(next);
+    window.senjaReveal();
+  };
   function animatePress(button, event) {
-
     if (button.getAttribute(&#x27;role&#x27;) === &#x27;switch&#x27;) return;
-
     if (reducedMotion.matches) return;
-
     button.animate([
-
       { transform: &#x27;scale(.98)&#x27;, offset: 0 },
-
       { transform: &#x27;scale(1)&#x27;, offset: 1 }
-
-    ], { duration: 220, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27; });
-
+    ], { duration: 140, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27; });
     if (button.dataset.command === &#x27;111&#x27;) {
-
-      button.querySelector(&#x27;svg&#x27;)?.animate([{ transform: &#x27;rotate(0deg)&#x27; }, { transform: &#x27;rotate(360deg)&#x27; }], { duration: 500, easing: &#x27;cubic-bezier(.16,1,.3,1)&#x27; });
-
+      button.querySelector(&#x27;svg&#x27;)?.animate([{ transform: &#x27;rotate(0deg)&#x27; }, { transform: &#x27;rotate(360deg)&#x27; }], { duration: 350, easing: &#x27;cubic-bezier(.16,1,.3,1)&#x27; });
     }
-
   }
-
   function send(type, command) {
-
     window.chrome?.webview?.postMessage(JSON.stringify({ type, command, reducedMotion: reducedMotion.matches }));
-
   }
-
-  function render(next, message = &#x27;&#x27;) {
-
+  function render(next, message = &#x27;&#x27;, pending = false) {
     Object.assign(state, next);
-
     positionSelection();
-
     for (const el of document.querySelectorAll(&#x27;[data-style]&#x27;)) {
-
       const active = Number(el.dataset.style) === state.style;
-
       el.setAttribute(&#x27;aria-checked&#x27;, String(active));
-
       el.tabIndex = active ? 0 : -1;
-
     }
-
     document.querySelector(&#x27;#rounded&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.rounded));
-
     document.querySelector(&#x27;#startup&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.startup));
-
-    busy = false;
-
-    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;false&#x27;);
-
+    panel.setAttribute(&#x27;aria-busy&#x27;, String(pending));
     const status = document.querySelector(&#x27;#status&#x27;);
-
-    status.textContent = message || &#x27;&#x27;;
-
+    status.textContent = message || (pending ? &#x27;Menerapkan…&#x27; : &#x27;&#x27;);
     status.classList.toggle(&#x27;error&#x27;, Boolean(message));
-
   }
-
-  window.senjaUpdate = render;
-
+  const commands = window.createSenjaCommands(state, render, command =&gt; send(&#x27;command&#x27;, command));
+  window.senjaUpdate = commands.acknowledge;
   document.addEventListener(&#x27;click&#x27;, event =&gt; {
-
     const action = event.target.closest(&#x27;button&#x27;);
-
     if (!action) return;
-
     if (action.dataset.action === &#x27;close&#x27;) { send(&#x27;close&#x27;); return; }
-
-    if (!action.dataset.command || busy || dismissing) return;
-
+    if (!action.dataset.command || dismissing) return;
     animatePress(action, event);
-
-    busy = true;
-
-    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;true&#x27;);
-
-    document.querySelector(&#x27;#status&#x27;).textContent = &#x27;Menerapkan…&#x27;;
-
-    send(&#x27;command&#x27;, Number(action.dataset.command));
-
+    const command = Number(action.dataset.command);
+    if (command &gt;= 100 &amp;&amp; command &lt;= 103) commands.choose(&#x27;style&#x27;, command - 99);
+    else if (command === 105) commands.choose(&#x27;rounded&#x27;, !state.rounded);
+    else if (command === 110) commands.choose(&#x27;startup&#x27;, !state.startup);
+    else commands.action(command);
   });
-
   document.addEventListener(&#x27;keydown&#x27;, event =&gt; {
-
     if (event.key === &#x27;Escape&#x27;) { event.preventDefault(); send(&#x27;close&#x27;); }
-
     if (event.key === &#x27;F5&#x27; || (event.ctrlKey &amp;&amp; event.key.toLowerCase() === &#x27;r&#x27;)) { event.preventDefault(); send(&#x27;reload&#x27;); }
-
     const radio = event.target.closest(&#x27;[role=&quot;radio&quot;]&#x27;);
-
     if (radio &amp;&amp; [&#x27;ArrowLeft&#x27;, &#x27;ArrowRight&#x27;, &#x27;ArrowUp&#x27;, &#x27;ArrowDown&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(event.key)) {
-
       event.preventDefault();
-
       const options = [...document.querySelectorAll(&#x27;[role=&quot;radio&quot;]&#x27;)];
-
       const index = options.indexOf(radio);
-
       let next = event.key === &#x27;Home&#x27; ? 0 : event.key === &#x27;End&#x27; ? options.length - 1 : (index + ([&#x27;ArrowLeft&#x27;, &#x27;ArrowUp&#x27;].includes(event.key) ? -1 : 1) + options.length) % options.length;
-
       options[next].focus(); options[next].click();
-
     }
-
   });
-
   render(state);
-
   send(&#x27;ready&#x27;);
-
 })();
-
-
-
-
-
 &lt;/script&gt;&lt;/body&gt;&lt;/html&gt;
-
-
-
-
-
-
-
-
-
 
 
 
@@ -545,11 +460,8 @@ html{background:transparent}body{background:#11151d}.panel{opacity:1;backdrop-fi
 
 
 "></iframe></section><section><h2>Color</h2><iframe title="Senja Color" srcdoc="&lt;!doctype html&gt;
-
 &lt;html lang=&quot;id&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
-
 &lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; style-src &#x27;unsafe-inline&#x27;; script-src &#x27;unsafe-inline&#x27;; img-src data:; font-src data:; connect-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
-
 &lt;title&gt;Senja — Tampilan taskbar&lt;/title&gt;&lt;style&gt;/* Senja — HyperOS-inspired control surface. Local CSS; no remote resources. */
 
 :root {
@@ -692,7 +604,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 :root { --ease-out: cubic-bezier(.215,.61,.355,1); }
 
-.panel { transform-origin: 50% 100%; opacity: 0; }
+.panel { opacity: 1; }
 
 .panel.entering { opacity: 1; }
 
@@ -704,7 +616,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 .style[aria-checked=&quot;true&quot;] .check { opacity: 1; transform: scale(1); }
 
-.switch { transition: background 280ms var(--ease-out); }
+.switch { transition: background 180ms var(--ease-out); }
 
 .setting, .action, .exit { position: relative; overflow: hidden; transition: background 180ms ease-out, color 180ms ease-out; }
 
@@ -716,35 +628,23 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 .style-grid { position: relative; isolation: isolate; }
 
-.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 420ms var(--ease-out); }
+.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 280ms var(--ease-out); }
 
 .style { z-index: 1; }
 
 .style[aria-checked=&quot;true&quot;], .style[aria-checked=&quot;true&quot;]:hover { background: transparent; border-color: transparent; }
 
-/* Native compositor handles opacity for the complete panel and its edges. */
-
-.panel.entering { will-change: transform; animation: smooth-arrive 300ms cubic-bezier(.215,.61,.355,1) both; }
-
-.panel.leaving { will-change: transform; animation: smooth-leave 200ms cubic-bezier(.215,.61,.355,1) both; }
-
-@keyframes smooth-arrive { from { opacity: 1; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
-
-@keyframes smooth-leave { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(10px) scale(.97); } }
-
-
-
-
+/* Native compositor handles whole-window opacity and movement together. */
 
 /* User-enabled Senja motion, including when Windows animations are disabled. */
 
 .switch::after { content: none; }
 
-.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 280ms cubic-bezier(.4,0,.2,1); }
+.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 180ms cubic-bezier(.4,0,.2,1); }
 
 .setting[aria-checked=&quot;true&quot;] .switch-thumb { transform: translateX(17px); }
 
-.selection-plate { transition: transform 420ms var(--ease-out); will-change: transform; }
+.selection-plate { transition: transform 280ms var(--ease-out); will-change: transform; }
 
 
 
@@ -811,277 +711,205 @@ footer { padding-top: 10px; }
 .update-action:not(:disabled) { cursor: pointer; }
 
 .update-action:not(:disabled):hover { background: rgb(255 255 255 / 14%); }
-
-
-
-html{background:transparent}body{background:linear-gradient(135deg,#3b558c,#894b75 60%,#b76a43)}.panel{opacity:1;backdrop-filter:blur(4px)}&lt;/style&gt;&lt;/head&gt;
-
+body{background:linear-gradient(135deg,#3b558c,#894b75 60%,#b76a43)}.panel{opacity:1;backdrop-filter:blur(4px)}&lt;/style&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;panel&quot; aria-label=&quot;Pengaturan Senja&quot;&gt;
-
 &lt;header class=&quot;brand&quot;&gt;&lt;svg class=&quot;logo&quot; viewBox=&quot;0 0 40 40&quot; aria-hidden=&quot;true&quot;&gt;&lt;path fill=&quot;currentColor&quot; d=&quot;M5 21a15 15 0 0 1 30 0H5Z&quot;/&gt;&lt;path d=&quot;M5 25h30M11 31h18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;3.5&quot; stroke-linecap=&quot;round&quot;/&gt;&lt;/svg&gt;&lt;div&gt;&lt;h1&gt;Senja&lt;/h1&gt;&lt;p&gt;Tampilan taskbar&lt;/p&gt;&lt;/div&gt;&lt;/header&gt;
-
 &lt;fieldset class=&quot;styles&quot;&gt;&lt;legend&gt;Pilih tampilan&lt;/legend&gt;&lt;div class=&quot;style-grid&quot; role=&quot;radiogroup&quot; aria-label=&quot;Gaya taskbar&quot;&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;100&quot; data-style=&quot;1&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;m7 15 5-6m0 6 5-6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Kaca&lt;/strong&gt;&lt;small&gt;Blur lembut&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;101&quot; data-style=&quot;2&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M7 9h10M7 12h10M7 15h6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Akrilik&lt;/strong&gt;&lt;small&gt;Blur lebih pekat&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;102&quot; data-style=&quot;3&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M8 9h3M8 12h8&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Bening&lt;/strong&gt;&lt;small&gt;Transparan penuh&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;103&quot; data-style=&quot;4&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M4 5h7v6H4zm9 0h7v6h-7zM4 13h7v6H4zm9 0h7v6h-7z&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Solid&lt;/strong&gt;&lt;small&gt;Gelap tanpa blur&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;/div&gt;&lt;/fieldset&gt;
-
 &lt;section class=&quot;preferences&quot; aria-label=&quot;Preferensi&quot;&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;105&quot; id=&quot;rounded&quot;&gt;&lt;span&gt;Sudut membulat&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;110&quot; id=&quot;startup&quot;&gt;&lt;span&gt;Mulai bersama Windows&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;/section&gt;
-
 &lt;section class=&quot;quick-actions&quot; aria-label=&quot;Tindakan aplikasi&quot;&gt;&lt;button class=&quot;action&quot; data-command=&quot;111&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M20 7v5h-5M4 17v-5h5M5.4 8a7 7 0 0 1 11.8-2L20 9M4 15l2.8 3A7 7 0 0 0 18.6 16&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Segarkan taskbar&lt;/span&gt;&lt;/button&gt;
-
 &lt;button class=&quot;action update-action&quot; data-command=&quot;112&quot; aria-label=&quot;Pembaruan: buka release terbaru&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Pembaruan&lt;/span&gt;&lt;small&gt;Release terbaru&lt;/small&gt;&lt;/button&gt;&lt;/section&gt;
-
 &lt;footer&gt;&lt;span class=&quot;save-status&quot; id=&quot;status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;&gt;&lt;/span&gt;&lt;button class=&quot;exit&quot; data-command=&quot;140&quot;&gt;Keluar&lt;/button&gt;&lt;/footer&gt;
+&lt;/main&gt;&lt;script&gt;window.__SENJA_STATE__={&quot;style&quot;: 1, &quot;rounded&quot;: true, &quot;startup&quot;: true};&lt;/script&gt;&lt;script&gt;let previewEngineState={...window.__SENJA_STATE__};
+window.chrome={webview:{postMessage(raw){const m=JSON.parse(raw);if(m.type===&#x27;command&#x27;){
+if(m.command&gt;=100&amp;&amp;m.command&lt;=103)previewEngineState.style=m.command-99;
+if(m.command===105)previewEngineState.rounded=!previewEngineState.rounded;
+if(m.command===110)previewEngineState.startup=!previewEngineState.startup;
+setTimeout(()=&gt;window.senjaUpdate({...previewEngineState}),180);
+}}}};// One in-flight engine command; rapid input keeps the latest desired state.
+// Shared by the shipped WebView and the dependency-free regression tests.
+(function (root) {
+  function createCommands(initial, paint, send) {
+    let confirmed = { ...initial }, desired = { ...initial }, pending = false;
+    let pendingField = null, pendingValue;
+    const fields = [&#x27;style&#x27;, &#x27;rounded&#x27;, &#x27;startup&#x27;];
+    const dirty = new Set(), actions = [];
+    function flush() {
+      if (pending) return;
+      let command;
+      pendingField = null;
+      for (const field of fields) {
+        if (desired[field] !== confirmed[field]) {
+          command = field === &#x27;style&#x27; ? desired.style + 99 : field === &#x27;rounded&#x27; ? 105 : 110;
+          pendingField = field; pendingValue = desired[field];
+          break;
+        }
+      }
+      if (command === undefined) command = actions.shift();
+      if (command === undefined) return;
+      pending = true;
+      paint({ ...desired }, &#x27;&#x27;, pending);
+      send(command);
+    }
+    return {
+      choose(field, value) {
+        if (!fields.includes(field)) return;
+        desired[field] = value;
+        dirty.add(field);
+        paint({ ...desired }, &#x27;&#x27;, pending);
+        flush();
+      },
+      action(command) {
+        if (command === 140) { send(command); return; }
+        if (!actions.includes(command)) actions.push(command);
+        flush();
+      },
+      acknowledge(next, error = &#x27;&#x27;) {
+        if (pendingField &amp;&amp; next[pendingField] !== pendingValue &amp;&amp; next[pendingField] !== desired[pendingField]) {
+          error ||= &#x27;Efek belum diterapkan. Coba lagi.&#x27;;
+        }
+        confirmed = { ...next };
+        pending = false;
+        pendingField = null;
+        for (const field of fields) {
+          if (!dirty.has(field) || error) desired[field] = next[field];
+          if (desired[field] === next[field]) dirty.delete(field);
+        }
+        if (error) { dirty.clear(); actions.length = 0; }
+        paint({ ...desired }, error, pending);
+        if (!error) flush();
+      },
+      reset(next) {
+        confirmed = { ...next }; desired = { ...next }; pending = false;
+        pendingField = null;
+        dirty.clear(); actions.length = 0;
+        paint({ ...desired }, &#x27;&#x27;, pending);
+      }
+    };
+  }
+  if (typeof module !== &#x27;undefined&#x27;) module.exports = createCommands;
+  else root.createSenjaCommands = createCommands;
+})(typeof window === &#x27;undefined&#x27; ? globalThis : window);
 
-&lt;/main&gt;&lt;script&gt;window.__SENJA_STATE__={&quot;style&quot;: 1, &quot;rounded&quot;: true, &quot;startup&quot;: true};&lt;/script&gt;&lt;script&gt;window.chrome={webview:{postMessage(raw){const m=JSON.parse(raw);if(m.type===&#x27;command&#x27;){const s={...window.__SENJA_STATE__};if(m.command&gt;=100&amp;&amp;m.command&lt;=103)s.style=m.command-99;if(m.command===105)s.rounded=!s.rounded;if(m.command===110)s.startup=!s.startup;window.senjaUpdate(s)}}}};(() =&gt; {
-
+(() =&gt; {
   const state = window.__SENJA_STATE__;
-
-  let busy = false;
-
   // The user explicitly enabled full motion in Senja, independently of
-
   // Windows&#x27; disabled animation setting. Leave the system setting untouched.
-
   const reducedMotion = { matches: false };
-
   const grid = document.querySelector(&#x27;.style-grid&#x27;);
-
   const plate = document.createElement(&#x27;i&#x27;);
-
   plate.className = &#x27;selection-plate&#x27;;
-
   plate.setAttribute(&#x27;aria-hidden&#x27;, &#x27;true&#x27;);
-
   grid.prepend(plate);
-
   let platePlaced = false;
-
   let plateGeometry = &quot;&quot;;
-
   function positionSelection() {
-
     const selected = grid.querySelector(`[data-style=&quot;${state.style}&quot;]`);
-
     if (!selected) return;
-
     const geometry = [selected.offsetLeft, selected.offsetTop, selected.offsetWidth, selected.offsetHeight];
-
     if (geometry.join(&#x27;,&#x27;) === plateGeometry) return;
-
     plateGeometry = geometry.join(&#x27;,&#x27;);
-
     if (!platePlaced) plate.style.transition = &#x27;none&#x27;;
-
     plate.style.width = `${geometry[2]}px`;
-
     plate.style.height = `${geometry[3]}px`;
-
     plate.style.transform = `translate(${geometry[0]}px, ${geometry[1]}px)`;
-
     if (!platePlaced) {
-
       platePlaced = true;
-
       requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt; plate.style.removeProperty(&#x27;transition&#x27;)));
-
     }
-
   }
-
   new ResizeObserver(positionSelection).observe(grid);
-
   const panel = document.querySelector(&#x27;.panel&#x27;);
-
   let revealed = false;
-
   let dismissing = false;
-
   window.senjaReveal = () =&gt; {
-
     if (revealed || dismissing) return;
-
     revealed = true;
-
     requestAnimationFrame(() =&gt; {
-
       if (dismissing) return;
-
       panel.classList.add(&#x27;entering&#x27;);
-
       send(&#x27;motion&#x27;);
-
     });
-
   };
-
   window.senjaDismiss = () =&gt; {
-
     if (dismissing) return;
-
     dismissing = true;
-
-    // Freeze the current presentation before reversing, including mid-entry.
-
-    const current = getComputedStyle(panel).transform;
-
-    const animation = panel.animate([
-
-      { transform: current === &#x27;none&#x27; ? &#x27;matrix(1,0,0,1,0,0)&#x27; : current },
-
-      { transform: &#x27;translateY(10px) scale(.97)&#x27; }
-
-    ], { duration: 200, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27;, fill: &#x27;forwards&#x27; });
-
+    // The native compositor moves and fades the whole window as one unit.
+    // Scaling HTML separately from its live backdrop creates edge judder.
     panel.style.pointerEvents = &#x27;none&#x27;;
-
-    panel.classList.remove(&#x27;entering&#x27;);
-
-    panel.style.opacity = &#x27;1&#x27;;
-
     send(&#x27;motion&#x27;);
-
-    animation.finished.catch(() =&gt; {});
-
   };
-
-  panel.addEventListener(&#x27;animationend&#x27;, () =&gt; panel.style.willChange = &#x27;auto&#x27;);
-
+  window.senjaReset = next =&gt; {
+    revealed = false;
+    dismissing = false;
+    panel.style.pointerEvents = &#x27;&#x27;;
+    panel.classList.remove(&#x27;entering&#x27;);
+    commands.reset(next);
+    window.senjaReveal();
+  };
   function animatePress(button, event) {
-
     if (button.getAttribute(&#x27;role&#x27;) === &#x27;switch&#x27;) return;
-
     if (reducedMotion.matches) return;
-
     button.animate([
-
       { transform: &#x27;scale(.98)&#x27;, offset: 0 },
-
       { transform: &#x27;scale(1)&#x27;, offset: 1 }
-
-    ], { duration: 220, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27; });
-
+    ], { duration: 140, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27; });
     if (button.dataset.command === &#x27;111&#x27;) {
-
-      button.querySelector(&#x27;svg&#x27;)?.animate([{ transform: &#x27;rotate(0deg)&#x27; }, { transform: &#x27;rotate(360deg)&#x27; }], { duration: 500, easing: &#x27;cubic-bezier(.16,1,.3,1)&#x27; });
-
+      button.querySelector(&#x27;svg&#x27;)?.animate([{ transform: &#x27;rotate(0deg)&#x27; }, { transform: &#x27;rotate(360deg)&#x27; }], { duration: 350, easing: &#x27;cubic-bezier(.16,1,.3,1)&#x27; });
     }
-
   }
-
   function send(type, command) {
-
     window.chrome?.webview?.postMessage(JSON.stringify({ type, command, reducedMotion: reducedMotion.matches }));
-
   }
-
-  function render(next, message = &#x27;&#x27;) {
-
+  function render(next, message = &#x27;&#x27;, pending = false) {
     Object.assign(state, next);
-
     positionSelection();
-
     for (const el of document.querySelectorAll(&#x27;[data-style]&#x27;)) {
-
       const active = Number(el.dataset.style) === state.style;
-
       el.setAttribute(&#x27;aria-checked&#x27;, String(active));
-
       el.tabIndex = active ? 0 : -1;
-
     }
-
     document.querySelector(&#x27;#rounded&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.rounded));
-
     document.querySelector(&#x27;#startup&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.startup));
-
-    busy = false;
-
-    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;false&#x27;);
-
+    panel.setAttribute(&#x27;aria-busy&#x27;, String(pending));
     const status = document.querySelector(&#x27;#status&#x27;);
-
-    status.textContent = message || &#x27;&#x27;;
-
+    status.textContent = message || (pending ? &#x27;Menerapkan…&#x27; : &#x27;&#x27;);
     status.classList.toggle(&#x27;error&#x27;, Boolean(message));
-
   }
-
-  window.senjaUpdate = render;
-
+  const commands = window.createSenjaCommands(state, render, command =&gt; send(&#x27;command&#x27;, command));
+  window.senjaUpdate = commands.acknowledge;
   document.addEventListener(&#x27;click&#x27;, event =&gt; {
-
     const action = event.target.closest(&#x27;button&#x27;);
-
     if (!action) return;
-
     if (action.dataset.action === &#x27;close&#x27;) { send(&#x27;close&#x27;); return; }
-
-    if (!action.dataset.command || busy || dismissing) return;
-
+    if (!action.dataset.command || dismissing) return;
     animatePress(action, event);
-
-    busy = true;
-
-    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;true&#x27;);
-
-    document.querySelector(&#x27;#status&#x27;).textContent = &#x27;Menerapkan…&#x27;;
-
-    send(&#x27;command&#x27;, Number(action.dataset.command));
-
+    const command = Number(action.dataset.command);
+    if (command &gt;= 100 &amp;&amp; command &lt;= 103) commands.choose(&#x27;style&#x27;, command - 99);
+    else if (command === 105) commands.choose(&#x27;rounded&#x27;, !state.rounded);
+    else if (command === 110) commands.choose(&#x27;startup&#x27;, !state.startup);
+    else commands.action(command);
   });
-
   document.addEventListener(&#x27;keydown&#x27;, event =&gt; {
-
     if (event.key === &#x27;Escape&#x27;) { event.preventDefault(); send(&#x27;close&#x27;); }
-
     if (event.key === &#x27;F5&#x27; || (event.ctrlKey &amp;&amp; event.key.toLowerCase() === &#x27;r&#x27;)) { event.preventDefault(); send(&#x27;reload&#x27;); }
-
     const radio = event.target.closest(&#x27;[role=&quot;radio&quot;]&#x27;);
-
     if (radio &amp;&amp; [&#x27;ArrowLeft&#x27;, &#x27;ArrowRight&#x27;, &#x27;ArrowUp&#x27;, &#x27;ArrowDown&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(event.key)) {
-
       event.preventDefault();
-
       const options = [...document.querySelectorAll(&#x27;[role=&quot;radio&quot;]&#x27;)];
-
       const index = options.indexOf(radio);
-
       let next = event.key === &#x27;Home&#x27; ? 0 : event.key === &#x27;End&#x27; ? options.length - 1 : (index + ([&#x27;ArrowLeft&#x27;, &#x27;ArrowUp&#x27;].includes(event.key) ? -1 : 1) + options.length) % options.length;
-
       options[next].focus(); options[next].click();
-
     }
-
   });
-
   render(state);
-
   send(&#x27;ready&#x27;);
-
 })();
-
-
-
-
-
 &lt;/script&gt;&lt;/body&gt;&lt;/html&gt;
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1091,11 +919,8 @@ html{background:transparent}body{background:linear-gradient(135deg,#3b558c,#894b
 
 
 "></iframe></section><section><h2>Light</h2><iframe title="Senja Light" srcdoc="&lt;!doctype html&gt;
-
 &lt;html lang=&quot;id&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
-
 &lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; style-src &#x27;unsafe-inline&#x27;; script-src &#x27;unsafe-inline&#x27;; img-src data:; font-src data:; connect-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
-
 &lt;title&gt;Senja — Tampilan taskbar&lt;/title&gt;&lt;style&gt;/* Senja — HyperOS-inspired control surface. Local CSS; no remote resources. */
 
 :root {
@@ -1238,7 +1063,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 :root { --ease-out: cubic-bezier(.215,.61,.355,1); }
 
-.panel { transform-origin: 50% 100%; opacity: 0; }
+.panel { opacity: 1; }
 
 .panel.entering { opacity: 1; }
 
@@ -1250,7 +1075,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 .style[aria-checked=&quot;true&quot;] .check { opacity: 1; transform: scale(1); }
 
-.switch { transition: background 280ms var(--ease-out); }
+.switch { transition: background 180ms var(--ease-out); }
 
 .setting, .action, .exit { position: relative; overflow: hidden; transition: background 180ms ease-out, color 180ms ease-out; }
 
@@ -1262,35 +1087,23 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 .style-grid { position: relative; isolation: isolate; }
 
-.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 420ms var(--ease-out); }
+.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 280ms var(--ease-out); }
 
 .style { z-index: 1; }
 
 .style[aria-checked=&quot;true&quot;], .style[aria-checked=&quot;true&quot;]:hover { background: transparent; border-color: transparent; }
 
-/* Native compositor handles opacity for the complete panel and its edges. */
-
-.panel.entering { will-change: transform; animation: smooth-arrive 300ms cubic-bezier(.215,.61,.355,1) both; }
-
-.panel.leaving { will-change: transform; animation: smooth-leave 200ms cubic-bezier(.215,.61,.355,1) both; }
-
-@keyframes smooth-arrive { from { opacity: 1; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
-
-@keyframes smooth-leave { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(10px) scale(.97); } }
-
-
-
-
+/* Native compositor handles whole-window opacity and movement together. */
 
 /* User-enabled Senja motion, including when Windows animations are disabled. */
 
 .switch::after { content: none; }
 
-.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 280ms cubic-bezier(.4,0,.2,1); }
+.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 180ms cubic-bezier(.4,0,.2,1); }
 
 .setting[aria-checked=&quot;true&quot;] .switch-thumb { transform: translateX(17px); }
 
-.selection-plate { transition: transform 420ms var(--ease-out); will-change: transform; }
+.selection-plate { transition: transform 280ms var(--ease-out); will-change: transform; }
 
 
 
@@ -1357,277 +1170,205 @@ footer { padding-top: 10px; }
 .update-action:not(:disabled) { cursor: pointer; }
 
 .update-action:not(:disabled):hover { background: rgb(255 255 255 / 14%); }
-
-
-
-html{background:transparent}body{background:linear-gradient(135deg,#cbdfe8,#e6cddc)}.panel{opacity:1;backdrop-filter:blur(4px)}&lt;/style&gt;&lt;/head&gt;
-
+body{background:linear-gradient(135deg,#cbdfe8,#e6cddc)}.panel{opacity:1;backdrop-filter:blur(4px)}&lt;/style&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;panel&quot; aria-label=&quot;Pengaturan Senja&quot;&gt;
-
 &lt;header class=&quot;brand&quot;&gt;&lt;svg class=&quot;logo&quot; viewBox=&quot;0 0 40 40&quot; aria-hidden=&quot;true&quot;&gt;&lt;path fill=&quot;currentColor&quot; d=&quot;M5 21a15 15 0 0 1 30 0H5Z&quot;/&gt;&lt;path d=&quot;M5 25h30M11 31h18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;3.5&quot; stroke-linecap=&quot;round&quot;/&gt;&lt;/svg&gt;&lt;div&gt;&lt;h1&gt;Senja&lt;/h1&gt;&lt;p&gt;Tampilan taskbar&lt;/p&gt;&lt;/div&gt;&lt;/header&gt;
-
 &lt;fieldset class=&quot;styles&quot;&gt;&lt;legend&gt;Pilih tampilan&lt;/legend&gt;&lt;div class=&quot;style-grid&quot; role=&quot;radiogroup&quot; aria-label=&quot;Gaya taskbar&quot;&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;100&quot; data-style=&quot;1&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;m7 15 5-6m0 6 5-6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Kaca&lt;/strong&gt;&lt;small&gt;Blur lembut&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;101&quot; data-style=&quot;2&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M7 9h10M7 12h10M7 15h6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Akrilik&lt;/strong&gt;&lt;small&gt;Blur lebih pekat&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;102&quot; data-style=&quot;3&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M8 9h3M8 12h8&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Bening&lt;/strong&gt;&lt;small&gt;Transparan penuh&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;103&quot; data-style=&quot;4&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M4 5h7v6H4zm9 0h7v6h-7zM4 13h7v6H4zm9 0h7v6h-7z&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Solid&lt;/strong&gt;&lt;small&gt;Gelap tanpa blur&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
-
 &lt;/div&gt;&lt;/fieldset&gt;
-
 &lt;section class=&quot;preferences&quot; aria-label=&quot;Preferensi&quot;&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;105&quot; id=&quot;rounded&quot;&gt;&lt;span&gt;Sudut membulat&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;110&quot; id=&quot;startup&quot;&gt;&lt;span&gt;Mulai bersama Windows&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;/section&gt;
-
 &lt;section class=&quot;quick-actions&quot; aria-label=&quot;Tindakan aplikasi&quot;&gt;&lt;button class=&quot;action&quot; data-command=&quot;111&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M20 7v5h-5M4 17v-5h5M5.4 8a7 7 0 0 1 11.8-2L20 9M4 15l2.8 3A7 7 0 0 0 18.6 16&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Segarkan taskbar&lt;/span&gt;&lt;/button&gt;
-
 &lt;button class=&quot;action update-action&quot; data-command=&quot;112&quot; aria-label=&quot;Pembaruan: buka release terbaru&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Pembaruan&lt;/span&gt;&lt;small&gt;Release terbaru&lt;/small&gt;&lt;/button&gt;&lt;/section&gt;
-
 &lt;footer&gt;&lt;span class=&quot;save-status&quot; id=&quot;status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;&gt;&lt;/span&gt;&lt;button class=&quot;exit&quot; data-command=&quot;140&quot;&gt;Keluar&lt;/button&gt;&lt;/footer&gt;
+&lt;/main&gt;&lt;script&gt;window.__SENJA_STATE__={&quot;style&quot;: 1, &quot;rounded&quot;: true, &quot;startup&quot;: true};&lt;/script&gt;&lt;script&gt;let previewEngineState={...window.__SENJA_STATE__};
+window.chrome={webview:{postMessage(raw){const m=JSON.parse(raw);if(m.type===&#x27;command&#x27;){
+if(m.command&gt;=100&amp;&amp;m.command&lt;=103)previewEngineState.style=m.command-99;
+if(m.command===105)previewEngineState.rounded=!previewEngineState.rounded;
+if(m.command===110)previewEngineState.startup=!previewEngineState.startup;
+setTimeout(()=&gt;window.senjaUpdate({...previewEngineState}),180);
+}}}};// One in-flight engine command; rapid input keeps the latest desired state.
+// Shared by the shipped WebView and the dependency-free regression tests.
+(function (root) {
+  function createCommands(initial, paint, send) {
+    let confirmed = { ...initial }, desired = { ...initial }, pending = false;
+    let pendingField = null, pendingValue;
+    const fields = [&#x27;style&#x27;, &#x27;rounded&#x27;, &#x27;startup&#x27;];
+    const dirty = new Set(), actions = [];
+    function flush() {
+      if (pending) return;
+      let command;
+      pendingField = null;
+      for (const field of fields) {
+        if (desired[field] !== confirmed[field]) {
+          command = field === &#x27;style&#x27; ? desired.style + 99 : field === &#x27;rounded&#x27; ? 105 : 110;
+          pendingField = field; pendingValue = desired[field];
+          break;
+        }
+      }
+      if (command === undefined) command = actions.shift();
+      if (command === undefined) return;
+      pending = true;
+      paint({ ...desired }, &#x27;&#x27;, pending);
+      send(command);
+    }
+    return {
+      choose(field, value) {
+        if (!fields.includes(field)) return;
+        desired[field] = value;
+        dirty.add(field);
+        paint({ ...desired }, &#x27;&#x27;, pending);
+        flush();
+      },
+      action(command) {
+        if (command === 140) { send(command); return; }
+        if (!actions.includes(command)) actions.push(command);
+        flush();
+      },
+      acknowledge(next, error = &#x27;&#x27;) {
+        if (pendingField &amp;&amp; next[pendingField] !== pendingValue &amp;&amp; next[pendingField] !== desired[pendingField]) {
+          error ||= &#x27;Efek belum diterapkan. Coba lagi.&#x27;;
+        }
+        confirmed = { ...next };
+        pending = false;
+        pendingField = null;
+        for (const field of fields) {
+          if (!dirty.has(field) || error) desired[field] = next[field];
+          if (desired[field] === next[field]) dirty.delete(field);
+        }
+        if (error) { dirty.clear(); actions.length = 0; }
+        paint({ ...desired }, error, pending);
+        if (!error) flush();
+      },
+      reset(next) {
+        confirmed = { ...next }; desired = { ...next }; pending = false;
+        pendingField = null;
+        dirty.clear(); actions.length = 0;
+        paint({ ...desired }, &#x27;&#x27;, pending);
+      }
+    };
+  }
+  if (typeof module !== &#x27;undefined&#x27;) module.exports = createCommands;
+  else root.createSenjaCommands = createCommands;
+})(typeof window === &#x27;undefined&#x27; ? globalThis : window);
 
-&lt;/main&gt;&lt;script&gt;window.__SENJA_STATE__={&quot;style&quot;: 1, &quot;rounded&quot;: true, &quot;startup&quot;: true};&lt;/script&gt;&lt;script&gt;window.chrome={webview:{postMessage(raw){const m=JSON.parse(raw);if(m.type===&#x27;command&#x27;){const s={...window.__SENJA_STATE__};if(m.command&gt;=100&amp;&amp;m.command&lt;=103)s.style=m.command-99;if(m.command===105)s.rounded=!s.rounded;if(m.command===110)s.startup=!s.startup;window.senjaUpdate(s)}}}};(() =&gt; {
-
+(() =&gt; {
   const state = window.__SENJA_STATE__;
-
-  let busy = false;
-
   // The user explicitly enabled full motion in Senja, independently of
-
   // Windows&#x27; disabled animation setting. Leave the system setting untouched.
-
   const reducedMotion = { matches: false };
-
   const grid = document.querySelector(&#x27;.style-grid&#x27;);
-
   const plate = document.createElement(&#x27;i&#x27;);
-
   plate.className = &#x27;selection-plate&#x27;;
-
   plate.setAttribute(&#x27;aria-hidden&#x27;, &#x27;true&#x27;);
-
   grid.prepend(plate);
-
   let platePlaced = false;
-
   let plateGeometry = &quot;&quot;;
-
   function positionSelection() {
-
     const selected = grid.querySelector(`[data-style=&quot;${state.style}&quot;]`);
-
     if (!selected) return;
-
     const geometry = [selected.offsetLeft, selected.offsetTop, selected.offsetWidth, selected.offsetHeight];
-
     if (geometry.join(&#x27;,&#x27;) === plateGeometry) return;
-
     plateGeometry = geometry.join(&#x27;,&#x27;);
-
     if (!platePlaced) plate.style.transition = &#x27;none&#x27;;
-
     plate.style.width = `${geometry[2]}px`;
-
     plate.style.height = `${geometry[3]}px`;
-
     plate.style.transform = `translate(${geometry[0]}px, ${geometry[1]}px)`;
-
     if (!platePlaced) {
-
       platePlaced = true;
-
       requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt; plate.style.removeProperty(&#x27;transition&#x27;)));
-
     }
-
   }
-
   new ResizeObserver(positionSelection).observe(grid);
-
   const panel = document.querySelector(&#x27;.panel&#x27;);
-
   let revealed = false;
-
   let dismissing = false;
-
   window.senjaReveal = () =&gt; {
-
     if (revealed || dismissing) return;
-
     revealed = true;
-
     requestAnimationFrame(() =&gt; {
-
       if (dismissing) return;
-
       panel.classList.add(&#x27;entering&#x27;);
-
       send(&#x27;motion&#x27;);
-
     });
-
   };
-
   window.senjaDismiss = () =&gt; {
-
     if (dismissing) return;
-
     dismissing = true;
-
-    // Freeze the current presentation before reversing, including mid-entry.
-
-    const current = getComputedStyle(panel).transform;
-
-    const animation = panel.animate([
-
-      { transform: current === &#x27;none&#x27; ? &#x27;matrix(1,0,0,1,0,0)&#x27; : current },
-
-      { transform: &#x27;translateY(10px) scale(.97)&#x27; }
-
-    ], { duration: 200, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27;, fill: &#x27;forwards&#x27; });
-
+    // The native compositor moves and fades the whole window as one unit.
+    // Scaling HTML separately from its live backdrop creates edge judder.
     panel.style.pointerEvents = &#x27;none&#x27;;
-
-    panel.classList.remove(&#x27;entering&#x27;);
-
-    panel.style.opacity = &#x27;1&#x27;;
-
     send(&#x27;motion&#x27;);
-
-    animation.finished.catch(() =&gt; {});
-
   };
-
-  panel.addEventListener(&#x27;animationend&#x27;, () =&gt; panel.style.willChange = &#x27;auto&#x27;);
-
+  window.senjaReset = next =&gt; {
+    revealed = false;
+    dismissing = false;
+    panel.style.pointerEvents = &#x27;&#x27;;
+    panel.classList.remove(&#x27;entering&#x27;);
+    commands.reset(next);
+    window.senjaReveal();
+  };
   function animatePress(button, event) {
-
     if (button.getAttribute(&#x27;role&#x27;) === &#x27;switch&#x27;) return;
-
     if (reducedMotion.matches) return;
-
     button.animate([
-
       { transform: &#x27;scale(.98)&#x27;, offset: 0 },
-
       { transform: &#x27;scale(1)&#x27;, offset: 1 }
-
-    ], { duration: 220, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27; });
-
+    ], { duration: 140, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27; });
     if (button.dataset.command === &#x27;111&#x27;) {
-
-      button.querySelector(&#x27;svg&#x27;)?.animate([{ transform: &#x27;rotate(0deg)&#x27; }, { transform: &#x27;rotate(360deg)&#x27; }], { duration: 500, easing: &#x27;cubic-bezier(.16,1,.3,1)&#x27; });
-
+      button.querySelector(&#x27;svg&#x27;)?.animate([{ transform: &#x27;rotate(0deg)&#x27; }, { transform: &#x27;rotate(360deg)&#x27; }], { duration: 350, easing: &#x27;cubic-bezier(.16,1,.3,1)&#x27; });
     }
-
   }
-
   function send(type, command) {
-
     window.chrome?.webview?.postMessage(JSON.stringify({ type, command, reducedMotion: reducedMotion.matches }));
-
   }
-
-  function render(next, message = &#x27;&#x27;) {
-
+  function render(next, message = &#x27;&#x27;, pending = false) {
     Object.assign(state, next);
-
     positionSelection();
-
     for (const el of document.querySelectorAll(&#x27;[data-style]&#x27;)) {
-
       const active = Number(el.dataset.style) === state.style;
-
       el.setAttribute(&#x27;aria-checked&#x27;, String(active));
-
       el.tabIndex = active ? 0 : -1;
-
     }
-
     document.querySelector(&#x27;#rounded&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.rounded));
-
     document.querySelector(&#x27;#startup&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.startup));
-
-    busy = false;
-
-    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;false&#x27;);
-
+    panel.setAttribute(&#x27;aria-busy&#x27;, String(pending));
     const status = document.querySelector(&#x27;#status&#x27;);
-
-    status.textContent = message || &#x27;&#x27;;
-
+    status.textContent = message || (pending ? &#x27;Menerapkan…&#x27; : &#x27;&#x27;);
     status.classList.toggle(&#x27;error&#x27;, Boolean(message));
-
   }
-
-  window.senjaUpdate = render;
-
+  const commands = window.createSenjaCommands(state, render, command =&gt; send(&#x27;command&#x27;, command));
+  window.senjaUpdate = commands.acknowledge;
   document.addEventListener(&#x27;click&#x27;, event =&gt; {
-
     const action = event.target.closest(&#x27;button&#x27;);
-
     if (!action) return;
-
     if (action.dataset.action === &#x27;close&#x27;) { send(&#x27;close&#x27;); return; }
-
-    if (!action.dataset.command || busy || dismissing) return;
-
+    if (!action.dataset.command || dismissing) return;
     animatePress(action, event);
-
-    busy = true;
-
-    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;true&#x27;);
-
-    document.querySelector(&#x27;#status&#x27;).textContent = &#x27;Menerapkan…&#x27;;
-
-    send(&#x27;command&#x27;, Number(action.dataset.command));
-
+    const command = Number(action.dataset.command);
+    if (command &gt;= 100 &amp;&amp; command &lt;= 103) commands.choose(&#x27;style&#x27;, command - 99);
+    else if (command === 105) commands.choose(&#x27;rounded&#x27;, !state.rounded);
+    else if (command === 110) commands.choose(&#x27;startup&#x27;, !state.startup);
+    else commands.action(command);
   });
-
   document.addEventListener(&#x27;keydown&#x27;, event =&gt; {
-
     if (event.key === &#x27;Escape&#x27;) { event.preventDefault(); send(&#x27;close&#x27;); }
-
     if (event.key === &#x27;F5&#x27; || (event.ctrlKey &amp;&amp; event.key.toLowerCase() === &#x27;r&#x27;)) { event.preventDefault(); send(&#x27;reload&#x27;); }
-
     const radio = event.target.closest(&#x27;[role=&quot;radio&quot;]&#x27;);
-
     if (radio &amp;&amp; [&#x27;ArrowLeft&#x27;, &#x27;ArrowRight&#x27;, &#x27;ArrowUp&#x27;, &#x27;ArrowDown&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(event.key)) {
-
       event.preventDefault();
-
       const options = [...document.querySelectorAll(&#x27;[role=&quot;radio&quot;]&#x27;)];
-
       const index = options.indexOf(radio);
-
       let next = event.key === &#x27;Home&#x27; ? 0 : event.key === &#x27;End&#x27; ? options.length - 1 : (index + ([&#x27;ArrowLeft&#x27;, &#x27;ArrowUp&#x27;].includes(event.key) ? -1 : 1) + options.length) % options.length;
-
       options[next].focus(); options[next].click();
-
     }
-
   });
-
   render(state);
-
   send(&#x27;ready&#x27;);
-
 })();
-
-
-
-
-
 &lt;/script&gt;&lt;/body&gt;&lt;/html&gt;
-
-
-
-
-
-
-
-
-
 
 
 

@@ -71,6 +71,13 @@ func main() {
 	}
 	cfg := loadConfig()
 	startup := isStartupEnabled()
+	if startup {
+		// A self-contained release can move the engine to a new versioned
+		// folder. Preserve the enabled preference, updating only its path.
+		if err := setStartup(true); err != nil {
+			logError("startup.path", "cannot refresh startup path", err)
+		}
+	}
 	if cfg.startup != startup {
 		cfg.startup = startup
 		_ = saveConfig(cfg)

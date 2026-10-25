@@ -19,6 +19,9 @@ jobs:
         with:
           go-version: '1.25.x'
           cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Validate and package
         shell: pwsh
         env:
@@ -27,12 +30,15 @@ jobs:
           $version = $env:RELEASE_VERSION.TrimStart('v')
           go test ./cmd/samar
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
+          node --test scripts/test-menu-commands.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Menu command tests failed' }
           ./scripts/package-release.ps1 -Version $version
       - uses: actions/upload-artifact@v4
         with:
           name: Senja-Bar-windows-x64
           path: |
             dist/Senja-Bar-windows-x64.zip
+            dist/Senja-Bar.exe
             dist/SHA256SUMS.txt
             dist/TranslucentTB-*-source.zip
       - name: Publish tagged release
@@ -43,9 +49,9 @@ jobs:
         run: |
           gh release view $env:GITHUB_REF_NAME *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload $env:GITHUB_REF_NAME dist/Senja-Bar-windows-x64.zip dist/SHA256SUMS.txt dist/TranslucentTB-*-source.zip --clobber
+            gh release upload $env:GITHUB_REF_NAME dist/Senja-Bar.exe dist/Senja-Bar-windows-x64.zip dist/SHA256SUMS.txt dist/TranslucentTB-*-source.zip --clobber
           } else {
-            gh release create $env:GITHUB_REF_NAME dist/Senja-Bar-windows-x64.zip dist/SHA256SUMS.txt dist/TranslucentTB-*-source.zip --verify-tag --title "Senja Bar $env:GITHUB_REF_NAME" --notes-file CHANGELOG.md
+            gh release create $env:GITHUB_REF_NAME dist/Senja-Bar.exe dist/Senja-Bar-windows-x64.zip dist/SHA256SUMS.txt dist/TranslucentTB-*-source.zip --verify-tag --title "Senja Bar $env:GITHUB_REF_NAME" --notes-file RELEASE_NOTES.md
           }
           if ($LASTEXITCODE -ne 0) { throw 'Release publish failed' }
 

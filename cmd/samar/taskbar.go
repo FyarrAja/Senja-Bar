@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -21,6 +22,29 @@ type guid struct {
 // Neutral tint lets the live compositor backdrop supply every hue.
 const glassTintABGR = 0x14000000
 const acrylicTintABGR = 0x40000000
+
+type tapSurfaceState struct {
+	host                   int
+	hostKnown, borderKnown bool
+	border                 uintptr
+}
+
+var tapSurfaces = make(map[syscall.Handle]tapSurfaceState)
+
+func invalidateTAPSurfaces() { clear(tapSurfaces) }
+
+func setTAPBorder(hwnd syscall.Handle, function, border uintptr) bool {
+	state := tapSurfaces[hwnd]
+	if state.borderKnown && state.border == border {
+		return true
+	}
+	if !tapCall(function, tapServicePtr, uintptr(hwnd), border) {
+		return false
+	}
+	state.border, state.borderKnown = border, true
+	tapSurfaces[hwnd] = state
+	return true
+}
 
 var (
 	lastStyleApplyOK bool
@@ -172,8 +196,13 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 		if style == styleNormal {
 			hostStyle = styleNormal
 		}
-		if !setNativeAccent(hwnd, hostStyle) {
-			return false
+		surface := tapSurfaces[hwnd]
+		if !surface.hostKnown || surface.host != hostStyle {
+			if !setNativeAccent(hwnd, hostStyle) {
+				return false
+			}
+			surface.host, surface.hostKnown = hostStyle, true
+			tapSurfaces[hwnd] = surface
 		}
 		vtable := *(*uintptr)(unsafe.Pointer(tapServicePtr))
 		setAppearanceFn := *(*uintptr)(unsafe.Pointer(vtable + 3*unsafe.Sizeof(uintptr(0))))
@@ -183,14 +212,14 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 
 		switch style {
 		case styleSolid:
-			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 1, 0xff151515) || !tapCall(setBorderFn, tapServicePtr, uintptr(hwnd), 1) {
+			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 1, 0xff151515) || !setTAPBorder(hwnd, setBorderFn, 1) {
 				return false
 			}
 			applyRounding(hwnd, rounded)
 			return true
 		case styleNormal:
 			// Normal: Restore default Windows 11 taskbar appearance & border
-			if !tapCall(returnDefaultFn, tapServicePtr, uintptr(hwnd)) || !tapCall(setBorderFn, tapServicePtr, uintptr(hwnd), 1) {
+			if !tapCall(returnDefaultFn, tapServicePtr, uintptr(hwnd)) || !setTAPBorder(hwnd, setBorderFn, 1) {
 				return false
 			}
 			applyRounding(hwnd, false)
@@ -204,7 +233,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 			}
 			blurBits := uintptr(math.Float32bits(radius))
 			color := uintptr(glassTintABGR)
-			if !tapCall(setBlurFn, tapServicePtr, uintptr(hwnd), color, blurBits) || !tapCall(setBorderFn, tapServicePtr, uintptr(hwnd), 1) {
+			if !tapCall(setBlurFn, tapServicePtr, uintptr(hwnd), color, blurBits) || !setTAPBorder(hwnd, setBorderFn, 1) {
 				return false
 			}
 			applyRounding(hwnd, rounded)
@@ -214,7 +243,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 			// Senja Acrylic: Fluent acrylic material with subtle texture & tint
 			color := uintptr(acrylicTintABGR)
 			// ExplorerTAP TaskbarBrush: Acrylic=0, SolidColor=1.
-			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 0, color) || !tapCall(setBorderFn, tapServicePtr, uintptr(hwnd), 1) {
+			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 0, color) || !setTAPBorder(hwnd, setBorderFn, 1) {
 				return false
 			}
 			applyRounding(hwnd, rounded)
@@ -222,7 +251,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 
 		case styleClear:
 			// Senja Bening: 100% Transparent taskbar without top border
-			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 1, 0) || !tapCall(setBorderFn, tapServicePtr, uintptr(hwnd), 0) {
+			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 1, 0) || !setTAPBorder(hwnd, setBorderFn, 0) {
 				return false
 			}
 			applyRounding(hwnd, rounded)
@@ -261,11 +290,13 @@ func applyStyle(style int) {
 }
 
 func reapplyStyleSilently(style int) {
+	invalidateTAPSurfaces()
 	rounded := globalConfig != nil && globalConfig.rounded
 	applyStyleInternal(style, rounded, false)
 }
 
 func applyStyleInternal(style int, rounded bool, verbose bool) {
+	started := time.Now()
 	lastStyleApplyOK = false
 	defer recoverPanic("applyStyle")
 	if !validStyle(style) {
@@ -295,7 +326,7 @@ func applyStyleInternal(style int, rounded bool, verbose bool) {
 		processStyle = style
 		styleApplied = style != styleNormal
 		if verbose {
-			logEvent("INFO", "taskbar.applyStyle", fmt.Sprintf("style=%d (rounded=%t) applied to %d taskbar window(s)", style, rounded, success))
+			logEvent("INFO", "taskbar.applyStyle", fmt.Sprintf("style=%d (rounded=%t) applied to %d taskbar window(s) elapsed=%s", style, rounded, success, time.Since(started).Round(time.Millisecond)))
 		}
 	} else if verbose {
 		logEvent("ERROR", "taskbar.applyStyle", fmt.Sprintf("style=%d partially applied success=%d total=%d", style, success, len(windows)))

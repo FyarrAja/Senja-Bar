@@ -1,6 +1,5 @@
 (() => {
   const state = window.__SENJA_STATE__;
-  let busy = false;
   // The user explicitly enabled full motion in Senja, independently of
   // Windows' disabled animation setting. Leave the system setting untouched.
   const reducedMotion = { matches: false };
@@ -42,34 +41,34 @@
   window.senjaDismiss = () => {
     if (dismissing) return;
     dismissing = true;
-    // Freeze the current presentation before reversing, including mid-entry.
-    const current = getComputedStyle(panel).transform;
-    const animation = panel.animate([
-      { transform: current === 'none' ? 'matrix(1,0,0,1,0,0)' : current },
-      { transform: 'translateY(10px) scale(.97)' }
-    ], { duration: 200, easing: 'cubic-bezier(.215,.61,.355,1)', fill: 'forwards' });
+    // The native compositor moves and fades the whole window as one unit.
+    // Scaling HTML separately from its live backdrop creates edge judder.
     panel.style.pointerEvents = 'none';
-    panel.classList.remove('entering');
-    panel.style.opacity = '1';
     send('motion');
-    animation.finished.catch(() => {});
   };
-  panel.addEventListener('animationend', () => panel.style.willChange = 'auto');
+  window.senjaReset = next => {
+    revealed = false;
+    dismissing = false;
+    panel.style.pointerEvents = '';
+    panel.classList.remove('entering');
+    commands.reset(next);
+    window.senjaReveal();
+  };
   function animatePress(button, event) {
     if (button.getAttribute('role') === 'switch') return;
     if (reducedMotion.matches) return;
     button.animate([
       { transform: 'scale(.98)', offset: 0 },
       { transform: 'scale(1)', offset: 1 }
-    ], { duration: 220, easing: 'cubic-bezier(.215,.61,.355,1)' });
+    ], { duration: 140, easing: 'cubic-bezier(.215,.61,.355,1)' });
     if (button.dataset.command === '111') {
-      button.querySelector('svg')?.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 500, easing: 'cubic-bezier(.16,1,.3,1)' });
+      button.querySelector('svg')?.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 350, easing: 'cubic-bezier(.16,1,.3,1)' });
     }
   }
   function send(type, command) {
     window.chrome?.webview?.postMessage(JSON.stringify({ type, command, reducedMotion: reducedMotion.matches }));
   }
-  function render(next, message = '') {
+  function render(next, message = '', pending = false) {
     Object.assign(state, next);
     positionSelection();
     for (const el of document.querySelectorAll('[data-style]')) {
@@ -79,23 +78,24 @@
     }
     document.querySelector('#rounded').setAttribute('aria-checked', String(state.rounded));
     document.querySelector('#startup').setAttribute('aria-checked', String(state.startup));
-    busy = false;
-    for (const el of document.querySelectorAll('[data-command]')) el.setAttribute('aria-disabled', 'false');
+    panel.setAttribute('aria-busy', String(pending));
     const status = document.querySelector('#status');
-    status.textContent = message || '';
+    status.textContent = message || (pending ? 'Menerapkan…' : '');
     status.classList.toggle('error', Boolean(message));
   }
-  window.senjaUpdate = render;
+  const commands = window.createSenjaCommands(state, render, command => send('command', command));
+  window.senjaUpdate = commands.acknowledge;
   document.addEventListener('click', event => {
     const action = event.target.closest('button');
     if (!action) return;
     if (action.dataset.action === 'close') { send('close'); return; }
-    if (!action.dataset.command || busy || dismissing) return;
+    if (!action.dataset.command || dismissing) return;
     animatePress(action, event);
-    busy = true;
-    for (const el of document.querySelectorAll('[data-command]')) el.setAttribute('aria-disabled', 'true');
-    document.querySelector('#status').textContent = 'Menerapkan…';
-    send('command', Number(action.dataset.command));
+    const command = Number(action.dataset.command);
+    if (command >= 100 && command <= 103) commands.choose('style', command - 99);
+    else if (command === 105) commands.choose('rounded', !state.rounded);
+    else if (command === 110) commands.choose('startup', !state.startup);
+    else commands.action(command);
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); send('close'); }

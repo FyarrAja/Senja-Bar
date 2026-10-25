@@ -7,6 +7,28 @@ import (
 	"testing"
 )
 
+func TestTAPBorderAvoidsRedundantCOMCallsAndRetriesFailures(t *testing.T) {
+	original := tapSurfaces
+	tapSurfaces = make(map[syscall.Handle]tapSurfaceState)
+	defer func() { tapSurfaces = original }()
+	calls := 0
+	success := syscall.NewCallback(func(_, _, _ uintptr) uintptr { calls++; return 0 })
+	failure := syscall.NewCallback(func(_, _, _ uintptr) uintptr { calls++; return 0x80004005 })
+	if !setTAPBorder(123, success, 1) || !setTAPBorder(123, success, 1) || calls != 1 {
+		t.Fatal("unchanged border was reapplied")
+	}
+	if setTAPBorder(123, failure, 0) || calls != 2 {
+		t.Fatal("failure accepted or skipped")
+	}
+	if !setTAPBorder(123, success, 0) || calls != 3 {
+		t.Fatal("failed state was cached")
+	}
+	invalidateTAPSurfaces()
+	if !setTAPBorder(123, success, 0) || calls != 4 {
+		t.Fatal("theme refresh did not invalidate cache")
+	}
+}
+
 func TestTAPCallRejectsCOMFailure(t *testing.T) {
 	success := syscall.NewCallback(func() uintptr { return 0 })
 	inputSyncFailure := syscall.NewCallback(func() uintptr { return 0x8001010d })

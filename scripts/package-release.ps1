@@ -29,10 +29,19 @@ try {
     }
     $zip=Join-Path $out 'Senja-Bar-windows-x64.zip'
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -Force
+    # One downloadable EXE: extract the portable bundle once per version,
+    # start the native engine, and exit the launcher immediately.
+    Copy-Item -LiteralPath $zip -Destination (Join-Path $root 'cmd/launcher/payload.zip') -Force
+    Copy-Item -LiteralPath (Join-Path $root 'cmd/samar/resource.syso') -Destination (Join-Path $root 'cmd/launcher/resource.syso') -Force
+    & $GoExe test ./cmd/launcher
+    if ($LASTEXITCODE -ne 0) { throw 'Launcher tests failed' }
+    & $GoExe build -tags bundled -trimpath -ldflags="-s -w -H=windowsgui -X main.buildVersion=$Version" -o (Join-Path $out 'Senja-Bar.exe') ./cmd/launcher
+    if ($LASTEXITCODE -ne 0) { throw 'Standalone EXE build failed' }
     $sourceZip=Join-Path $out ('TranslucentTB-'+$manifest.version+'-source.zip')
     Invoke-WebRequest -Uri $manifest.source -OutFile $sourceZip
     $hash=(Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
     $sourceHash=(Get-FileHash -LiteralPath $sourceZip -Algorithm SHA256).Hash.ToLowerInvariant()
-    Set-Content -LiteralPath (Join-Path $out 'SHA256SUMS.txt') -Value @("$hash  Senja-Bar-windows-x64.zip", "$sourceHash  $([IO.Path]::GetFileName($sourceZip))") -Encoding ascii
+    $exeHash=(Get-FileHash -LiteralPath (Join-Path $out 'Senja-Bar.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
+    Set-Content -LiteralPath (Join-Path $out 'SHA256SUMS.txt') -Value @("$exeHash  Senja-Bar.exe", "$hash  Senja-Bar-windows-x64.zip", "$sourceHash  $([IO.Path]::GetFileName($sourceZip))") -Encoding ascii
     Write-Output $zip
 } finally { Pop-Location }

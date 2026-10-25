@@ -140,7 +140,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 :root { --ease-out: cubic-bezier(.215,.61,.355,1); }
 
-.panel { transform-origin: 50% 100%; opacity: 0; }
+.panel { opacity: 1; }
 
 .panel.entering { opacity: 1; }
 
@@ -152,7 +152,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 .style[aria-checked="true"] .check { opacity: 1; transform: scale(1); }
 
-.switch { transition: background 280ms var(--ease-out); }
+.switch { transition: background 180ms var(--ease-out); }
 
 .setting, .action, .exit { position: relative; overflow: hidden; transition: background 180ms ease-out, color 180ms ease-out; }
 
@@ -164,35 +164,23 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 
 .style-grid { position: relative; isolation: isolate; }
 
-.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 420ms var(--ease-out); }
+.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 280ms var(--ease-out); }
 
 .style { z-index: 1; }
 
 .style[aria-checked="true"], .style[aria-checked="true"]:hover { background: transparent; border-color: transparent; }
 
-/* Native compositor handles opacity for the complete panel and its edges. */
-
-.panel.entering { will-change: transform; animation: smooth-arrive 300ms cubic-bezier(.215,.61,.355,1) both; }
-
-.panel.leaving { will-change: transform; animation: smooth-leave 200ms cubic-bezier(.215,.61,.355,1) both; }
-
-@keyframes smooth-arrive { from { opacity: 1; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
-
-@keyframes smooth-leave { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(10px) scale(.97); } }
-
-
-
-
+/* Native compositor handles whole-window opacity and movement together. */
 
 /* User-enabled Senja motion, including when Windows animations are disabled. */
 
 .switch::after { content: none; }
 
-.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 280ms cubic-bezier(.4,0,.2,1); }
+.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 180ms cubic-bezier(.4,0,.2,1); }
 
 .setting[aria-checked="true"] .switch-thumb { transform: translateX(17px); }
 
-.selection-plate { transition: transform 420ms var(--ease-out); will-change: transform; }
+.selection-plate { transition: transform 280ms var(--ease-out); will-change: transform; }
 
 
 

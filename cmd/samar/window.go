@@ -19,9 +19,13 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		// Posted, never sent: COM cannot call Explorer from an input-synchronous
 		// SendMessage handler (RPC_E_CANTCALLOUT_ININPUTSYNCCALL).
 		if globalConfig != nil && !shuttingDown && validCSSCommand(uint32(wParam)) {
+			startupBefore := globalConfig.startup
 			selectCommand(syscall.Handle(hwnd), uint32(wParam), globalConfig)
 			status := uintptr(0)
 			if (wParam >= cmdStyleGlass && wParam <= cmdStyleSolid || wParam == cmdRounded || wParam == cmdRefresh) && !lastStyleApplyOK {
+				status = 1
+			}
+			if wParam == cmdStartup && globalConfig.startup == startupBefore {
 				status = 1
 			}
 			postMessageW.Call(lParam, wmCSSResult, status, 0)
@@ -106,6 +110,7 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		return 0
 	}
 	if taskbarMsg != 0 && message == taskbarMsg && globalConfig != nil && !shuttingDown {
+		invalidateTAPSurfaces()
 		reinstallTrayIcon(syscall.Handle(hwnd))
 		applyStyle(globalConfig.style)
 		return 0

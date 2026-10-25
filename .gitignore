@@ -8,3 +8,5 @@ settings.ini
 .idea/
 .DS_Store
 Thumbs.db
+cmd/launcher/payload.zip
+cmd/launcher/resource.syso

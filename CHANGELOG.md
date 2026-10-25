@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.1 — 2026-10-25
+
+- Single downloadable EXE with automatic extraction and no resident launcher.
+- One native timeline moves and fades the popup, without competing HTML scaling.
+- Reapply the rounded clip after native material setup.
+- Install dismissal hooks after WebView startup; recognize renamed Explorer hosts, client hide and cloaking events.
+- Preserve enabled startup registration when moving to a new version folder.
+- Short bilingual release notes with a direct EXE download.
+- Immediate mode/toggle feedback with engine acknowledgements, rollback on failure, and coalesced rapid input.
+- Faster finite transitions and a two-second hidden reopen cache, released automatically afterward.
+- Avoid redundant taskbar-host and border resets; theme changes and refresh invalidate the cache.
+
 ## 1.1.0 — 2026-10-25
 
 - Live neutral menu glass replaces the frozen desktop snapshot; no screen capture or PNG encoding on the CSS path.
