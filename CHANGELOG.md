@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.2 — 2026-10-26
+
+- Native per-pixel-alpha menu removes the opaque rectangular backing without WebView2. The panel is translucent; menu backdrop blur remains unfinished. Taskbar Glass/Acrylic effects are unchanged.
+- Animated selection, switches and popup fades; asynchronous engine commands with coalescing and rollback.
+- Adaptive text/surface contrast for bright and dark backdrops, using four unobstructed corner samples only while the panel is open.
+- Continuous antialiased panel outline without a second hard window-region clip; raster coverage verified at 100%, 125%, 150% and 200% scaling.
+- Refined exit button, vector action icons and mode selection without checkmarks.
+- In-app update button checks the latest stable GitHub release, downloads and verifies its EXE against SHA256SUMS.txt, then installs without opening a browser. Current/newer versions are retained; failed downloads leave the running installation intact.
+- HTTP/download work runs in a separate on-demand updater, with progress in the menu and no background polling.
+- Package the editable CSS override from the current embedded stylesheet instead of a stale duplicate.
+
 ## 1.1.1 — 2026-10-25
 
 - Single downloadable EXE with automatic extraction and no resident launcher.

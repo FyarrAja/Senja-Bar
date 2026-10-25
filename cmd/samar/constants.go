@@ -3,18 +3,21 @@
 package main
 
 const (
-	wmDestroy      = 0x0002
-	wmClose        = 0x0010
-	wmCommand      = 0x0111
-	wmApp          = 0x8000
-	wmTray         = wmApp + 1
-	wmShowMenu     = wmApp + 2
-	wmBeginUpdate  = wmApp + 3
-	wmUpdateResult = wmApp + 4
-	wmNull         = 0x0000
-	wmRButtonUp    = 0x0205
-	wmLButtonUp    = 0x0202
-	wmLButtonDbl   = 0x0203
+	wmDestroy          = 0x0002
+	wmClose            = 0x0010
+	wmCommand          = 0x0111
+	wmApp              = 0x8000
+	wmTray             = wmApp + 1
+	wmShowMenu         = wmApp + 2
+	wmBeginUpdate      = wmApp + 3
+	wmUpdateResult     = wmApp + 4
+	wmUpdatePhase      = wmApp + 61
+	wmUpdateQuery      = wmApp + 62
+	wmUpdateWorkerDone = wmApp + 63
+	wmNull             = 0x0000
+	wmRButtonUp        = 0x0205
+	wmLButtonUp        = 0x0202
+	wmLButtonDbl       = 0x0203
 
 	wsExToolWindow = 0x00000080
 	wsExNoActivate = 0x08000000

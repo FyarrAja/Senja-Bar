@@ -2,7 +2,7 @@
 
 :root {
 
-  color-scheme: dark;
+  color-scheme: normal;
 
   --accent: #4388ff;
 
@@ -10,7 +10,7 @@
 
   --muted: #e8ebf2;
 
-  --surface: rgb(12 13 15 / 72%);
+  --surface: rgb(12 13 15 / 18%);
 
   --radius: 28px;
 

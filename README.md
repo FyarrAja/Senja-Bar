@@ -6,7 +6,7 @@ Glass taskbar, simple controls. / Taskbar kaca, kontrol simpel.
 
 ![Senja Bar GUI preview](docs/preview.png)
 
-*GUI web preview from the same menu source; Windows renders the native backdrop. / Preview web dari sumber menu yang sama; latar kaca native dirender Windows.*
+*Design reference. The native menu uses live translucency; menu backdrop blur is not implemented. / Referensi desain. Menu native memakai transparansi langsung; blur latar menu belum diterapkan.*
 
 ## Indonesia
 
@@ -14,7 +14,7 @@ Senja Bar mengubah tampilan taskbar Windows dengan empat mode: **Kaca**, **Akril
 
 Ada sudut membulat, mulai bersama Windows, segarkan taskbar, dan tombol pembaruan. Menu tetap terbuka saat mengganti mode, lalu menutup saat tray ditutup atau kamu klik di luar. Keluar dari aplikasi mengembalikan taskbar Windows.
 
-**Pasang:** unduh **Senja-Bar.exe**, lalu buka. File pendamping disiapkan otomatis tanpa akses admin; launcher langsung keluar setelah mesin Senja berjalan. ZIP portable juga tersedia. Klik kanan ikon senja di tray untuk membuka menu. **Pembaruan** membuka [rilis terbaru](https://github.com/FyarrAja/Senja-Bar/releases/latest); unduh dan buka EXE baru untuk mengganti versi yang sedang berjalan. Pengaturan tersimpan di `%LOCALAPPDATA%\Senja\settings.ini`.
+**Pasang:** unduh **Senja-Bar.exe**, lalu buka. File pendamping disiapkan otomatis tanpa akses admin; launcher langsung keluar setelah mesin Senja berjalan. ZIP portable juga tersedia. Klik kanan ikon senja di tray untuk membuka menu. **Pembaruan** mengecek rilis terbaru, mengunduh dan memverifikasi EXE, lalu memasangnya langsung tanpa membuka browser. Versi yang sama atau lebih lama tidak dipasang ulang. Pengaturan tersimpan di `%LOCALAPPDATA%\Senja\settings.ini`.
 
 ## English
 
@@ -22,13 +22,13 @@ Senja Bar gives the Windows taskbar four looks: **Glass**, **Acrylic**, **Clear*
 
 Includes rounded corners, launch at startup, refresh and release updates. Changing modes keeps the menu open; dismissing the tray or clicking outside closes it. Exiting restores the Windows taskbar.
 
-**Install:** download **Senja-Bar.exe** and open it. Companion files are prepared automatically without administrator access; the launcher exits after starting the native engine. A portable ZIP is also available. Right-click the sunset tray icon. **Pembaruan** opens the [latest release](https://github.com/FyarrAja/Senja-Bar/releases/latest); download and open the new EXE to replace the running version. User settings are preserved.
+**Install:** download **Senja-Bar.exe** and open it. Companion files are prepared automatically without administrator access; the launcher exits after starting the native engine. A portable ZIP is also available. Right-click the sunset tray icon. **Pembaruan** checks the latest release, downloads and verifies its EXE, then installs it directly without opening a browser. Equal or older versions are skipped. User settings are preserved.
 
 ## Requirements & performance
 
-Windows x64 + Microsoft Edge WebView2 Runtime. Primarily tested on Windows 11; Windows 10 compatibility is not fully verified. Releases are unsigned.
+Windows x64. Version 1.1.2 uses a native menu without WebView2; older releases and the legacy CSS comparison require it. Primarily tested on Windows 11; Windows 10 compatibility is not fully verified. Releases are unsigned. The native menu supports keyboard navigation; screen-reader integration is not yet implemented.
 
-The native engine waits for Windows events. WebView2 uses additional memory while the menu is open and for a two-second quick-reopen cache, then exits. No idle capture, animation loop or periodic full-GC loop. Memory varies by system; 1–2 MB is not a total-memory guarantee. See [architecture](docs/ARCHITECTURE.md).
+The native engine waits for Windows events. The panel helper exits after dismissal, with no resident WebView2. Background contrast sampling runs only while the panel is open; animation work stops after each transition. The updater runs only when requested and exits after completion. Memory varies by system; 1–2 MB is not a total-memory guarantee. See [architecture](docs/ARCHITECTURE.md).
 
 ## Open source
 

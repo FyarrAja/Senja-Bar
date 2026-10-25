@@ -11,6 +11,16 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--native-menu" {
+		if !runNativeGlassPanel(false) {
+			os.Exit(1)
+		}
+		return
+	}
+	if len(os.Args) > 1 && (os.Args[1] == "--native-preview" || os.Args[1] == "--native-check") {
+		runNativeGlassPreview()
+		return
+	}
 	if len(os.Args) > 1 && (os.Args[1] == "--css-menu" || os.Args[1] == "--css-preview" || os.Args[1] == "--css-check") {
 		if err := runCSSMenu(os.Args[1] != "--css-menu"); err != nil {
 			fmt.Fprintln(os.Stderr, err)

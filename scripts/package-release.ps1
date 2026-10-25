@@ -13,12 +13,17 @@ try {
     & (Join-Path $PSScriptRoot 'generate-resources.ps1') -GoExe $GoExe -Version $Version
     & $GoExe build -trimpath -ldflags="-s -w -H=windowsgui -X main.buildVersion=$Version" -o (Join-Path $stage 'Senja.exe') ./cmd/samar
     if ($LASTEXITCODE -ne 0) { throw 'Release build failed' }
+    & $GoExe build -trimpath -ldflags="-s -w -H=windowsgui" -o (Join-Path $stage 'Senja-Update.exe') ./cmd/updater
+    if ($LASTEXITCODE -ne 0) { throw 'Updater build failed' }
     foreach ($file in @('ExplorerTAP.dll','ExplorerHooks.dll','ProgramLog.dll','Xaml.dll','resources.pri','senja.ico','LICENSE','NOTICE','TRADEMARKS.md','README.md','CHANGELOG.md')) {
         Copy-Item -LiteralPath (Join-Path $root $file) -Destination $stage
     }
-    foreach ($file in @('icon.svg','icon.png','senja.ico','menu.css')) {
+    foreach ($file in @('icon.svg','icon.png','senja.ico')) {
         Copy-Item -LiteralPath (Join-Path $root ('Assets/'+$file)) -Destination (Join-Path $stage 'Assets')
     }
+    # The editable installed override must start from the embedded source.
+    # Shipping the repository's old override silently hides new CSS fixes.
+    Copy-Item -LiteralPath (Join-Path $root 'cmd/samar/ui/menu.css') -Destination (Join-Path $stage 'Assets/menu.css')
     foreach ($file in @('THIRD_PARTY_NOTICES.txt','DEPENDENCIES.json','BUILD.md','ARCHITECTURE.md','preview.png')) {
         Copy-Item -LiteralPath (Join-Path $root ('docs/'+$file)) -Destination (Join-Path $stage 'docs')
     }

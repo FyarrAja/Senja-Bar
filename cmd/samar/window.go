@@ -15,6 +15,19 @@ func requestExit(hwnd syscall.Handle) {
 func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) uintptr {
 	defer recoverPanic("window procedure")
 	switch message {
+	case wmUpdatePhase:
+		if updateRunning {
+			setUpdatePhase(uint32(wParam))
+		}
+		return 0
+	case wmUpdateQuery:
+		return uintptr(updatePhase)
+	case wmUpdateWorkerDone:
+		updateRunning = false
+		if wParam != 0 && updatePhase != 5 {
+			setUpdatePhase(5)
+		}
+		return 0
 	case wmCSSCommand:
 		// Posted, never sent: COM cannot call Explorer from an input-synchronous
 		// SendMessage handler (RPC_E_CANTCALLOUT_ININPUTSYNCCALL).

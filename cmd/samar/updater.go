@@ -5,10 +5,13 @@ package main
 import (
 	"archive/zip"
 	"fmt"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"unsafe"
 )
 
@@ -20,18 +23,55 @@ type parsedVersion struct {
 
 var (
 	updateMu sync.Mutex
+	// Written only by the engine's window thread. Protocol phases match the
+	// isolated updater; importing its HTTP client here would burden idle startup.
+	updatePhase   uint32
+	updateRunning bool
 )
 
 func scheduleUpdateChecks(cfg *config) {
-	logEvent("INFO", "updater", "safe build: remote update checks disabled")
+	logEvent("INFO", "updater", "updates run on demand only")
 }
 
 func startUpdateCheckManually() {
-	url := latestReleaseURL()
-	result, _, err := shell32.NewProc("ShellExecuteW").Call(0, uintptr(unsafe.Pointer(utf16ptr("open"))), uintptr(unsafe.Pointer(utf16ptr(url))), 0, 0, 1)
-	if result <= 32 {
-		logError("updater.open", "cannot open releases page", err)
-		postUpdateResult("Buka halaman pembaruan:\n" + url)
+	if updateRunning {
+		return
+	}
+	exe, err := os.Executable()
+	if err != nil {
+		postUpdateResult(err.Error())
+		return
+	}
+	helper := filepath.Join(filepath.Dir(exe), "Senja-Update.exe")
+	command := exec.Command(helper, buildVersion)
+	command.Dir = filepath.Dir(exe)
+	command.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	if err = command.Start(); err != nil {
+		setUpdatePhase(5)
+		postUpdateResult("Pembaruan tidak dapat dimulai.\n" + err.Error())
+		return
+	}
+	updateRunning = true
+	setUpdatePhase(1)
+	hwnd := uintptr(mainHwnd)
+	go func() {
+		code := uintptr(0)
+		if err := command.Wait(); err != nil {
+			code = 1
+		}
+		postMessageW.Call(hwnd, wmUpdateWorkerDone, code, 0)
+	}()
+}
+
+func setUpdatePhase(phase uint32) {
+	if phase > 5 {
+		return
+	}
+	updatePhase = phase
+	logEvent("INFO", "updater.phase", fmt.Sprintf("phase=%d", phase))
+	hwnd, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(cssMenuClass))), 0)
+	if hwnd != 0 {
+		postMessageW.Call(hwnd, wmUpdatePhase, uintptr(phase), 0)
 	}
 }
 

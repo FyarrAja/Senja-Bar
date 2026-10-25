@@ -311,7 +311,7 @@ func launchCSSMenu(parent syscall.Handle) bool {
 		postMessageW.Call(h, wmCSSToggle, packed, overflow)
 		return true
 	}
-	child := exec.Command(exe, "--css-menu", strconv.Itoa(int(cursor.x)), strconv.Itoa(int(cursor.y)), strconv.FormatUint(uint64(overflow), 10))
+	child := exec.Command(exe, "--native-menu", strconv.Itoa(int(cursor.x)), strconv.Itoa(int(cursor.y)), strconv.FormatUint(uint64(overflow), 10))
 	child.Dir = filepath.Dir(exe)
 	child.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	if overflow == 0 {

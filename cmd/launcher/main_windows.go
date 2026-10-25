@@ -73,7 +73,7 @@ func unpack(data []byte, root string) error {
 			return closeErr
 		}
 	}
-	for _, name := range []string{"Senja.exe", "ExplorerTAP.dll", "ExplorerHooks.dll", "ProgramLog.dll", "Xaml.dll", "resources.pri", "Assets/menu.css", "LICENSE"} {
+	for _, name := range []string{"Senja.exe", "Senja-Update.exe", "ExplorerTAP.dll", "ExplorerHooks.dll", "ProgramLog.dll", "Xaml.dll", "resources.pri", "Assets/menu.css", "LICENSE"} {
 		info, err := os.Stat(filepath.Join(root, filepath.FromSlash(name)))
 		if err != nil || !info.Mode().IsRegular() || info.Size() == 0 {
 			return fmt.Errorf("missing package file: %s", name)

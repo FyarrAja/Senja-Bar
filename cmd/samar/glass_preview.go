@@ -40,6 +40,12 @@ func glassPreviewProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uint
 		dc, _, _ := user32.NewProc("BeginPaint").Call(hwnd, uintptr(unsafe.Pointer(&paint)))
 		var client rect
 		user32.NewProc("GetClientRect").Call(hwnd, uintptr(unsafe.Pointer(&client)))
+		if len(os.Args) > 3 && os.Args[3] == "--light" {
+			paintMenuFill(dc, client, 0xf3f5fa, 0)
+			paintMenuText(dc, "Senja · light backdrop test", rect{30, 20, client.right - 30, 54}, 22, 600, 0x18202d)
+			user32.NewProc("EndPaint").Call(hwnd, uintptr(unsafe.Pointer(&paint)))
+			return 0
+		}
 		paintMenuFill(dc, client, 0x243c68, 0)
 		paintMenuFill(dc, rect{client.right / 2, 0, client.right, client.bottom}, 0x9b576c, 0)
 		paintMenuFill(dc, rect{0, client.bottom / 2, client.right / 2, client.bottom}, 0x286f78, 0)
