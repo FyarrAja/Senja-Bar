@@ -1,149 +1,261 @@
 /* Senja — HyperOS-inspired control surface. Local CSS; no remote resources. */
+
 :root {
+
   color-scheme: dark;
+
   --accent: #4388ff;
+
   --ink: #f6f7fa;
-  --muted: #d2d6df;
-  --surface: rgb(18 18 20 / 26%);
+
+  --muted: #e8ebf2;
+
+  --surface: rgb(12 13 15 / 72%);
+
   --radius: 28px;
+
   --font: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+
 }
+
 * { box-sizing: border-box; }
-html { height: 100%; background: #141416; }
-body { margin: 0; height: 100%; color: var(--ink); font: 13px/1.4 var(--font); background: var(--desktop, #171719); background-size: 100% 100%; }
+
+html { height: 100%; background: transparent; }
+
+body { margin: 0; height: 100%; color: var(--ink); font: 13px/1.4 var(--font); background: var(--desktop, transparent); background-size: 100% 100%; }
+
 button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
 button[aria-disabled="true"] { cursor: wait; }
+
 button:focus-visible { outline: 2px solid #b6d2ff; outline-offset: 3px; }
+
 button:focus:not(:focus-visible) { outline: none; }
+
 svg { display: block; width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+
 ::selection { background: #4388ff; color: white; }
+
 ::-webkit-scrollbar { width: 4px; }
+
 ::-webkit-scrollbar-thumb { background: #71757e; border-radius: 4px; }
-.panel { height: 100%; padding: 18px 20px 12px; overflow-y: auto; background: var(--surface); border: 1px solid transparent; border-radius: var(--radius); backdrop-filter: blur(4px) saturate(108%); }
+
+.panel { height: 100%; padding: 18px 20px 12px; overflow-y: auto; background: var(--surface); border: 1px solid transparent; border-radius: var(--radius);  }
+
 .brand { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; min-height: 44px; }
+
 .logo { width: 38px; height: 38px; color: #ffc66b; stroke: none; }
+
 h1 { margin: 0; font-size: 27px; line-height: 1.1; letter-spacing: -.03em; font-weight: 650; }
+
 .brand p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+
 .styles { margin: 0; padding: 0; border: 0; min-width: 0; }
+
 legend { margin: 0 0 10px; padding: 0; color: var(--muted); font-size: 12px; font-weight: 500; }
+
 .style-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
 .style { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; min-height: 96px; padding: 12px 15px; text-align: left; border: 1px solid rgb(255 255 255 / 9%); border-radius: 23px; background: rgb(255 255 255 / 8%); transition: background 140ms ease-out, border-color 140ms ease-out; }
+
 .style:hover { background: rgb(255 255 255 / 14%); border-color: rgb(255 255 255 / 20%); }
+
 .style:active { background: rgb(255 255 255 / 18%); }
+
 .style-icon { width: 27px; height: 27px; color: #edf0f6; stroke-width: 1.8; }
+
 .style strong { display: block; font-size: 14px; line-height: 18px; font-weight: 600; }
+
 .style small { display: block; margin-top: 2px; font-size: 10px; line-height: 13px; color: var(--muted); white-space: nowrap; }
+
 .check { display: none; position: absolute; top: 13px; right: 13px; width: 16px; height: 16px; padding: 2px; border-radius: 50%; background: rgb(255 255 255 / 20%); stroke-width: 2.3; }
+
 .style[aria-checked="true"] { color: white; background: rgb(47 119 244 / 92%); border-color: rgb(170 205 255 / 45%); }
+
 .style[aria-checked="true"]:hover { background: rgb(66 138 255 / 96%); }
+
 .style[aria-checked="true"] .style-icon, .style[aria-checked="true"] small { color: white; }
+
 .style[aria-checked="true"] .check { display: block; }
+
 .preferences { margin-top: 14px; padding: 4px 13px; background: rgb(255 255 255 / 6%); border-radius: 22px; }
+
 .setting { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 7px 0; border: 0; background: transparent; text-align: left; font-size: 12px; }
+
 .setting + .setting { border-top: 1px solid rgb(255 255 255 / 6%); }
+
 .setting:hover { color: #c5dcff; }
+
 .switch { display: block; position: relative; width: 42px; height: 25px; flex-shrink: 0; background: rgb(195 203 220 / 27%); border-radius: 14px; transition: background 140ms ease-out; }
+
 .switch::after { content: ""; position: absolute; left: 3px; top: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transition: transform 140ms ease-out; }
+
 .setting[aria-checked="true"] .switch { background: var(--accent); }
+
 .setting[aria-checked="true"] .switch::after { transform: translateX(17px); }
+
 .action { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 42px; margin-top: 10px; padding: 9px 12px; border: 0; border-radius: 17px; background: rgb(255 255 255 / 8%); font-size: 12px; font-weight: 500; }
+
 .action svg { width: 17px; height: 17px; }
+
 .action:hover { background: rgb(255 255 255 / 14%); }
+
 .update-note { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 0 8px; color: var(--muted); font-size: 9px; line-height: 13px; }
+
 .update-note svg { width: 12px; height: 12px; }
+
 footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; }
+
 .save-status { color: #e3e6ed; font-size: 11px; line-height: 16px; font-weight: 400; }
+
 .save-status.error { color: #ffc3c3; }
+
 .exit { padding: 6px 11px; border: 0; border-radius: 12px; background: rgb(255 255 255 / 5%); font-size: 12px; line-height: 16px; font-weight: 500; }
+
 .exit:hover { color: #ffc3c3; background: rgb(255 255 255 / 7%); }
+
 @media (max-width: 330px) { .panel { padding-inline: 15px; } .style { padding-inline: 12px; } .setting { font-size: 11px; } }
+
+
 
 @media (forced-colors: active) { .panel, .style, .preferences, .action { border: 1px solid CanvasText; } .style[aria-checked="true"], .switch { background: Highlight; color: HighlightText; } }
 
 
+
+
+
 /* Inset the antialiased edge so the native window region cannot cut it. */
+
 .panel::before { content: ''; position: fixed; inset: 1px; z-index: 5; border: 1px solid rgb(255 255 255 / 23%); border-radius: calc(var(--radius) - 1px); pointer-events: none; }
+
 @media (forced-colors: active) { .panel::before { border-color: CanvasText; } }
 
 
 
-/* Finite spring motion, triggered only after the native window is shown. */
-:root { --ease-out: cubic-bezier(.16, 1, .3, 1); --spring: cubic-bezier(.2, .9, .25, 1); }
-.panel { transform-origin: 32% 100%; opacity: 0; }
-.panel.entering { opacity: 1; animation: iphone-arrive 540ms linear both; }
-.panel.leaving { pointer-events: none; animation: iphone-leave 220ms cubic-bezier(.4,0,.8,.4) both; }
-@keyframes iphone-arrive {
-  0% { opacity: 0; transform: translateY(34px) scale(.82); filter: blur(3px); }
-  28% { opacity: 1; filter: blur(0); }
-  60% { transform: translateY(-2px) scale(1.008); }
-  80% { transform: translateY(1px) scale(.997); }
-  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-}
-@keyframes iphone-leave { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: translateY(22px) scale(.9); } }
-.style { overflow: hidden; transition: transform 320ms var(--spring), background 300ms var(--ease-out), border-color 300ms var(--ease-out); }
-.style:hover { transform: translateY(-2px); }
-.style:active { transform: scale(.945); }
-.style-icon { transition: transform 360ms var(--spring), color 220ms ease-out; }
-.style[aria-checked="true"] .style-icon { transform: scale(1.08); }
-.check { display: block; opacity: 0; transform: scale(.4); transition: opacity 180ms ease-out, transform 360ms var(--spring); }
+
+
+
+
+/* One finite motion system; no overshoot, filters or competing springs. */
+
+:root { --ease-out: cubic-bezier(.215,.61,.355,1); }
+
+.panel { transform-origin: 50% 100%; opacity: 0; }
+
+.panel.entering { opacity: 1; }
+
+.panel.leaving { pointer-events: none; }
+
+.style { overflow: hidden; transition: background 180ms ease-out, border-color 180ms ease-out; }
+
+.check { display: block; opacity: 0; transform: scale(.7); transition: opacity 180ms ease-out, transform 240ms var(--ease-out); }
+
 .style[aria-checked="true"] .check { opacity: 1; transform: scale(1); }
+
 .switch { transition: background 280ms var(--ease-out); }
-.switch::after { transition: transform 360ms var(--spring), width 180ms var(--ease-out); }
-.setting:active .switch::after { width: 22px; }
-.setting, .action, .exit { position: relative; overflow: hidden; transition: background 240ms var(--ease-out), color 200ms ease-out, transform 300ms var(--spring); }
+
+.setting, .action, .exit { position: relative; overflow: hidden; transition: background 180ms ease-out, color 180ms ease-out; }
+
 .setting { border-radius: 12px; }
-.action:hover { transform: translateY(-1px); }
-.action:active, .exit:active { transform: scale(.95); }
+
 
 
 /* Selection travels as one continuous surface instead of two color flashes. */
+
 .style-grid { position: relative; isolation: isolate; }
-.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 420ms cubic-bezier(.2,.85,.2,1), width 300ms ease-out, height 300ms ease-out; }
+
+.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 420ms var(--ease-out); }
+
 .style { z-index: 1; }
+
 .style[aria-checked="true"], .style[aria-checked="true"]:hover { background: transparent; border-color: transparent; }
+
 /* Native compositor handles opacity for the complete panel and its edges. */
-.panel.entering { animation: smooth-arrive 360ms cubic-bezier(.16,1,.3,1) both; }
-.panel.leaving { animation: smooth-leave 220ms cubic-bezier(.4,0,.8,.4) both; }
+
+.panel.entering { will-change: transform; animation: smooth-arrive 300ms cubic-bezier(.215,.61,.355,1) both; }
+
+.panel.leaving { will-change: transform; animation: smooth-leave 200ms cubic-bezier(.215,.61,.355,1) both; }
+
 @keyframes smooth-arrive { from { opacity: 1; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
+
 @keyframes smooth-leave { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(10px) scale(.97); } }
 
 
+
+
+
 /* User-enabled Senja motion, including when Windows animations are disabled. */
+
 .switch::after { content: none; }
+
 .switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 280ms cubic-bezier(.4,0,.2,1); }
+
 .setting[aria-checked="true"] .switch-thumb { transform: translateX(17px); }
-.selection-plate { transition: transform 460ms cubic-bezier(.22,1,.36,1), width 320ms ease-out, height 320ms ease-out; }
+
+.selection-plate { transition: transform 420ms var(--ease-out); will-change: transform; }
+
+
+
+
 
 
 
 /* Quiet footer with a centered, translucent red exit action. */
+
 footer { position: relative; justify-content: center; padding-top: 4px; }
+
 .save-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
 .save-status.error { position: static; width: auto; height: auto; clip-path: none; white-space: normal; color: #ffc3c3; font-size: 10px; }
+
 footer:has(.save-status.error) { flex-wrap: wrap; }
+
 .exit { min-width: 108px; padding: 6px 20px; border: 1px solid rgb(255 111 122 / 18%); border-radius: 14px; color: #ffb3bc; background: rgb(231 57 80 / 14%); font-size: 12px; line-height: 16px; font-weight: 500; }
+
 .exit:hover { color: #ffd0d6; background: rgb(231 57 80 / 24%); }
+
 .exit:active { background: rgb(231 57 80 / 30%); }
 
-.update-action { margin-top: 4px; min-height: 30px; padding-block: 6px; font-size: 11px; background: rgb(255 255 255 / 4%); color: #cbd0da; cursor: default; }
-.update-action small { font-size: 9px; font-weight: 400; color: #cbd0da; }
+
+
+.update-action { margin-top: 4px; min-height: 30px; padding-block: 6px; font-size: 11px; background: rgb(255 255 255 / 4%); color: var(--muted); cursor: default; }
+
+.update-action small { font-size: 9px; font-weight: 400; color: var(--muted); }
+
 .update-action:disabled { cursor: default; }
+
 .update-action:disabled:hover, .update-action:disabled:active { transform: none; background: rgb(255 255 255 / 4%); }
+
 footer { padding-top: 4px; }
+
+
 
 .panel { padding-bottom: 8px; }
 
 
+
+
+
 /* Equal-width actions keep the complete menu within its fixed viewport. */
+
 .quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+
 .quick-actions .action { min-width: 0; min-height: 48px; margin: 0; padding: 8px; gap: 5px; border-radius: 17px; font-size: 11px; line-height: 15px; }
+
 .quick-actions .action svg { width: 16px; height: 16px; }
+
 .quick-actions .update-action { flex-wrap: wrap; align-content: center; column-gap: 5px; row-gap: 0; }
+
 .quick-actions .update-action small { flex-basis: 100%; font-size: 9px; line-height: 12px; text-align: center; }
+
 .panel { scrollbar-width: none; }
+
 .panel::-webkit-scrollbar { display: none; width: 0; }
+
 footer { padding-top: 10px; }
 
-.update-action:not(:disabled) { cursor: pointer; }
-.update-action:not(:disabled):hover { background: rgb(255 255 255 / 14%); }
 
+
+.update-action:not(:disabled) { cursor: pointer; }
+
+.update-action:not(:disabled):hover { background: rgb(255 255 255 / 14%); }

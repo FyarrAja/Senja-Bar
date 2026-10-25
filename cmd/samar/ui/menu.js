@@ -10,32 +10,58 @@
   plate.setAttribute('aria-hidden', 'true');
   grid.prepend(plate);
   let platePlaced = false;
+  let plateGeometry = "";
   function positionSelection() {
     const selected = grid.querySelector(`[data-style="${state.style}"]`);
     if (!selected) return;
+    const geometry = [selected.offsetLeft, selected.offsetTop, selected.offsetWidth, selected.offsetHeight];
+    if (geometry.join(',') === plateGeometry) return;
+    plateGeometry = geometry.join(',');
     if (!platePlaced) plate.style.transition = 'none';
-    plate.style.width = `${selected.offsetWidth}px`;
-    plate.style.height = `${selected.offsetHeight}px`;
-    plate.style.transform = `translate(${selected.offsetLeft}px, ${selected.offsetTop}px)`;
+    plate.style.width = `${geometry[2]}px`;
+    plate.style.height = `${geometry[3]}px`;
+    plate.style.transform = `translate(${geometry[0]}px, ${geometry[1]}px)`;
     if (!platePlaced) {
       platePlaced = true;
       requestAnimationFrame(() => requestAnimationFrame(() => plate.style.removeProperty('transition')));
     }
   }
   new ResizeObserver(positionSelection).observe(grid);
+  const panel = document.querySelector('.panel');
+  let revealed = false;
+  let dismissing = false;
   window.senjaReveal = () => {
-    const panel = document.querySelector('.panel');
-    requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.add('entering')));
+    if (revealed || dismissing) return;
+    revealed = true;
+    requestAnimationFrame(() => {
+      if (dismissing) return;
+      panel.classList.add('entering');
+      send('motion');
+    });
   };
-  window.senjaDismiss = () => document.querySelector('.panel').classList.add('leaving');
+  window.senjaDismiss = () => {
+    if (dismissing) return;
+    dismissing = true;
+    // Freeze the current presentation before reversing, including mid-entry.
+    const current = getComputedStyle(panel).transform;
+    const animation = panel.animate([
+      { transform: current === 'none' ? 'matrix(1,0,0,1,0,0)' : current },
+      { transform: 'translateY(10px) scale(.97)' }
+    ], { duration: 200, easing: 'cubic-bezier(.215,.61,.355,1)', fill: 'forwards' });
+    panel.style.pointerEvents = 'none';
+    panel.classList.remove('entering');
+    panel.style.opacity = '1';
+    send('motion');
+    animation.finished.catch(() => {});
+  };
+  panel.addEventListener('animationend', () => panel.style.willChange = 'auto');
   function animatePress(button, event) {
     if (button.getAttribute('role') === 'switch') return;
     if (reducedMotion.matches) return;
     button.animate([
-      { transform: 'scale(.94)', offset: 0 },
-      { transform: 'scale(1.012)', offset: .62 },
+      { transform: 'scale(.98)', offset: 0 },
       { transform: 'scale(1)', offset: 1 }
-    ], { duration: 380, easing: 'cubic-bezier(.2,.8,.25,1)' });
+    ], { duration: 220, easing: 'cubic-bezier(.215,.61,.355,1)' });
     if (button.dataset.command === '111') {
       button.querySelector('svg')?.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 500, easing: 'cubic-bezier(.16,1,.3,1)' });
     }
@@ -64,7 +90,7 @@
     const action = event.target.closest('button');
     if (!action) return;
     if (action.dataset.action === 'close') { send('close'); return; }
-    if (!action.dataset.command || busy) return;
+    if (!action.dataset.command || busy || dismissing) return;
     animatePress(action, event);
     busy = true;
     for (const el of document.querySelectorAll('[data-command]')) el.setAttribute('aria-disabled', 'true');
@@ -86,5 +112,3 @@
   render(state);
   send('ready');
 })();
-
-

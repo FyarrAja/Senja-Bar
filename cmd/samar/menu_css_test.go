@@ -3,10 +3,61 @@
 package main
 
 import (
+	"runtime"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
+	"unsafe"
 )
+
+func TestRealOverflowHideEventPostsClose(t *testing.T) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	closed := false
+	proc := syscall.NewCallback(func(hwnd uintptr, message uint32, w, l uintptr) uintptr {
+		if message == wmClose {
+			closed = true
+			return 0
+		}
+		r, _, _ := defWindowProcW.Call(hwnd, uintptr(message), w, l)
+		return r
+	})
+	name := utf16ptr("SenjaOverflowLifecycleTest")
+	class := wndClassEx{cbSize: uint32(unsafe.Sizeof(wndClassEx{})), lpfnWndProc: proc, hInstance: getModuleHandle(), lpszClassName: name}
+	atom, _, _ := registerClassExW.Call(uintptr(unsafe.Pointer(&class)))
+	if atom == 0 {
+		t.Fatal("register test window")
+	}
+	defer user32.NewProc("UnregisterClassW").Call(uintptr(unsafe.Pointer(name)), uintptr(getModuleHandle()))
+	makeWindow := func() uintptr {
+		hwnd, _, _ := createWindowExW.Call(0, uintptr(unsafe.Pointer(name)), 0, 0, 0, 0, 10, 10, 0, 0, uintptr(getModuleHandle()), 0)
+		if hwnd == 0 {
+			t.Fatal("create test window")
+		}
+		return hwnd
+	}
+	popup, overflow := makeWindow(), makeWindow()
+	defer destroyWindow.Call(popup)
+	defer destroyWindow.Call(overflow)
+	stop := watchTrayOverflow(popup, overflow)
+	defer stop()
+	cssCommandGrace = time.Time{}
+	user32.NewProc("NotifyWinEvent").Call(0x8003, overflow, 0, 0)
+	deadline := time.Now().Add(time.Second)
+	var message msg
+	for !closed && time.Now().Before(deadline) {
+		ok, _, _ := user32.NewProc("PeekMessageW").Call(uintptr(unsafe.Pointer(&message)), 0, 0, 0, 1)
+		if ok != 0 {
+			dispatchMessageW.Call(uintptr(unsafe.Pointer(&message)))
+		} else {
+			time.Sleep(time.Millisecond)
+		}
+	}
+	if !closed {
+		t.Fatal("real overflow hide did not dismiss the popup")
+	}
+}
 
 func TestNativeFadeHasContinuousEndpointsAndCanReverse(t *testing.T) {
 	duration := 320 * time.Millisecond
@@ -69,6 +120,19 @@ func TestPopupDismissalKeepsModeClicksInside(t *testing.T) {
 	for _, position := range []point{{99, 100}, {460, 200}, {300, 648}} {
 		if popupContainsPoint(bounds, position) {
 			t.Fatalf("outside click must dismiss popup: %+v", position)
+		}
+	}
+}
+
+func TestOverflowHideExemptionIsBoundedToMaterialInteraction(t *testing.T) {
+	for _, tc := range []struct{ grace, inside, want bool }{
+		{false, true, false}, // Hovering cannot keep a hidden overflow alive.
+		{false, false, false},
+		{true, false, false}, // Clicking the arrow always dismisses.
+		{true, true, true},   // Keep the chooser open during its own material update.
+	} {
+		if got := suppressOverflowHide(tc.grace, tc.inside); got != tc.want {
+			t.Fatalf("grace=%t inside=%t: got %t", tc.grace, tc.inside, got)
 		}
 	}
 }

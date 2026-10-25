@@ -3,6 +3,7 @@
 package main
 
 import (
+	"os"
 	"runtime"
 	"syscall"
 	"unsafe"
@@ -82,13 +83,15 @@ func runGlassMaterialPreview() {
 	if atom, _, _ := registerClassExW.Call(uintptr(unsafe.Pointer(&class))); atom == 0 {
 		return
 	}
-	hwnd, _, _ := createWindowExW.Call(0, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(utf16ptr("Senja — Material Preview"))), 0x00cf0000, 160, 100, 840, 700, 0, 0, uintptr(getModuleHandle()), 0)
+	hwnd, _, _ := createWindowExW.Call(0, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(utf16ptr("Senja — Material Preview"))), 0x00cf0000, 540, 170, 840, 700, 0, 0, uintptr(getModuleHandle()), 0)
 	if hwnd == 0 {
 		return
 	}
 	user32.NewProc("ShowWindow").Call(hwnd, 1)
 	user32.NewProc("ShowWindow").Call(hwnd, 5) // The first call may honor a hidden launcher.
 	user32.NewProc("UpdateWindow").Call(hwnd)
-	postMessageW.Call(hwnd, wmShowMenu, 0, 0)
+	if len(os.Args) < 3 || os.Args[2] != "--background-only" {
+		postMessageW.Call(hwnd, wmShowMenu, 0, 0)
+	}
 	messageLoop()
 }

@@ -1,0 +1,1639 @@
+<!doctype html><html><meta charset="utf-8"><title>Senja Bar — GUI preview</title><style>*{box-sizing:border-box}body{margin:0;background:#0e1015;color:#eef1f8;font-family:Segoe UI,sans-serif}header{margin:28px 32px 20px}h1{font-size:25px;margin:0}p{color:#b4becf;margin:6px 0 0;font-size:13px}.gallery{display:flex;gap:24px;margin:0 32px}h2{font-size:12px;font-weight:500;color:#aeb9cc;margin:0 0 10px}iframe{display:block;width:360px;height:548px;border:0;border-radius:28px;box-shadow:0 14px 32px #0004}</style><header><h1>Senja Bar</h1><p>One interface. Every background.</p></header><main class="gallery"><section><h2>Night</h2><iframe title="Senja Night" srcdoc="&lt;!doctype html&gt;
+
+&lt;html lang=&quot;id&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; style-src &#x27;unsafe-inline&#x27;; script-src &#x27;unsafe-inline&#x27;; img-src data:; font-src data:; connect-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+
+&lt;title&gt;Senja — Tampilan taskbar&lt;/title&gt;&lt;style&gt;/* Senja — HyperOS-inspired control surface. Local CSS; no remote resources. */
+
+:root {
+
+  color-scheme: dark;
+
+  --accent: #4388ff;
+
+  --ink: #f6f7fa;
+
+  --muted: #e8ebf2;
+
+  --surface: rgb(12 13 15 / 72%);
+
+  --radius: 28px;
+
+  --font: &quot;Segoe UI Variable Text&quot;, &quot;Segoe UI&quot;, sans-serif;
+
+}
+
+* { box-sizing: border-box; }
+
+html { height: 100%; background: transparent; }
+
+body { margin: 0; height: 100%; color: var(--ink); font: 13px/1.4 var(--font); background: var(--desktop, transparent); background-size: 100% 100%; }
+
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+button[aria-disabled=&quot;true&quot;] { cursor: wait; }
+
+button:focus-visible { outline: 2px solid #b6d2ff; outline-offset: 3px; }
+
+button:focus:not(:focus-visible) { outline: none; }
+
+svg { display: block; width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+
+::selection { background: #4388ff; color: white; }
+
+::-webkit-scrollbar { width: 4px; }
+
+::-webkit-scrollbar-thumb { background: #71757e; border-radius: 4px; }
+
+.panel { height: 100%; padding: 18px 20px 12px; overflow-y: auto; background: var(--surface); border: 1px solid transparent; border-radius: var(--radius);  }
+
+.brand { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; min-height: 44px; }
+
+.logo { width: 38px; height: 38px; color: #ffc66b; stroke: none; }
+
+h1 { margin: 0; font-size: 27px; line-height: 1.1; letter-spacing: -.03em; font-weight: 650; }
+
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+
+.styles { margin: 0; padding: 0; border: 0; min-width: 0; }
+
+legend { margin: 0 0 10px; padding: 0; color: var(--muted); font-size: 12px; font-weight: 500; }
+
+.style-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+.style { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; min-height: 96px; padding: 12px 15px; text-align: left; border: 1px solid rgb(255 255 255 / 9%); border-radius: 23px; background: rgb(255 255 255 / 8%); transition: background 140ms ease-out, border-color 140ms ease-out; }
+
+.style:hover { background: rgb(255 255 255 / 14%); border-color: rgb(255 255 255 / 20%); }
+
+.style:active { background: rgb(255 255 255 / 18%); }
+
+.style-icon { width: 27px; height: 27px; color: #edf0f6; stroke-width: 1.8; }
+
+.style strong { display: block; font-size: 14px; line-height: 18px; font-weight: 600; }
+
+.style small { display: block; margin-top: 2px; font-size: 10px; line-height: 13px; color: var(--muted); white-space: nowrap; }
+
+.check { display: none; position: absolute; top: 13px; right: 13px; width: 16px; height: 16px; padding: 2px; border-radius: 50%; background: rgb(255 255 255 / 20%); stroke-width: 2.3; }
+
+.style[aria-checked=&quot;true&quot;] { color: white; background: rgb(47 119 244 / 92%); border-color: rgb(170 205 255 / 45%); }
+
+.style[aria-checked=&quot;true&quot;]:hover { background: rgb(66 138 255 / 96%); }
+
+.style[aria-checked=&quot;true&quot;] .style-icon, .style[aria-checked=&quot;true&quot;] small { color: white; }
+
+.style[aria-checked=&quot;true&quot;] .check { display: block; }
+
+.preferences { margin-top: 14px; padding: 4px 13px; background: rgb(255 255 255 / 6%); border-radius: 22px; }
+
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 7px 0; border: 0; background: transparent; text-align: left; font-size: 12px; }
+
+.setting + .setting { border-top: 1px solid rgb(255 255 255 / 6%); }
+
+.setting:hover { color: #c5dcff; }
+
+.switch { display: block; position: relative; width: 42px; height: 25px; flex-shrink: 0; background: rgb(195 203 220 / 27%); border-radius: 14px; transition: background 140ms ease-out; }
+
+.switch::after { content: &quot;&quot;; position: absolute; left: 3px; top: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transition: transform 140ms ease-out; }
+
+.setting[aria-checked=&quot;true&quot;] .switch { background: var(--accent); }
+
+.setting[aria-checked=&quot;true&quot;] .switch::after { transform: translateX(17px); }
+
+.action { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 42px; margin-top: 10px; padding: 9px 12px; border: 0; border-radius: 17px; background: rgb(255 255 255 / 8%); font-size: 12px; font-weight: 500; }
+
+.action svg { width: 17px; height: 17px; }
+
+.action:hover { background: rgb(255 255 255 / 14%); }
+
+.update-note { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 0 8px; color: var(--muted); font-size: 9px; line-height: 13px; }
+
+.update-note svg { width: 12px; height: 12px; }
+
+footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; }
+
+.save-status { color: #e3e6ed; font-size: 11px; line-height: 16px; font-weight: 400; }
+
+.save-status.error { color: #ffc3c3; }
+
+.exit { padding: 6px 11px; border: 0; border-radius: 12px; background: rgb(255 255 255 / 5%); font-size: 12px; line-height: 16px; font-weight: 500; }
+
+.exit:hover { color: #ffc3c3; background: rgb(255 255 255 / 7%); }
+
+@media (max-width: 330px) { .panel { padding-inline: 15px; } .style { padding-inline: 12px; } .setting { font-size: 11px; } }
+
+
+
+@media (forced-colors: active) { .panel, .style, .preferences, .action { border: 1px solid CanvasText; } .style[aria-checked=&quot;true&quot;], .switch { background: Highlight; color: HighlightText; } }
+
+
+
+
+
+/* Inset the antialiased edge so the native window region cannot cut it. */
+
+.panel::before { content: &#x27;&#x27;; position: fixed; inset: 1px; z-index: 5; border: 1px solid rgb(255 255 255 / 23%); border-radius: calc(var(--radius) - 1px); pointer-events: none; }
+
+@media (forced-colors: active) { .panel::before { border-color: CanvasText; } }
+
+
+
+
+
+
+
+/* One finite motion system; no overshoot, filters or competing springs. */
+
+:root { --ease-out: cubic-bezier(.215,.61,.355,1); }
+
+.panel { transform-origin: 50% 100%; opacity: 0; }
+
+.panel.entering { opacity: 1; }
+
+.panel.leaving { pointer-events: none; }
+
+.style { overflow: hidden; transition: background 180ms ease-out, border-color 180ms ease-out; }
+
+.check { display: block; opacity: 0; transform: scale(.7); transition: opacity 180ms ease-out, transform 240ms var(--ease-out); }
+
+.style[aria-checked=&quot;true&quot;] .check { opacity: 1; transform: scale(1); }
+
+.switch { transition: background 280ms var(--ease-out); }
+
+.setting, .action, .exit { position: relative; overflow: hidden; transition: background 180ms ease-out, color 180ms ease-out; }
+
+.setting { border-radius: 12px; }
+
+
+
+/* Selection travels as one continuous surface instead of two color flashes. */
+
+.style-grid { position: relative; isolation: isolate; }
+
+.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 420ms var(--ease-out); }
+
+.style { z-index: 1; }
+
+.style[aria-checked=&quot;true&quot;], .style[aria-checked=&quot;true&quot;]:hover { background: transparent; border-color: transparent; }
+
+/* Native compositor handles opacity for the complete panel and its edges. */
+
+.panel.entering { will-change: transform; animation: smooth-arrive 300ms cubic-bezier(.215,.61,.355,1) both; }
+
+.panel.leaving { will-change: transform; animation: smooth-leave 200ms cubic-bezier(.215,.61,.355,1) both; }
+
+@keyframes smooth-arrive { from { opacity: 1; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
+
+@keyframes smooth-leave { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(10px) scale(.97); } }
+
+
+
+
+
+/* User-enabled Senja motion, including when Windows animations are disabled. */
+
+.switch::after { content: none; }
+
+.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 280ms cubic-bezier(.4,0,.2,1); }
+
+.setting[aria-checked=&quot;true&quot;] .switch-thumb { transform: translateX(17px); }
+
+.selection-plate { transition: transform 420ms var(--ease-out); will-change: transform; }
+
+
+
+
+
+
+
+/* Quiet footer with a centered, translucent red exit action. */
+
+footer { position: relative; justify-content: center; padding-top: 4px; }
+
+.save-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.save-status.error { position: static; width: auto; height: auto; clip-path: none; white-space: normal; color: #ffc3c3; font-size: 10px; }
+
+footer:has(.save-status.error) { flex-wrap: wrap; }
+
+.exit { min-width: 108px; padding: 6px 20px; border: 1px solid rgb(255 111 122 / 18%); border-radius: 14px; color: #ffb3bc; background: rgb(231 57 80 / 14%); font-size: 12px; line-height: 16px; font-weight: 500; }
+
+.exit:hover { color: #ffd0d6; background: rgb(231 57 80 / 24%); }
+
+.exit:active { background: rgb(231 57 80 / 30%); }
+
+
+
+.update-action { margin-top: 4px; min-height: 30px; padding-block: 6px; font-size: 11px; background: rgb(255 255 255 / 4%); color: var(--muted); cursor: default; }
+
+.update-action small { font-size: 9px; font-weight: 400; color: var(--muted); }
+
+.update-action:disabled { cursor: default; }
+
+.update-action:disabled:hover, .update-action:disabled:active { transform: none; background: rgb(255 255 255 / 4%); }
+
+footer { padding-top: 4px; }
+
+
+
+.panel { padding-bottom: 8px; }
+
+
+
+
+
+/* Equal-width actions keep the complete menu within its fixed viewport. */
+
+.quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+
+.quick-actions .action { min-width: 0; min-height: 48px; margin: 0; padding: 8px; gap: 5px; border-radius: 17px; font-size: 11px; line-height: 15px; }
+
+.quick-actions .action svg { width: 16px; height: 16px; }
+
+.quick-actions .update-action { flex-wrap: wrap; align-content: center; column-gap: 5px; row-gap: 0; }
+
+.quick-actions .update-action small { flex-basis: 100%; font-size: 9px; line-height: 12px; text-align: center; }
+
+.panel { scrollbar-width: none; }
+
+.panel::-webkit-scrollbar { display: none; width: 0; }
+
+footer { padding-top: 10px; }
+
+
+
+.update-action:not(:disabled) { cursor: pointer; }
+
+.update-action:not(:disabled):hover { background: rgb(255 255 255 / 14%); }
+
+
+
+html{background:transparent}body{background:#11151d}.panel{opacity:1;backdrop-filter:blur(4px)}&lt;/style&gt;&lt;/head&gt;
+
+&lt;body&gt;&lt;main class=&quot;panel&quot; aria-label=&quot;Pengaturan Senja&quot;&gt;
+
+&lt;header class=&quot;brand&quot;&gt;&lt;svg class=&quot;logo&quot; viewBox=&quot;0 0 40 40&quot; aria-hidden=&quot;true&quot;&gt;&lt;path fill=&quot;currentColor&quot; d=&quot;M5 21a15 15 0 0 1 30 0H5Z&quot;/&gt;&lt;path d=&quot;M5 25h30M11 31h18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;3.5&quot; stroke-linecap=&quot;round&quot;/&gt;&lt;/svg&gt;&lt;div&gt;&lt;h1&gt;Senja&lt;/h1&gt;&lt;p&gt;Tampilan taskbar&lt;/p&gt;&lt;/div&gt;&lt;/header&gt;
+
+&lt;fieldset class=&quot;styles&quot;&gt;&lt;legend&gt;Pilih tampilan&lt;/legend&gt;&lt;div class=&quot;style-grid&quot; role=&quot;radiogroup&quot; aria-label=&quot;Gaya taskbar&quot;&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;100&quot; data-style=&quot;1&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;m7 15 5-6m0 6 5-6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Kaca&lt;/strong&gt;&lt;small&gt;Blur lembut&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;101&quot; data-style=&quot;2&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M7 9h10M7 12h10M7 15h6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Akrilik&lt;/strong&gt;&lt;small&gt;Blur lebih pekat&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;102&quot; data-style=&quot;3&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M8 9h3M8 12h8&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Bening&lt;/strong&gt;&lt;small&gt;Transparan penuh&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;103&quot; data-style=&quot;4&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M4 5h7v6H4zm9 0h7v6h-7zM4 13h7v6H4zm9 0h7v6h-7z&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Solid&lt;/strong&gt;&lt;small&gt;Gelap tanpa blur&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;/div&gt;&lt;/fieldset&gt;
+
+&lt;section class=&quot;preferences&quot; aria-label=&quot;Preferensi&quot;&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;105&quot; id=&quot;rounded&quot;&gt;&lt;span&gt;Sudut membulat&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;110&quot; id=&quot;startup&quot;&gt;&lt;span&gt;Mulai bersama Windows&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;/section&gt;
+
+&lt;section class=&quot;quick-actions&quot; aria-label=&quot;Tindakan aplikasi&quot;&gt;&lt;button class=&quot;action&quot; data-command=&quot;111&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M20 7v5h-5M4 17v-5h5M5.4 8a7 7 0 0 1 11.8-2L20 9M4 15l2.8 3A7 7 0 0 0 18.6 16&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Segarkan taskbar&lt;/span&gt;&lt;/button&gt;
+
+&lt;button class=&quot;action update-action&quot; data-command=&quot;112&quot; aria-label=&quot;Pembaruan: buka release terbaru&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Pembaruan&lt;/span&gt;&lt;small&gt;Release terbaru&lt;/small&gt;&lt;/button&gt;&lt;/section&gt;
+
+&lt;footer&gt;&lt;span class=&quot;save-status&quot; id=&quot;status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;&gt;&lt;/span&gt;&lt;button class=&quot;exit&quot; data-command=&quot;140&quot;&gt;Keluar&lt;/button&gt;&lt;/footer&gt;
+
+&lt;/main&gt;&lt;script&gt;window.__SENJA_STATE__={&quot;style&quot;: 1, &quot;rounded&quot;: true, &quot;startup&quot;: true};&lt;/script&gt;&lt;script&gt;window.chrome={webview:{postMessage(raw){const m=JSON.parse(raw);if(m.type===&#x27;command&#x27;){const s={...window.__SENJA_STATE__};if(m.command&gt;=100&amp;&amp;m.command&lt;=103)s.style=m.command-99;if(m.command===105)s.rounded=!s.rounded;if(m.command===110)s.startup=!s.startup;window.senjaUpdate(s)}}}};(() =&gt; {
+
+  const state = window.__SENJA_STATE__;
+
+  let busy = false;
+
+  // The user explicitly enabled full motion in Senja, independently of
+
+  // Windows&#x27; disabled animation setting. Leave the system setting untouched.
+
+  const reducedMotion = { matches: false };
+
+  const grid = document.querySelector(&#x27;.style-grid&#x27;);
+
+  const plate = document.createElement(&#x27;i&#x27;);
+
+  plate.className = &#x27;selection-plate&#x27;;
+
+  plate.setAttribute(&#x27;aria-hidden&#x27;, &#x27;true&#x27;);
+
+  grid.prepend(plate);
+
+  let platePlaced = false;
+
+  let plateGeometry = &quot;&quot;;
+
+  function positionSelection() {
+
+    const selected = grid.querySelector(`[data-style=&quot;${state.style}&quot;]`);
+
+    if (!selected) return;
+
+    const geometry = [selected.offsetLeft, selected.offsetTop, selected.offsetWidth, selected.offsetHeight];
+
+    if (geometry.join(&#x27;,&#x27;) === plateGeometry) return;
+
+    plateGeometry = geometry.join(&#x27;,&#x27;);
+
+    if (!platePlaced) plate.style.transition = &#x27;none&#x27;;
+
+    plate.style.width = `${geometry[2]}px`;
+
+    plate.style.height = `${geometry[3]}px`;
+
+    plate.style.transform = `translate(${geometry[0]}px, ${geometry[1]}px)`;
+
+    if (!platePlaced) {
+
+      platePlaced = true;
+
+      requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt; plate.style.removeProperty(&#x27;transition&#x27;)));
+
+    }
+
+  }
+
+  new ResizeObserver(positionSelection).observe(grid);
+
+  const panel = document.querySelector(&#x27;.panel&#x27;);
+
+  let revealed = false;
+
+  let dismissing = false;
+
+  window.senjaReveal = () =&gt; {
+
+    if (revealed || dismissing) return;
+
+    revealed = true;
+
+    requestAnimationFrame(() =&gt; {
+
+      if (dismissing) return;
+
+      panel.classList.add(&#x27;entering&#x27;);
+
+      send(&#x27;motion&#x27;);
+
+    });
+
+  };
+
+  window.senjaDismiss = () =&gt; {
+
+    if (dismissing) return;
+
+    dismissing = true;
+
+    // Freeze the current presentation before reversing, including mid-entry.
+
+    const current = getComputedStyle(panel).transform;
+
+    const animation = panel.animate([
+
+      { transform: current === &#x27;none&#x27; ? &#x27;matrix(1,0,0,1,0,0)&#x27; : current },
+
+      { transform: &#x27;translateY(10px) scale(.97)&#x27; }
+
+    ], { duration: 200, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27;, fill: &#x27;forwards&#x27; });
+
+    panel.style.pointerEvents = &#x27;none&#x27;;
+
+    panel.classList.remove(&#x27;entering&#x27;);
+
+    panel.style.opacity = &#x27;1&#x27;;
+
+    send(&#x27;motion&#x27;);
+
+    animation.finished.catch(() =&gt; {});
+
+  };
+
+  panel.addEventListener(&#x27;animationend&#x27;, () =&gt; panel.style.willChange = &#x27;auto&#x27;);
+
+  function animatePress(button, event) {
+
+    if (button.getAttribute(&#x27;role&#x27;) === &#x27;switch&#x27;) return;
+
+    if (reducedMotion.matches) return;
+
+    button.animate([
+
+      { transform: &#x27;scale(.98)&#x27;, offset: 0 },
+
+      { transform: &#x27;scale(1)&#x27;, offset: 1 }
+
+    ], { duration: 220, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27; });
+
+    if (button.dataset.command === &#x27;111&#x27;) {
+
+      button.querySelector(&#x27;svg&#x27;)?.animate([{ transform: &#x27;rotate(0deg)&#x27; }, { transform: &#x27;rotate(360deg)&#x27; }], { duration: 500, easing: &#x27;cubic-bezier(.16,1,.3,1)&#x27; });
+
+    }
+
+  }
+
+  function send(type, command) {
+
+    window.chrome?.webview?.postMessage(JSON.stringify({ type, command, reducedMotion: reducedMotion.matches }));
+
+  }
+
+  function render(next, message = &#x27;&#x27;) {
+
+    Object.assign(state, next);
+
+    positionSelection();
+
+    for (const el of document.querySelectorAll(&#x27;[data-style]&#x27;)) {
+
+      const active = Number(el.dataset.style) === state.style;
+
+      el.setAttribute(&#x27;aria-checked&#x27;, String(active));
+
+      el.tabIndex = active ? 0 : -1;
+
+    }
+
+    document.querySelector(&#x27;#rounded&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.rounded));
+
+    document.querySelector(&#x27;#startup&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.startup));
+
+    busy = false;
+
+    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;false&#x27;);
+
+    const status = document.querySelector(&#x27;#status&#x27;);
+
+    status.textContent = message || &#x27;&#x27;;
+
+    status.classList.toggle(&#x27;error&#x27;, Boolean(message));
+
+  }
+
+  window.senjaUpdate = render;
+
+  document.addEventListener(&#x27;click&#x27;, event =&gt; {
+
+    const action = event.target.closest(&#x27;button&#x27;);
+
+    if (!action) return;
+
+    if (action.dataset.action === &#x27;close&#x27;) { send(&#x27;close&#x27;); return; }
+
+    if (!action.dataset.command || busy || dismissing) return;
+
+    animatePress(action, event);
+
+    busy = true;
+
+    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;true&#x27;);
+
+    document.querySelector(&#x27;#status&#x27;).textContent = &#x27;Menerapkan…&#x27;;
+
+    send(&#x27;command&#x27;, Number(action.dataset.command));
+
+  });
+
+  document.addEventListener(&#x27;keydown&#x27;, event =&gt; {
+
+    if (event.key === &#x27;Escape&#x27;) { event.preventDefault(); send(&#x27;close&#x27;); }
+
+    if (event.key === &#x27;F5&#x27; || (event.ctrlKey &amp;&amp; event.key.toLowerCase() === &#x27;r&#x27;)) { event.preventDefault(); send(&#x27;reload&#x27;); }
+
+    const radio = event.target.closest(&#x27;[role=&quot;radio&quot;]&#x27;);
+
+    if (radio &amp;&amp; [&#x27;ArrowLeft&#x27;, &#x27;ArrowRight&#x27;, &#x27;ArrowUp&#x27;, &#x27;ArrowDown&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(event.key)) {
+
+      event.preventDefault();
+
+      const options = [...document.querySelectorAll(&#x27;[role=&quot;radio&quot;]&#x27;)];
+
+      const index = options.indexOf(radio);
+
+      let next = event.key === &#x27;Home&#x27; ? 0 : event.key === &#x27;End&#x27; ? options.length - 1 : (index + ([&#x27;ArrowLeft&#x27;, &#x27;ArrowUp&#x27;].includes(event.key) ? -1 : 1) + options.length) % options.length;
+
+      options[next].focus(); options[next].click();
+
+    }
+
+  });
+
+  render(state);
+
+  send(&#x27;ready&#x27;);
+
+})();
+
+
+
+
+
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"></iframe></section><section><h2>Color</h2><iframe title="Senja Color" srcdoc="&lt;!doctype html&gt;
+
+&lt;html lang=&quot;id&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; style-src &#x27;unsafe-inline&#x27;; script-src &#x27;unsafe-inline&#x27;; img-src data:; font-src data:; connect-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+
+&lt;title&gt;Senja — Tampilan taskbar&lt;/title&gt;&lt;style&gt;/* Senja — HyperOS-inspired control surface. Local CSS; no remote resources. */
+
+:root {
+
+  color-scheme: dark;
+
+  --accent: #4388ff;
+
+  --ink: #f6f7fa;
+
+  --muted: #e8ebf2;
+
+  --surface: rgb(12 13 15 / 72%);
+
+  --radius: 28px;
+
+  --font: &quot;Segoe UI Variable Text&quot;, &quot;Segoe UI&quot;, sans-serif;
+
+}
+
+* { box-sizing: border-box; }
+
+html { height: 100%; background: transparent; }
+
+body { margin: 0; height: 100%; color: var(--ink); font: 13px/1.4 var(--font); background: var(--desktop, transparent); background-size: 100% 100%; }
+
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+button[aria-disabled=&quot;true&quot;] { cursor: wait; }
+
+button:focus-visible { outline: 2px solid #b6d2ff; outline-offset: 3px; }
+
+button:focus:not(:focus-visible) { outline: none; }
+
+svg { display: block; width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+
+::selection { background: #4388ff; color: white; }
+
+::-webkit-scrollbar { width: 4px; }
+
+::-webkit-scrollbar-thumb { background: #71757e; border-radius: 4px; }
+
+.panel { height: 100%; padding: 18px 20px 12px; overflow-y: auto; background: var(--surface); border: 1px solid transparent; border-radius: var(--radius);  }
+
+.brand { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; min-height: 44px; }
+
+.logo { width: 38px; height: 38px; color: #ffc66b; stroke: none; }
+
+h1 { margin: 0; font-size: 27px; line-height: 1.1; letter-spacing: -.03em; font-weight: 650; }
+
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+
+.styles { margin: 0; padding: 0; border: 0; min-width: 0; }
+
+legend { margin: 0 0 10px; padding: 0; color: var(--muted); font-size: 12px; font-weight: 500; }
+
+.style-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+.style { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; min-height: 96px; padding: 12px 15px; text-align: left; border: 1px solid rgb(255 255 255 / 9%); border-radius: 23px; background: rgb(255 255 255 / 8%); transition: background 140ms ease-out, border-color 140ms ease-out; }
+
+.style:hover { background: rgb(255 255 255 / 14%); border-color: rgb(255 255 255 / 20%); }
+
+.style:active { background: rgb(255 255 255 / 18%); }
+
+.style-icon { width: 27px; height: 27px; color: #edf0f6; stroke-width: 1.8; }
+
+.style strong { display: block; font-size: 14px; line-height: 18px; font-weight: 600; }
+
+.style small { display: block; margin-top: 2px; font-size: 10px; line-height: 13px; color: var(--muted); white-space: nowrap; }
+
+.check { display: none; position: absolute; top: 13px; right: 13px; width: 16px; height: 16px; padding: 2px; border-radius: 50%; background: rgb(255 255 255 / 20%); stroke-width: 2.3; }
+
+.style[aria-checked=&quot;true&quot;] { color: white; background: rgb(47 119 244 / 92%); border-color: rgb(170 205 255 / 45%); }
+
+.style[aria-checked=&quot;true&quot;]:hover { background: rgb(66 138 255 / 96%); }
+
+.style[aria-checked=&quot;true&quot;] .style-icon, .style[aria-checked=&quot;true&quot;] small { color: white; }
+
+.style[aria-checked=&quot;true&quot;] .check { display: block; }
+
+.preferences { margin-top: 14px; padding: 4px 13px; background: rgb(255 255 255 / 6%); border-radius: 22px; }
+
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 7px 0; border: 0; background: transparent; text-align: left; font-size: 12px; }
+
+.setting + .setting { border-top: 1px solid rgb(255 255 255 / 6%); }
+
+.setting:hover { color: #c5dcff; }
+
+.switch { display: block; position: relative; width: 42px; height: 25px; flex-shrink: 0; background: rgb(195 203 220 / 27%); border-radius: 14px; transition: background 140ms ease-out; }
+
+.switch::after { content: &quot;&quot;; position: absolute; left: 3px; top: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transition: transform 140ms ease-out; }
+
+.setting[aria-checked=&quot;true&quot;] .switch { background: var(--accent); }
+
+.setting[aria-checked=&quot;true&quot;] .switch::after { transform: translateX(17px); }
+
+.action { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 42px; margin-top: 10px; padding: 9px 12px; border: 0; border-radius: 17px; background: rgb(255 255 255 / 8%); font-size: 12px; font-weight: 500; }
+
+.action svg { width: 17px; height: 17px; }
+
+.action:hover { background: rgb(255 255 255 / 14%); }
+
+.update-note { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 0 8px; color: var(--muted); font-size: 9px; line-height: 13px; }
+
+.update-note svg { width: 12px; height: 12px; }
+
+footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; }
+
+.save-status { color: #e3e6ed; font-size: 11px; line-height: 16px; font-weight: 400; }
+
+.save-status.error { color: #ffc3c3; }
+
+.exit { padding: 6px 11px; border: 0; border-radius: 12px; background: rgb(255 255 255 / 5%); font-size: 12px; line-height: 16px; font-weight: 500; }
+
+.exit:hover { color: #ffc3c3; background: rgb(255 255 255 / 7%); }
+
+@media (max-width: 330px) { .panel { padding-inline: 15px; } .style { padding-inline: 12px; } .setting { font-size: 11px; } }
+
+
+
+@media (forced-colors: active) { .panel, .style, .preferences, .action { border: 1px solid CanvasText; } .style[aria-checked=&quot;true&quot;], .switch { background: Highlight; color: HighlightText; } }
+
+
+
+
+
+/* Inset the antialiased edge so the native window region cannot cut it. */
+
+.panel::before { content: &#x27;&#x27;; position: fixed; inset: 1px; z-index: 5; border: 1px solid rgb(255 255 255 / 23%); border-radius: calc(var(--radius) - 1px); pointer-events: none; }
+
+@media (forced-colors: active) { .panel::before { border-color: CanvasText; } }
+
+
+
+
+
+
+
+/* One finite motion system; no overshoot, filters or competing springs. */
+
+:root { --ease-out: cubic-bezier(.215,.61,.355,1); }
+
+.panel { transform-origin: 50% 100%; opacity: 0; }
+
+.panel.entering { opacity: 1; }
+
+.panel.leaving { pointer-events: none; }
+
+.style { overflow: hidden; transition: background 180ms ease-out, border-color 180ms ease-out; }
+
+.check { display: block; opacity: 0; transform: scale(.7); transition: opacity 180ms ease-out, transform 240ms var(--ease-out); }
+
+.style[aria-checked=&quot;true&quot;] .check { opacity: 1; transform: scale(1); }
+
+.switch { transition: background 280ms var(--ease-out); }
+
+.setting, .action, .exit { position: relative; overflow: hidden; transition: background 180ms ease-out, color 180ms ease-out; }
+
+.setting { border-radius: 12px; }
+
+
+
+/* Selection travels as one continuous surface instead of two color flashes. */
+
+.style-grid { position: relative; isolation: isolate; }
+
+.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 420ms var(--ease-out); }
+
+.style { z-index: 1; }
+
+.style[aria-checked=&quot;true&quot;], .style[aria-checked=&quot;true&quot;]:hover { background: transparent; border-color: transparent; }
+
+/* Native compositor handles opacity for the complete panel and its edges. */
+
+.panel.entering { will-change: transform; animation: smooth-arrive 300ms cubic-bezier(.215,.61,.355,1) both; }
+
+.panel.leaving { will-change: transform; animation: smooth-leave 200ms cubic-bezier(.215,.61,.355,1) both; }
+
+@keyframes smooth-arrive { from { opacity: 1; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
+
+@keyframes smooth-leave { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(10px) scale(.97); } }
+
+
+
+
+
+/* User-enabled Senja motion, including when Windows animations are disabled. */
+
+.switch::after { content: none; }
+
+.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 280ms cubic-bezier(.4,0,.2,1); }
+
+.setting[aria-checked=&quot;true&quot;] .switch-thumb { transform: translateX(17px); }
+
+.selection-plate { transition: transform 420ms var(--ease-out); will-change: transform; }
+
+
+
+
+
+
+
+/* Quiet footer with a centered, translucent red exit action. */
+
+footer { position: relative; justify-content: center; padding-top: 4px; }
+
+.save-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.save-status.error { position: static; width: auto; height: auto; clip-path: none; white-space: normal; color: #ffc3c3; font-size: 10px; }
+
+footer:has(.save-status.error) { flex-wrap: wrap; }
+
+.exit { min-width: 108px; padding: 6px 20px; border: 1px solid rgb(255 111 122 / 18%); border-radius: 14px; color: #ffb3bc; background: rgb(231 57 80 / 14%); font-size: 12px; line-height: 16px; font-weight: 500; }
+
+.exit:hover { color: #ffd0d6; background: rgb(231 57 80 / 24%); }
+
+.exit:active { background: rgb(231 57 80 / 30%); }
+
+
+
+.update-action { margin-top: 4px; min-height: 30px; padding-block: 6px; font-size: 11px; background: rgb(255 255 255 / 4%); color: var(--muted); cursor: default; }
+
+.update-action small { font-size: 9px; font-weight: 400; color: var(--muted); }
+
+.update-action:disabled { cursor: default; }
+
+.update-action:disabled:hover, .update-action:disabled:active { transform: none; background: rgb(255 255 255 / 4%); }
+
+footer { padding-top: 4px; }
+
+
+
+.panel { padding-bottom: 8px; }
+
+
+
+
+
+/* Equal-width actions keep the complete menu within its fixed viewport. */
+
+.quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+
+.quick-actions .action { min-width: 0; min-height: 48px; margin: 0; padding: 8px; gap: 5px; border-radius: 17px; font-size: 11px; line-height: 15px; }
+
+.quick-actions .action svg { width: 16px; height: 16px; }
+
+.quick-actions .update-action { flex-wrap: wrap; align-content: center; column-gap: 5px; row-gap: 0; }
+
+.quick-actions .update-action small { flex-basis: 100%; font-size: 9px; line-height: 12px; text-align: center; }
+
+.panel { scrollbar-width: none; }
+
+.panel::-webkit-scrollbar { display: none; width: 0; }
+
+footer { padding-top: 10px; }
+
+
+
+.update-action:not(:disabled) { cursor: pointer; }
+
+.update-action:not(:disabled):hover { background: rgb(255 255 255 / 14%); }
+
+
+
+html{background:transparent}body{background:linear-gradient(135deg,#3b558c,#894b75 60%,#b76a43)}.panel{opacity:1;backdrop-filter:blur(4px)}&lt;/style&gt;&lt;/head&gt;
+
+&lt;body&gt;&lt;main class=&quot;panel&quot; aria-label=&quot;Pengaturan Senja&quot;&gt;
+
+&lt;header class=&quot;brand&quot;&gt;&lt;svg class=&quot;logo&quot; viewBox=&quot;0 0 40 40&quot; aria-hidden=&quot;true&quot;&gt;&lt;path fill=&quot;currentColor&quot; d=&quot;M5 21a15 15 0 0 1 30 0H5Z&quot;/&gt;&lt;path d=&quot;M5 25h30M11 31h18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;3.5&quot; stroke-linecap=&quot;round&quot;/&gt;&lt;/svg&gt;&lt;div&gt;&lt;h1&gt;Senja&lt;/h1&gt;&lt;p&gt;Tampilan taskbar&lt;/p&gt;&lt;/div&gt;&lt;/header&gt;
+
+&lt;fieldset class=&quot;styles&quot;&gt;&lt;legend&gt;Pilih tampilan&lt;/legend&gt;&lt;div class=&quot;style-grid&quot; role=&quot;radiogroup&quot; aria-label=&quot;Gaya taskbar&quot;&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;100&quot; data-style=&quot;1&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;m7 15 5-6m0 6 5-6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Kaca&lt;/strong&gt;&lt;small&gt;Blur lembut&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;101&quot; data-style=&quot;2&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M7 9h10M7 12h10M7 15h6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Akrilik&lt;/strong&gt;&lt;small&gt;Blur lebih pekat&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;102&quot; data-style=&quot;3&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M8 9h3M8 12h8&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Bening&lt;/strong&gt;&lt;small&gt;Transparan penuh&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;103&quot; data-style=&quot;4&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M4 5h7v6H4zm9 0h7v6h-7zM4 13h7v6H4zm9 0h7v6h-7z&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Solid&lt;/strong&gt;&lt;small&gt;Gelap tanpa blur&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;/div&gt;&lt;/fieldset&gt;
+
+&lt;section class=&quot;preferences&quot; aria-label=&quot;Preferensi&quot;&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;105&quot; id=&quot;rounded&quot;&gt;&lt;span&gt;Sudut membulat&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;110&quot; id=&quot;startup&quot;&gt;&lt;span&gt;Mulai bersama Windows&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;/section&gt;
+
+&lt;section class=&quot;quick-actions&quot; aria-label=&quot;Tindakan aplikasi&quot;&gt;&lt;button class=&quot;action&quot; data-command=&quot;111&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M20 7v5h-5M4 17v-5h5M5.4 8a7 7 0 0 1 11.8-2L20 9M4 15l2.8 3A7 7 0 0 0 18.6 16&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Segarkan taskbar&lt;/span&gt;&lt;/button&gt;
+
+&lt;button class=&quot;action update-action&quot; data-command=&quot;112&quot; aria-label=&quot;Pembaruan: buka release terbaru&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Pembaruan&lt;/span&gt;&lt;small&gt;Release terbaru&lt;/small&gt;&lt;/button&gt;&lt;/section&gt;
+
+&lt;footer&gt;&lt;span class=&quot;save-status&quot; id=&quot;status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;&gt;&lt;/span&gt;&lt;button class=&quot;exit&quot; data-command=&quot;140&quot;&gt;Keluar&lt;/button&gt;&lt;/footer&gt;
+
+&lt;/main&gt;&lt;script&gt;window.__SENJA_STATE__={&quot;style&quot;: 1, &quot;rounded&quot;: true, &quot;startup&quot;: true};&lt;/script&gt;&lt;script&gt;window.chrome={webview:{postMessage(raw){const m=JSON.parse(raw);if(m.type===&#x27;command&#x27;){const s={...window.__SENJA_STATE__};if(m.command&gt;=100&amp;&amp;m.command&lt;=103)s.style=m.command-99;if(m.command===105)s.rounded=!s.rounded;if(m.command===110)s.startup=!s.startup;window.senjaUpdate(s)}}}};(() =&gt; {
+
+  const state = window.__SENJA_STATE__;
+
+  let busy = false;
+
+  // The user explicitly enabled full motion in Senja, independently of
+
+  // Windows&#x27; disabled animation setting. Leave the system setting untouched.
+
+  const reducedMotion = { matches: false };
+
+  const grid = document.querySelector(&#x27;.style-grid&#x27;);
+
+  const plate = document.createElement(&#x27;i&#x27;);
+
+  plate.className = &#x27;selection-plate&#x27;;
+
+  plate.setAttribute(&#x27;aria-hidden&#x27;, &#x27;true&#x27;);
+
+  grid.prepend(plate);
+
+  let platePlaced = false;
+
+  let plateGeometry = &quot;&quot;;
+
+  function positionSelection() {
+
+    const selected = grid.querySelector(`[data-style=&quot;${state.style}&quot;]`);
+
+    if (!selected) return;
+
+    const geometry = [selected.offsetLeft, selected.offsetTop, selected.offsetWidth, selected.offsetHeight];
+
+    if (geometry.join(&#x27;,&#x27;) === plateGeometry) return;
+
+    plateGeometry = geometry.join(&#x27;,&#x27;);
+
+    if (!platePlaced) plate.style.transition = &#x27;none&#x27;;
+
+    plate.style.width = `${geometry[2]}px`;
+
+    plate.style.height = `${geometry[3]}px`;
+
+    plate.style.transform = `translate(${geometry[0]}px, ${geometry[1]}px)`;
+
+    if (!platePlaced) {
+
+      platePlaced = true;
+
+      requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt; plate.style.removeProperty(&#x27;transition&#x27;)));
+
+    }
+
+  }
+
+  new ResizeObserver(positionSelection).observe(grid);
+
+  const panel = document.querySelector(&#x27;.panel&#x27;);
+
+  let revealed = false;
+
+  let dismissing = false;
+
+  window.senjaReveal = () =&gt; {
+
+    if (revealed || dismissing) return;
+
+    revealed = true;
+
+    requestAnimationFrame(() =&gt; {
+
+      if (dismissing) return;
+
+      panel.classList.add(&#x27;entering&#x27;);
+
+      send(&#x27;motion&#x27;);
+
+    });
+
+  };
+
+  window.senjaDismiss = () =&gt; {
+
+    if (dismissing) return;
+
+    dismissing = true;
+
+    // Freeze the current presentation before reversing, including mid-entry.
+
+    const current = getComputedStyle(panel).transform;
+
+    const animation = panel.animate([
+
+      { transform: current === &#x27;none&#x27; ? &#x27;matrix(1,0,0,1,0,0)&#x27; : current },
+
+      { transform: &#x27;translateY(10px) scale(.97)&#x27; }
+
+    ], { duration: 200, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27;, fill: &#x27;forwards&#x27; });
+
+    panel.style.pointerEvents = &#x27;none&#x27;;
+
+    panel.classList.remove(&#x27;entering&#x27;);
+
+    panel.style.opacity = &#x27;1&#x27;;
+
+    send(&#x27;motion&#x27;);
+
+    animation.finished.catch(() =&gt; {});
+
+  };
+
+  panel.addEventListener(&#x27;animationend&#x27;, () =&gt; panel.style.willChange = &#x27;auto&#x27;);
+
+  function animatePress(button, event) {
+
+    if (button.getAttribute(&#x27;role&#x27;) === &#x27;switch&#x27;) return;
+
+    if (reducedMotion.matches) return;
+
+    button.animate([
+
+      { transform: &#x27;scale(.98)&#x27;, offset: 0 },
+
+      { transform: &#x27;scale(1)&#x27;, offset: 1 }
+
+    ], { duration: 220, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27; });
+
+    if (button.dataset.command === &#x27;111&#x27;) {
+
+      button.querySelector(&#x27;svg&#x27;)?.animate([{ transform: &#x27;rotate(0deg)&#x27; }, { transform: &#x27;rotate(360deg)&#x27; }], { duration: 500, easing: &#x27;cubic-bezier(.16,1,.3,1)&#x27; });
+
+    }
+
+  }
+
+  function send(type, command) {
+
+    window.chrome?.webview?.postMessage(JSON.stringify({ type, command, reducedMotion: reducedMotion.matches }));
+
+  }
+
+  function render(next, message = &#x27;&#x27;) {
+
+    Object.assign(state, next);
+
+    positionSelection();
+
+    for (const el of document.querySelectorAll(&#x27;[data-style]&#x27;)) {
+
+      const active = Number(el.dataset.style) === state.style;
+
+      el.setAttribute(&#x27;aria-checked&#x27;, String(active));
+
+      el.tabIndex = active ? 0 : -1;
+
+    }
+
+    document.querySelector(&#x27;#rounded&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.rounded));
+
+    document.querySelector(&#x27;#startup&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.startup));
+
+    busy = false;
+
+    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;false&#x27;);
+
+    const status = document.querySelector(&#x27;#status&#x27;);
+
+    status.textContent = message || &#x27;&#x27;;
+
+    status.classList.toggle(&#x27;error&#x27;, Boolean(message));
+
+  }
+
+  window.senjaUpdate = render;
+
+  document.addEventListener(&#x27;click&#x27;, event =&gt; {
+
+    const action = event.target.closest(&#x27;button&#x27;);
+
+    if (!action) return;
+
+    if (action.dataset.action === &#x27;close&#x27;) { send(&#x27;close&#x27;); return; }
+
+    if (!action.dataset.command || busy || dismissing) return;
+
+    animatePress(action, event);
+
+    busy = true;
+
+    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;true&#x27;);
+
+    document.querySelector(&#x27;#status&#x27;).textContent = &#x27;Menerapkan…&#x27;;
+
+    send(&#x27;command&#x27;, Number(action.dataset.command));
+
+  });
+
+  document.addEventListener(&#x27;keydown&#x27;, event =&gt; {
+
+    if (event.key === &#x27;Escape&#x27;) { event.preventDefault(); send(&#x27;close&#x27;); }
+
+    if (event.key === &#x27;F5&#x27; || (event.ctrlKey &amp;&amp; event.key.toLowerCase() === &#x27;r&#x27;)) { event.preventDefault(); send(&#x27;reload&#x27;); }
+
+    const radio = event.target.closest(&#x27;[role=&quot;radio&quot;]&#x27;);
+
+    if (radio &amp;&amp; [&#x27;ArrowLeft&#x27;, &#x27;ArrowRight&#x27;, &#x27;ArrowUp&#x27;, &#x27;ArrowDown&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(event.key)) {
+
+      event.preventDefault();
+
+      const options = [...document.querySelectorAll(&#x27;[role=&quot;radio&quot;]&#x27;)];
+
+      const index = options.indexOf(radio);
+
+      let next = event.key === &#x27;Home&#x27; ? 0 : event.key === &#x27;End&#x27; ? options.length - 1 : (index + ([&#x27;ArrowLeft&#x27;, &#x27;ArrowUp&#x27;].includes(event.key) ? -1 : 1) + options.length) % options.length;
+
+      options[next].focus(); options[next].click();
+
+    }
+
+  });
+
+  render(state);
+
+  send(&#x27;ready&#x27;);
+
+})();
+
+
+
+
+
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"></iframe></section><section><h2>Light</h2><iframe title="Senja Light" srcdoc="&lt;!doctype html&gt;
+
+&lt;html lang=&quot;id&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; style-src &#x27;unsafe-inline&#x27;; script-src &#x27;unsafe-inline&#x27;; img-src data:; font-src data:; connect-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+
+&lt;title&gt;Senja — Tampilan taskbar&lt;/title&gt;&lt;style&gt;/* Senja — HyperOS-inspired control surface. Local CSS; no remote resources. */
+
+:root {
+
+  color-scheme: dark;
+
+  --accent: #4388ff;
+
+  --ink: #f6f7fa;
+
+  --muted: #e8ebf2;
+
+  --surface: rgb(12 13 15 / 72%);
+
+  --radius: 28px;
+
+  --font: &quot;Segoe UI Variable Text&quot;, &quot;Segoe UI&quot;, sans-serif;
+
+}
+
+* { box-sizing: border-box; }
+
+html { height: 100%; background: transparent; }
+
+body { margin: 0; height: 100%; color: var(--ink); font: 13px/1.4 var(--font); background: var(--desktop, transparent); background-size: 100% 100%; }
+
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+button[aria-disabled=&quot;true&quot;] { cursor: wait; }
+
+button:focus-visible { outline: 2px solid #b6d2ff; outline-offset: 3px; }
+
+button:focus:not(:focus-visible) { outline: none; }
+
+svg { display: block; width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+
+::selection { background: #4388ff; color: white; }
+
+::-webkit-scrollbar { width: 4px; }
+
+::-webkit-scrollbar-thumb { background: #71757e; border-radius: 4px; }
+
+.panel { height: 100%; padding: 18px 20px 12px; overflow-y: auto; background: var(--surface); border: 1px solid transparent; border-radius: var(--radius);  }
+
+.brand { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; min-height: 44px; }
+
+.logo { width: 38px; height: 38px; color: #ffc66b; stroke: none; }
+
+h1 { margin: 0; font-size: 27px; line-height: 1.1; letter-spacing: -.03em; font-weight: 650; }
+
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+
+.styles { margin: 0; padding: 0; border: 0; min-width: 0; }
+
+legend { margin: 0 0 10px; padding: 0; color: var(--muted); font-size: 12px; font-weight: 500; }
+
+.style-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+.style { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; min-height: 96px; padding: 12px 15px; text-align: left; border: 1px solid rgb(255 255 255 / 9%); border-radius: 23px; background: rgb(255 255 255 / 8%); transition: background 140ms ease-out, border-color 140ms ease-out; }
+
+.style:hover { background: rgb(255 255 255 / 14%); border-color: rgb(255 255 255 / 20%); }
+
+.style:active { background: rgb(255 255 255 / 18%); }
+
+.style-icon { width: 27px; height: 27px; color: #edf0f6; stroke-width: 1.8; }
+
+.style strong { display: block; font-size: 14px; line-height: 18px; font-weight: 600; }
+
+.style small { display: block; margin-top: 2px; font-size: 10px; line-height: 13px; color: var(--muted); white-space: nowrap; }
+
+.check { display: none; position: absolute; top: 13px; right: 13px; width: 16px; height: 16px; padding: 2px; border-radius: 50%; background: rgb(255 255 255 / 20%); stroke-width: 2.3; }
+
+.style[aria-checked=&quot;true&quot;] { color: white; background: rgb(47 119 244 / 92%); border-color: rgb(170 205 255 / 45%); }
+
+.style[aria-checked=&quot;true&quot;]:hover { background: rgb(66 138 255 / 96%); }
+
+.style[aria-checked=&quot;true&quot;] .style-icon, .style[aria-checked=&quot;true&quot;] small { color: white; }
+
+.style[aria-checked=&quot;true&quot;] .check { display: block; }
+
+.preferences { margin-top: 14px; padding: 4px 13px; background: rgb(255 255 255 / 6%); border-radius: 22px; }
+
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 7px 0; border: 0; background: transparent; text-align: left; font-size: 12px; }
+
+.setting + .setting { border-top: 1px solid rgb(255 255 255 / 6%); }
+
+.setting:hover { color: #c5dcff; }
+
+.switch { display: block; position: relative; width: 42px; height: 25px; flex-shrink: 0; background: rgb(195 203 220 / 27%); border-radius: 14px; transition: background 140ms ease-out; }
+
+.switch::after { content: &quot;&quot;; position: absolute; left: 3px; top: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transition: transform 140ms ease-out; }
+
+.setting[aria-checked=&quot;true&quot;] .switch { background: var(--accent); }
+
+.setting[aria-checked=&quot;true&quot;] .switch::after { transform: translateX(17px); }
+
+.action { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 42px; margin-top: 10px; padding: 9px 12px; border: 0; border-radius: 17px; background: rgb(255 255 255 / 8%); font-size: 12px; font-weight: 500; }
+
+.action svg { width: 17px; height: 17px; }
+
+.action:hover { background: rgb(255 255 255 / 14%); }
+
+.update-note { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 0 8px; color: var(--muted); font-size: 9px; line-height: 13px; }
+
+.update-note svg { width: 12px; height: 12px; }
+
+footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; }
+
+.save-status { color: #e3e6ed; font-size: 11px; line-height: 16px; font-weight: 400; }
+
+.save-status.error { color: #ffc3c3; }
+
+.exit { padding: 6px 11px; border: 0; border-radius: 12px; background: rgb(255 255 255 / 5%); font-size: 12px; line-height: 16px; font-weight: 500; }
+
+.exit:hover { color: #ffc3c3; background: rgb(255 255 255 / 7%); }
+
+@media (max-width: 330px) { .panel { padding-inline: 15px; } .style { padding-inline: 12px; } .setting { font-size: 11px; } }
+
+
+
+@media (forced-colors: active) { .panel, .style, .preferences, .action { border: 1px solid CanvasText; } .style[aria-checked=&quot;true&quot;], .switch { background: Highlight; color: HighlightText; } }
+
+
+
+
+
+/* Inset the antialiased edge so the native window region cannot cut it. */
+
+.panel::before { content: &#x27;&#x27;; position: fixed; inset: 1px; z-index: 5; border: 1px solid rgb(255 255 255 / 23%); border-radius: calc(var(--radius) - 1px); pointer-events: none; }
+
+@media (forced-colors: active) { .panel::before { border-color: CanvasText; } }
+
+
+
+
+
+
+
+/* One finite motion system; no overshoot, filters or competing springs. */
+
+:root { --ease-out: cubic-bezier(.215,.61,.355,1); }
+
+.panel { transform-origin: 50% 100%; opacity: 0; }
+
+.panel.entering { opacity: 1; }
+
+.panel.leaving { pointer-events: none; }
+
+.style { overflow: hidden; transition: background 180ms ease-out, border-color 180ms ease-out; }
+
+.check { display: block; opacity: 0; transform: scale(.7); transition: opacity 180ms ease-out, transform 240ms var(--ease-out); }
+
+.style[aria-checked=&quot;true&quot;] .check { opacity: 1; transform: scale(1); }
+
+.switch { transition: background 280ms var(--ease-out); }
+
+.setting, .action, .exit { position: relative; overflow: hidden; transition: background 180ms ease-out, color 180ms ease-out; }
+
+.setting { border-radius: 12px; }
+
+
+
+/* Selection travels as one continuous surface instead of two color flashes. */
+
+.style-grid { position: relative; isolation: isolate; }
+
+.selection-plate { display: block; position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 23px; border: 1px solid rgb(170 205 255 / 45%); background: rgb(47 119 244 / 92%); transition: transform 420ms var(--ease-out); }
+
+.style { z-index: 1; }
+
+.style[aria-checked=&quot;true&quot;], .style[aria-checked=&quot;true&quot;]:hover { background: transparent; border-color: transparent; }
+
+/* Native compositor handles opacity for the complete panel and its edges. */
+
+.panel.entering { will-change: transform; animation: smooth-arrive 300ms cubic-bezier(.215,.61,.355,1) both; }
+
+.panel.leaving { will-change: transform; animation: smooth-leave 200ms cubic-bezier(.215,.61,.355,1) both; }
+
+@keyframes smooth-arrive { from { opacity: 1; transform: translateY(16px) scale(.95); } to { opacity: 1; transform: none; } }
+
+@keyframes smooth-leave { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(10px) scale(.97); } }
+
+
+
+
+
+/* User-enabled Senja motion, including when Windows animations are disabled. */
+
+.switch::after { content: none; }
+
+.switch-thumb { display: block; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: white; transform: translateX(0); transition: transform 280ms cubic-bezier(.4,0,.2,1); }
+
+.setting[aria-checked=&quot;true&quot;] .switch-thumb { transform: translateX(17px); }
+
+.selection-plate { transition: transform 420ms var(--ease-out); will-change: transform; }
+
+
+
+
+
+
+
+/* Quiet footer with a centered, translucent red exit action. */
+
+footer { position: relative; justify-content: center; padding-top: 4px; }
+
+.save-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.save-status.error { position: static; width: auto; height: auto; clip-path: none; white-space: normal; color: #ffc3c3; font-size: 10px; }
+
+footer:has(.save-status.error) { flex-wrap: wrap; }
+
+.exit { min-width: 108px; padding: 6px 20px; border: 1px solid rgb(255 111 122 / 18%); border-radius: 14px; color: #ffb3bc; background: rgb(231 57 80 / 14%); font-size: 12px; line-height: 16px; font-weight: 500; }
+
+.exit:hover { color: #ffd0d6; background: rgb(231 57 80 / 24%); }
+
+.exit:active { background: rgb(231 57 80 / 30%); }
+
+
+
+.update-action { margin-top: 4px; min-height: 30px; padding-block: 6px; font-size: 11px; background: rgb(255 255 255 / 4%); color: var(--muted); cursor: default; }
+
+.update-action small { font-size: 9px; font-weight: 400; color: var(--muted); }
+
+.update-action:disabled { cursor: default; }
+
+.update-action:disabled:hover, .update-action:disabled:active { transform: none; background: rgb(255 255 255 / 4%); }
+
+footer { padding-top: 4px; }
+
+
+
+.panel { padding-bottom: 8px; }
+
+
+
+
+
+/* Equal-width actions keep the complete menu within its fixed viewport. */
+
+.quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+
+.quick-actions .action { min-width: 0; min-height: 48px; margin: 0; padding: 8px; gap: 5px; border-radius: 17px; font-size: 11px; line-height: 15px; }
+
+.quick-actions .action svg { width: 16px; height: 16px; }
+
+.quick-actions .update-action { flex-wrap: wrap; align-content: center; column-gap: 5px; row-gap: 0; }
+
+.quick-actions .update-action small { flex-basis: 100%; font-size: 9px; line-height: 12px; text-align: center; }
+
+.panel { scrollbar-width: none; }
+
+.panel::-webkit-scrollbar { display: none; width: 0; }
+
+footer { padding-top: 10px; }
+
+
+
+.update-action:not(:disabled) { cursor: pointer; }
+
+.update-action:not(:disabled):hover { background: rgb(255 255 255 / 14%); }
+
+
+
+html{background:transparent}body{background:linear-gradient(135deg,#cbdfe8,#e6cddc)}.panel{opacity:1;backdrop-filter:blur(4px)}&lt;/style&gt;&lt;/head&gt;
+
+&lt;body&gt;&lt;main class=&quot;panel&quot; aria-label=&quot;Pengaturan Senja&quot;&gt;
+
+&lt;header class=&quot;brand&quot;&gt;&lt;svg class=&quot;logo&quot; viewBox=&quot;0 0 40 40&quot; aria-hidden=&quot;true&quot;&gt;&lt;path fill=&quot;currentColor&quot; d=&quot;M5 21a15 15 0 0 1 30 0H5Z&quot;/&gt;&lt;path d=&quot;M5 25h30M11 31h18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;3.5&quot; stroke-linecap=&quot;round&quot;/&gt;&lt;/svg&gt;&lt;div&gt;&lt;h1&gt;Senja&lt;/h1&gt;&lt;p&gt;Tampilan taskbar&lt;/p&gt;&lt;/div&gt;&lt;/header&gt;
+
+&lt;fieldset class=&quot;styles&quot;&gt;&lt;legend&gt;Pilih tampilan&lt;/legend&gt;&lt;div class=&quot;style-grid&quot; role=&quot;radiogroup&quot; aria-label=&quot;Gaya taskbar&quot;&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;100&quot; data-style=&quot;1&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;m7 15 5-6m0 6 5-6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Kaca&lt;/strong&gt;&lt;small&gt;Blur lembut&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;101&quot; data-style=&quot;2&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M7 9h10M7 12h10M7 15h6&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Akrilik&lt;/strong&gt;&lt;small&gt;Blur lebih pekat&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;102&quot; data-style=&quot;3&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;5&quot; width=&quot;18&quot; height=&quot;14&quot; rx=&quot;4&quot;/&gt;&lt;path d=&quot;M8 9h3M8 12h8&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Bening&lt;/strong&gt;&lt;small&gt;Transparan penuh&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;button class=&quot;style&quot; role=&quot;radio&quot; aria-checked=&quot;false&quot; data-command=&quot;103&quot; data-style=&quot;4&quot;&gt;&lt;svg class=&quot;style-icon&quot; viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M4 5h7v6H4zm9 0h7v6h-7zM4 13h7v6H4zm9 0h7v6h-7z&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;strong&gt;Solid&lt;/strong&gt;&lt;small&gt;Gelap tanpa blur&lt;/small&gt;&lt;/span&gt;&lt;svg class=&quot;check&quot; viewBox=&quot;0 0 20 20&quot;&gt;&lt;path d=&quot;m5 10 3 3 7-7&quot;/&gt;&lt;/svg&gt;&lt;/button&gt;
+
+&lt;/div&gt;&lt;/fieldset&gt;
+
+&lt;section class=&quot;preferences&quot; aria-label=&quot;Preferensi&quot;&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;105&quot; id=&quot;rounded&quot;&gt;&lt;span&gt;Sudut membulat&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;button class=&quot;setting&quot; role=&quot;switch&quot; aria-checked=&quot;false&quot; data-command=&quot;110&quot; id=&quot;startup&quot;&gt;&lt;span&gt;Mulai bersama Windows&lt;/span&gt;&lt;i class=&quot;switch&quot; aria-hidden=&quot;true&quot;&gt;&lt;span class=&quot;switch-thumb&quot;&gt;&lt;/span&gt;&lt;/i&gt;&lt;/button&gt;&lt;/section&gt;
+
+&lt;section class=&quot;quick-actions&quot; aria-label=&quot;Tindakan aplikasi&quot;&gt;&lt;button class=&quot;action&quot; data-command=&quot;111&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M20 7v5h-5M4 17v-5h5M5.4 8a7 7 0 0 1 11.8-2L20 9M4 15l2.8 3A7 7 0 0 0 18.6 16&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Segarkan taskbar&lt;/span&gt;&lt;/button&gt;
+
+&lt;button class=&quot;action update-action&quot; data-command=&quot;112&quot; aria-label=&quot;Pembaruan: buka release terbaru&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot;&gt;&lt;path d=&quot;M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4&quot;/&gt;&lt;/svg&gt;&lt;span&gt;Pembaruan&lt;/span&gt;&lt;small&gt;Release terbaru&lt;/small&gt;&lt;/button&gt;&lt;/section&gt;
+
+&lt;footer&gt;&lt;span class=&quot;save-status&quot; id=&quot;status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;&gt;&lt;/span&gt;&lt;button class=&quot;exit&quot; data-command=&quot;140&quot;&gt;Keluar&lt;/button&gt;&lt;/footer&gt;
+
+&lt;/main&gt;&lt;script&gt;window.__SENJA_STATE__={&quot;style&quot;: 1, &quot;rounded&quot;: true, &quot;startup&quot;: true};&lt;/script&gt;&lt;script&gt;window.chrome={webview:{postMessage(raw){const m=JSON.parse(raw);if(m.type===&#x27;command&#x27;){const s={...window.__SENJA_STATE__};if(m.command&gt;=100&amp;&amp;m.command&lt;=103)s.style=m.command-99;if(m.command===105)s.rounded=!s.rounded;if(m.command===110)s.startup=!s.startup;window.senjaUpdate(s)}}}};(() =&gt; {
+
+  const state = window.__SENJA_STATE__;
+
+  let busy = false;
+
+  // The user explicitly enabled full motion in Senja, independently of
+
+  // Windows&#x27; disabled animation setting. Leave the system setting untouched.
+
+  const reducedMotion = { matches: false };
+
+  const grid = document.querySelector(&#x27;.style-grid&#x27;);
+
+  const plate = document.createElement(&#x27;i&#x27;);
+
+  plate.className = &#x27;selection-plate&#x27;;
+
+  plate.setAttribute(&#x27;aria-hidden&#x27;, &#x27;true&#x27;);
+
+  grid.prepend(plate);
+
+  let platePlaced = false;
+
+  let plateGeometry = &quot;&quot;;
+
+  function positionSelection() {
+
+    const selected = grid.querySelector(`[data-style=&quot;${state.style}&quot;]`);
+
+    if (!selected) return;
+
+    const geometry = [selected.offsetLeft, selected.offsetTop, selected.offsetWidth, selected.offsetHeight];
+
+    if (geometry.join(&#x27;,&#x27;) === plateGeometry) return;
+
+    plateGeometry = geometry.join(&#x27;,&#x27;);
+
+    if (!platePlaced) plate.style.transition = &#x27;none&#x27;;
+
+    plate.style.width = `${geometry[2]}px`;
+
+    plate.style.height = `${geometry[3]}px`;
+
+    plate.style.transform = `translate(${geometry[0]}px, ${geometry[1]}px)`;
+
+    if (!platePlaced) {
+
+      platePlaced = true;
+
+      requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt; plate.style.removeProperty(&#x27;transition&#x27;)));
+
+    }
+
+  }
+
+  new ResizeObserver(positionSelection).observe(grid);
+
+  const panel = document.querySelector(&#x27;.panel&#x27;);
+
+  let revealed = false;
+
+  let dismissing = false;
+
+  window.senjaReveal = () =&gt; {
+
+    if (revealed || dismissing) return;
+
+    revealed = true;
+
+    requestAnimationFrame(() =&gt; {
+
+      if (dismissing) return;
+
+      panel.classList.add(&#x27;entering&#x27;);
+
+      send(&#x27;motion&#x27;);
+
+    });
+
+  };
+
+  window.senjaDismiss = () =&gt; {
+
+    if (dismissing) return;
+
+    dismissing = true;
+
+    // Freeze the current presentation before reversing, including mid-entry.
+
+    const current = getComputedStyle(panel).transform;
+
+    const animation = panel.animate([
+
+      { transform: current === &#x27;none&#x27; ? &#x27;matrix(1,0,0,1,0,0)&#x27; : current },
+
+      { transform: &#x27;translateY(10px) scale(.97)&#x27; }
+
+    ], { duration: 200, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27;, fill: &#x27;forwards&#x27; });
+
+    panel.style.pointerEvents = &#x27;none&#x27;;
+
+    panel.classList.remove(&#x27;entering&#x27;);
+
+    panel.style.opacity = &#x27;1&#x27;;
+
+    send(&#x27;motion&#x27;);
+
+    animation.finished.catch(() =&gt; {});
+
+  };
+
+  panel.addEventListener(&#x27;animationend&#x27;, () =&gt; panel.style.willChange = &#x27;auto&#x27;);
+
+  function animatePress(button, event) {
+
+    if (button.getAttribute(&#x27;role&#x27;) === &#x27;switch&#x27;) return;
+
+    if (reducedMotion.matches) return;
+
+    button.animate([
+
+      { transform: &#x27;scale(.98)&#x27;, offset: 0 },
+
+      { transform: &#x27;scale(1)&#x27;, offset: 1 }
+
+    ], { duration: 220, easing: &#x27;cubic-bezier(.215,.61,.355,1)&#x27; });
+
+    if (button.dataset.command === &#x27;111&#x27;) {
+
+      button.querySelector(&#x27;svg&#x27;)?.animate([{ transform: &#x27;rotate(0deg)&#x27; }, { transform: &#x27;rotate(360deg)&#x27; }], { duration: 500, easing: &#x27;cubic-bezier(.16,1,.3,1)&#x27; });
+
+    }
+
+  }
+
+  function send(type, command) {
+
+    window.chrome?.webview?.postMessage(JSON.stringify({ type, command, reducedMotion: reducedMotion.matches }));
+
+  }
+
+  function render(next, message = &#x27;&#x27;) {
+
+    Object.assign(state, next);
+
+    positionSelection();
+
+    for (const el of document.querySelectorAll(&#x27;[data-style]&#x27;)) {
+
+      const active = Number(el.dataset.style) === state.style;
+
+      el.setAttribute(&#x27;aria-checked&#x27;, String(active));
+
+      el.tabIndex = active ? 0 : -1;
+
+    }
+
+    document.querySelector(&#x27;#rounded&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.rounded));
+
+    document.querySelector(&#x27;#startup&#x27;).setAttribute(&#x27;aria-checked&#x27;, String(state.startup));
+
+    busy = false;
+
+    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;false&#x27;);
+
+    const status = document.querySelector(&#x27;#status&#x27;);
+
+    status.textContent = message || &#x27;&#x27;;
+
+    status.classList.toggle(&#x27;error&#x27;, Boolean(message));
+
+  }
+
+  window.senjaUpdate = render;
+
+  document.addEventListener(&#x27;click&#x27;, event =&gt; {
+
+    const action = event.target.closest(&#x27;button&#x27;);
+
+    if (!action) return;
+
+    if (action.dataset.action === &#x27;close&#x27;) { send(&#x27;close&#x27;); return; }
+
+    if (!action.dataset.command || busy || dismissing) return;
+
+    animatePress(action, event);
+
+    busy = true;
+
+    for (const el of document.querySelectorAll(&#x27;[data-command]&#x27;)) el.setAttribute(&#x27;aria-disabled&#x27;, &#x27;true&#x27;);
+
+    document.querySelector(&#x27;#status&#x27;).textContent = &#x27;Menerapkan…&#x27;;
+
+    send(&#x27;command&#x27;, Number(action.dataset.command));
+
+  });
+
+  document.addEventListener(&#x27;keydown&#x27;, event =&gt; {
+
+    if (event.key === &#x27;Escape&#x27;) { event.preventDefault(); send(&#x27;close&#x27;); }
+
+    if (event.key === &#x27;F5&#x27; || (event.ctrlKey &amp;&amp; event.key.toLowerCase() === &#x27;r&#x27;)) { event.preventDefault(); send(&#x27;reload&#x27;); }
+
+    const radio = event.target.closest(&#x27;[role=&quot;radio&quot;]&#x27;);
+
+    if (radio &amp;&amp; [&#x27;ArrowLeft&#x27;, &#x27;ArrowRight&#x27;, &#x27;ArrowUp&#x27;, &#x27;ArrowDown&#x27;, &#x27;Home&#x27;, &#x27;End&#x27;].includes(event.key)) {
+
+      event.preventDefault();
+
+      const options = [...document.querySelectorAll(&#x27;[role=&quot;radio&quot;]&#x27;)];
+
+      const index = options.indexOf(radio);
+
+      let next = event.key === &#x27;Home&#x27; ? 0 : event.key === &#x27;End&#x27; ? options.length - 1 : (index + ([&#x27;ArrowLeft&#x27;, &#x27;ArrowUp&#x27;].includes(event.key) ? -1 : 1) + options.length) % options.length;
+
+      options[next].focus(); options[next].click();
+
+    }
+
+  });
+
+  render(state);
+
+  send(&#x27;ready&#x27;);
+
+})();
+
+
+
+
+
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"></iframe></section></main></html>

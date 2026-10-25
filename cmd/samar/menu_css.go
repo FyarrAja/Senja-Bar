@@ -3,13 +3,9 @@
 package main
 
 import (
-	"bytes"
 	"embed"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"image"
-	"image/png"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,6 +26,7 @@ const cssMenuClass = "SenjaCSSMenu"
 const wmNativeMenu = wmApp + 21
 const wmCSSCommand = wmApp + 22
 const wmCSSResult = wmApp + 23
+const wmCSSFrame = wmApp + 24
 
 type cssState struct {
 	Style   int  `json:"style"`
@@ -54,6 +51,26 @@ var cssFadeFrom, cssFadeTo byte
 var cssFadeStart time.Time
 var cssFadeDuration time.Duration
 var cssReducedMotion bool
+var cssCommandGrace time.Time
+var cssTimerResolution bool
+var cssFadeFrames int
+var cssFadeLast time.Time
+var cssFadeMaxGap time.Duration
+var cssFadeStop chan struct{}
+var cssFadeQueued chan struct{}
+var cssFadeGeneration uintptr
+
+func stopCSSFade(hwnd uintptr) {
+	if cssFadeStop != nil {
+		close(cssFadeStop)
+		cssFadeStop = nil
+	}
+	cssFadeGeneration++
+	if cssTimerResolution {
+		syscall.NewLazyDLL("winmm.dll").NewProc("timeEndPeriod").Call(1)
+		cssTimerResolution = false
+	}
+}
 
 func fadeAlpha(from, to byte, elapsed, duration time.Duration) byte {
 	if elapsed >= duration || duration <= 0 {
@@ -65,6 +82,7 @@ func fadeAlpha(from, to byte, elapsed, duration time.Duration) byte {
 }
 
 func beginCSSFade(hwnd uintptr, target byte, duration time.Duration) bool {
+	stopCSSFade(hwnd)
 	if cssReducedMotion {
 		cssAlpha = target
 		user32.NewProc("SetLayeredWindowAttributes").Call(hwnd, 0, uintptr(target), 2)
@@ -75,8 +93,33 @@ func beginCSSFade(hwnd uintptr, target byte, duration time.Duration) bool {
 	}
 	cssFadeFrom, cssFadeTo = cssAlpha, target
 	cssFadeStart, cssFadeDuration = time.Now(), duration
-	timer, _, _ := user32.NewProc("SetTimer").Call(hwnd, 0x534e, 16, 0)
-	return timer != 0
+	cssFadeLast, cssFadeMaxGap, cssFadeFrames = cssFadeStart, 0, 0
+	// Request fine timer resolution only for this finite transition. Never
+	// raise timer resolution while the engine or an open menu is idle.
+	result, _, _ := syscall.NewLazyDLL("winmm.dll").NewProc("timeBeginPeriod").Call(1)
+	cssTimerResolution = result == 0
+	// WM_TIMER is low-priority and quantized on some Windows builds. A Go
+	// high-resolution ticker posts at most one outstanding frame instead.
+	// This worker exists only during the 200/300 ms transition.
+	stop, queued, generation := make(chan struct{}), make(chan struct{}, 1), cssFadeGeneration
+	cssFadeStop, cssFadeQueued = stop, queued
+	go func() {
+		ticker := time.NewTicker(time.Second / 120)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-stop:
+				return
+			case <-ticker.C:
+				select {
+				case queued <- struct{}{}:
+					postMessageW.Call(hwnd, wmCSSFrame, generation, 0)
+				default:
+				}
+			}
+		}
+	}()
+	return true
 }
 
 var cssPopupBounds rect
@@ -93,7 +136,7 @@ func pointerInsideCSSPopup() bool {
 
 func watchPopupOutsideClicks(hwnd uintptr, bounds rect) func() {
 	callback := syscall.NewCallback(func(code int32, message, data uintptr) uintptr {
-		if code >= 0 && (message == 0x0201 || message == 0x0204) {
+		if code >= 0 && (message == 0x0201 || message == 0x0204 || message == 0x0207 || message == 0x020b) {
 			position := *(*point)(unsafe.Pointer(data))
 			if !popupContainsPoint(bounds, position) {
 				postMessageW.Call(hwnd, wmClose, 0, 0)
@@ -103,6 +146,9 @@ func watchPopupOutsideClicks(hwnd uintptr, bounds rect) func() {
 		return result
 	})
 	hook, _, _ := user32.NewProc("SetWindowsHookExW").Call(14, callback, uintptr(getModuleHandle()), 0)
+	if hook == 0 {
+		logEvent("ERROR", "menu.dismiss", "outside-click hook unavailable")
+	}
 	return func() {
 		if hook != 0 {
 			user32.NewProc("UnhookWindowsHookEx").Call(hook)
@@ -120,7 +166,7 @@ func watchTrayOverflow(hwnd, overflow uintptr) func() {
 		if window == overflow && object == 0 && child == 0 && (event == 0x8001 || event == 0x8003) {
 			// Applying a material can hide Explorer's overflow as a side effect.
 			// A click inside Senja must not dismiss the mode chooser.
-			if event == 0x8003 && pointerInsideCSSPopup() {
+			if event == 0x8003 && suppressOverflowHide(time.Now().Before(cssCommandGrace), pointerInsideCSSPopup()) {
 				return 0
 			}
 			postMessageW.Call(hwnd, wmClose, 0, 0)
@@ -135,15 +181,29 @@ func watchTrayOverflow(hwnd, overflow uintptr) func() {
 	}
 }
 
+// A material update may hide Explorer, but merely hovering the popup must
+// never suppress a real tray dismissal. The exemption expires after the ack.
+func suppressOverflowHide(grace, inside bool) bool {
+	return inside && grace
+}
+
 func trayOverflowAt(anchor point) uintptr {
 	for _, name := range []string{"TopLevelWindowForOverflowXamlIsland", "NotifyIconOverflowWindow"} {
-		window, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(name))), 0)
-		visible, _, _ := user32.NewProc("IsWindowVisible").Call(window)
-		var bounds rect
-		if window != 0 && visible != 0 {
-			getWindowRect.Call(window, uintptr(unsafe.Pointer(&bounds)))
-			if anchor.x >= bounds.left && anchor.x < bounds.right && anchor.y >= bounds.top && anchor.y < bounds.bottom {
-				return window
+		class := utf16ptr(name)
+		var after uintptr
+		for {
+			window, _, _ := findWindowExW.Call(0, after, uintptr(unsafe.Pointer(class)), 0)
+			if window == 0 {
+				break
+			}
+			after = window
+			visible, _, _ := user32.NewProc("IsWindowVisible").Call(window)
+			var bounds rect
+			if visible != 0 {
+				getWindowRect.Call(window, uintptr(unsafe.Pointer(&bounds)))
+				if popupContainsPoint(bounds, anchor) {
+					return window
+				}
 			}
 		}
 	}
@@ -251,32 +311,6 @@ func cssBounds(anchor point, dpi int32, work rect) rect {
 	return rect{x, y, x + w, y + h}
 }
 
-func cssBackdrop(bounds rect) string {
-	if glassTexturePixels == 0 {
-		return ""
-	}
-	w, h := int(glassTextureBounds.right-glassTextureBounds.left), int(glassTextureBounds.bottom-glassTextureBounds.top)
-	x, y := int(bounds.left-glassTextureBounds.left), int(bounds.top-glassTextureBounds.top)
-	cw, ch := int(bounds.right-bounds.left), int(bounds.bottom-bounds.top)
-	if x < 0 || y < 0 || x+cw > w || y+ch > h {
-		return ""
-	}
-	raw := unsafe.Slice((*byte)(unsafe.Pointer(glassTexturePixels)), w*h*4)
-	bitmap := image.NewNRGBA(image.Rect(0, 0, cw, ch))
-	for row := 0; row < ch; row++ {
-		for col := 0; col < cw; col++ {
-			src := ((y+row)*w + x + col) * 4
-			dst := (row*cw + col) * 4
-			copy(bitmap.Pix[dst:dst+4], []byte{raw[src+2], raw[src+1], raw[src], 255})
-		}
-	}
-	var buffer bytes.Buffer
-	if png.Encode(&buffer, bitmap) != nil {
-		return ""
-	}
-	return "data:image/png;base64," + base64.StdEncoding.EncodeToString(buffer.Bytes())
-}
-
 func cssHTML(state cssState, backdrop string) string {
 	template, _ := cssAssets.ReadFile("ui/menu.html")
 	stylesheet, _ := cssAssets.ReadFile("ui/menu.css")
@@ -334,26 +368,42 @@ func cssMenuProc(hwnd uintptr, message uint32, wParam, lParam uintptr) uintptr {
 		if cssShown && cssBrowser != nil {
 			cssClosing = true
 			cssBrowser.Eval("window.senjaDismiss?.()")
-			if beginCSSFade(hwnd, 0, 220*time.Millisecond) {
-				return 0
-			}
+			// The renderer starts the native fade on the same frame as its transform.
+			user32.NewProc("SetTimer").Call(hwnd, 0x534f, 600, 0)
+			return 0
 		}
 		destroyWindow.Call(hwnd)
 		return 0
-	case 0x0113: // WM_TIMER: compositor fade; timer removed at either endpoint.
-		if wParam == 0x534e {
-			elapsed := time.Since(cssFadeStart)
+	case 0x0113: // WM_TIMER: close watchdog if the renderer becomes unresponsive.
+		if wParam == 0x534f {
+			destroyWindow.Call(hwnd) // Renderer-unresponsive close fallback.
+			return 0
+		}
+	case wmCSSFrame:
+		if cssFadeStop != nil && wParam == cssFadeGeneration {
+			select {
+			case <-cssFadeQueued:
+			default:
+			}
+			now := time.Now()
+			elapsed := now.Sub(cssFadeStart)
+			cssFadeMaxGap = max(cssFadeMaxGap, now.Sub(cssFadeLast))
+			cssFadeLast = now
+			cssFadeFrames++
 			cssAlpha = fadeAlpha(cssFadeFrom, cssFadeTo, elapsed, cssFadeDuration)
 			user32.NewProc("SetLayeredWindowAttributes").Call(hwnd, 0, uintptr(cssAlpha), 2)
 			if elapsed >= cssFadeDuration {
-				user32.NewProc("KillTimer").Call(hwnd, wParam)
+				stopCSSFade(hwnd)
+				logEvent("INFO", "menu.motion", fmt.Sprintf("alpha=%d frames=%d elapsed=%s maxGap=%s", cssAlpha, cssFadeFrames, elapsed.Round(time.Millisecond), cssFadeMaxGap.Round(time.Millisecond)))
 				if cssClosing {
 					destroyWindow.Call(hwnd)
 				}
 			}
 			return 0
 		}
+		return 0
 	case wmDestroy:
+		stopCSSFade(hwnd)
 		postQuitMessage.Call(0)
 		return 0
 	}
@@ -404,13 +454,8 @@ func runCSSMenu(preview bool) error {
 	if preview {
 		bounds = cssBounds(point{mi.Work.left + (mi.Work.right-mi.Work.left)/2 - menuPx(68), mi.Work.top + (mi.Work.bottom-mi.Work.top)/2 + menuPx(282)}, menuDPI, mi.Work)
 	}
-	// Capture around the popup centre, not the cursor: right-aligned popups
-	// extend farther left than the native menu capture margin.
-	centre := point{(bounds.left + bounds.right) / 2, (bounds.top + bounds.bottom) / 2}
 	cssPopupBounds = bounds
-	prepareMenuBackdropMaterial(centre, 548, false)
-	backdrop := cssBackdrop(bounds)
-	stopMenuGlass()
+	backdrop := "" // Live native compositor; no desktop capture or PNG allocation.
 	className := utf16ptr(cssMenuClass)
 	class := wndClassEx{cbSize: uint32(unsafe.Sizeof(wndClassEx{})), lpfnWndProc: syscall.NewCallback(cssMenuProc), hInstance: getModuleHandle(), lpszClassName: className}
 	if r, _, _ := registerClassExW.Call(uintptr(unsafe.Pointer(&class))); r == 0 {
@@ -442,6 +487,10 @@ func runCSSMenu(preview bool) error {
 		return fmt.Errorf("cannot create CSS menu: %v", err)
 	}
 	cssWindow = hwnd
+	// Extend the compositor surface into the client area so transparent
+	// WebView pixels reveal the desktop, rather than the host's solid fill.
+	margins := struct{ Left, Right, Top, Bottom int32 }{-1, -1, -1, -1}
+	dwmExtendFrameIntoClientArea.Call(hwnd, uintptr(unsafe.Pointer(&margins)))
 	cssAlpha = 0
 	user32.NewProc("SetLayeredWindowAttributes").Call(hwnd, 0, 0, 2)
 	defer destroyWindow.Call(hwnd)
@@ -464,6 +513,7 @@ func runCSSMenu(preview bool) error {
 	cssBrowser.SetGlobalPermission(edge.CoreWebView2PermissionStateDeny)
 	state := currentCSSState()
 	cssCommandResult = func(ok bool) {
+		cssCommandGrace = time.Now().Add(180 * time.Millisecond)
 		state = currentCSSState()
 		errorText := ""
 		if !ok {
@@ -485,6 +535,9 @@ func runCSSMenu(preview bool) error {
 		switch message.Type {
 		case "ready":
 			cssReducedMotion = message.ReducedMotion
+			if cssShown && !cssClosing {
+				cssBrowser.Eval("window.senjaReveal?.()")
+			}
 			if !cssShown {
 				cssShown = true
 				show := uintptr(5)
@@ -505,10 +558,7 @@ func runCSSMenu(preview bool) error {
 				// Start only after the native window is visible. A CSS animation
 				// started during hidden WebView loading can finish before opening.
 				cssBrowser.Eval("window.senjaReveal?.()")
-				if !beginCSSFade(hwnd, 255, 320*time.Millisecond) {
-					cssAlpha = 255
-					user32.NewProc("SetLayeredWindowAttributes").Call(hwnd, 0, 255, 2)
-				}
+
 				if cssOverflow == 0 {
 					setForegroundWindow.Call(hwnd)
 					cssBrowser.Focus()
@@ -516,12 +566,23 @@ func runCSSMenu(preview bool) error {
 				visible, _, _ := user32.NewProc("IsWindowVisible").Call(hwnd)
 				logEvent("INFO", "menu.css.ready", fmt.Sprintf("CSS renderer ready; visible=%d bounds=%+v", visible, bounds))
 			}
+		case "motion":
+			target, duration := byte(255), 300*time.Millisecond
+			if cssClosing {
+				target, duration = 0, 200*time.Millisecond
+			}
+			if !beginCSSFade(hwnd, target, duration) {
+				user32.NewProc("SetLayeredWindowAttributes").Call(hwnd, 0, uintptr(target), 2)
+				if cssClosing {
+					destroyWindow.Call(hwnd)
+				}
+			}
 		case "close":
 			postMessageW.Call(hwnd, wmClose, 0, 0)
 		case "reload":
 			cssBrowser.NavigateToString(cssHTML(state, backdrop))
 		case "command":
-			if !validCSSCommand(message.Command) {
+			if cssClosing || !validCSSCommand(message.Command) {
 				return
 			}
 			errorText := ""
@@ -541,6 +602,7 @@ func runCSSMenu(preview bool) error {
 					state.Startup = !state.Startup
 				}
 			} else {
+				cssCommandGrace = time.Now().Add(750 * time.Millisecond)
 				ok, _, _ := postMessageW.Call(parent, wmCSSCommand, uintptr(message.Command), hwnd)
 				if ok == 0 {
 					errorText = "Belum diterapkan. Coba lagi."
@@ -568,6 +630,21 @@ func runCSSMenu(preview bool) error {
 	if !cssBrowser.Embed(hwnd) {
 		return fmt.Errorf("WebView2 runtime tidak dapat dimuat")
 	}
+	// Transparent WebView content reveals the live Windows blur behind it.
+	controller2 := cssBrowser.GetController().GetICoreWebView2Controller2()
+	if controller2 == nil {
+		return fmt.Errorf("WebView2 transparent background unavailable")
+	}
+	vt2 := (*struct{ VTable *[28]uintptr })(unsafe.Pointer(controller2)).VTable
+	hr, _, _ := syscall.SyscallN(vt2[27], uintptr(unsafe.Pointer(controller2)), 0)
+	syscall.SyscallN(vt2[2], uintptr(unsafe.Pointer(controller2)))
+	if int32(hr) < 0 {
+		return fmt.Errorf("WebView2 background HRESULT 0x%X", hr)
+	}
+	if !setNativeAccent(syscall.Handle(hwnd), styleGlass) {
+		return fmt.Errorf("live menu backdrop unavailable")
+	}
+	logEvent("INFO", "menu.material", "live neutral Windows blur; no captured backdrop")
 	defer func() {
 		if c := cssBrowser.GetController(); c != nil {
 			// ICoreWebView2Controller::Close is slot 24 of the published COM ABI.

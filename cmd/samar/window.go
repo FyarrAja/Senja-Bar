@@ -65,8 +65,22 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 	case 0x007E, 0x001A, 0x02E0: // WM_DISPLAYCHANGE, WM_SETTINGCHANGE, WM_DPICHANGED
 		if globalConfig != nil && !shuttingDown {
 			reinstallTrayIcon(syscall.Handle(hwnd))
+			user32.NewProc("SetTimer").Call(hwnd, 0x5354, 180, 0)
 		}
 		return 0
+	case 0x031A, 0x031E, 0x0320: // Theme, DWM composition or colorization changed.
+		if globalConfig != nil && !shuttingDown {
+			user32.NewProc("SetTimer").Call(hwnd, 0x5354, 180, 0)
+		}
+		return 0
+	case 0x0113:
+		if wParam == 0x5354 {
+			user32.NewProc("KillTimer").Call(hwnd, wParam)
+			if globalConfig != nil && !shuttingDown {
+				reapplyStyleSilently(globalConfig.style)
+			}
+			return 0
+		}
 	case wmCommand:
 		if globalConfig != nil && !shuttingDown {
 			selectCommand(syscall.Handle(hwnd), uint32(wParam&0xFFFF), globalConfig)

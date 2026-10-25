@@ -19,7 +19,7 @@ try {
     foreach ($file in @('icon.svg','icon.png','senja.ico','menu.css')) {
         Copy-Item -LiteralPath (Join-Path $root ('Assets/'+$file)) -Destination (Join-Path $stage 'Assets')
     }
-    foreach ($file in @('THIRD_PARTY_NOTICES.txt','DEPENDENCIES.json')) {
+    foreach ($file in @('THIRD_PARTY_NOTICES.txt','DEPENDENCIES.json','BUILD.md','ARCHITECTURE.md','preview.png')) {
         Copy-Item -LiteralPath (Join-Path $root ('docs/'+$file)) -Destination (Join-Path $stage 'docs')
     }
     Copy-Item -LiteralPath (Join-Path $root 'docs/licenses') -Destination (Join-Path $stage 'docs') -Recurse
@@ -36,5 +36,3 @@ try {
     Set-Content -LiteralPath (Join-Path $out 'SHA256SUMS.txt') -Value @("$hash  Senja-Bar-windows-x64.zip", "$sourceHash  $([IO.Path]::GetFileName($sourceZip))") -Encoding ascii
     Write-Output $zip
 } finally { Pop-Location }
-
-

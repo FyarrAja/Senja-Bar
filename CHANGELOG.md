@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 — 2026-10-25
+
+- Live neutral menu glass replaces the frozen desktop snapshot; no screen capture or PNG encoding on the CSS path.
+- Reapply taskbar materials after Windows theme, display and colorization changes, with event-based debouncing.
+- Tray dismissal exemption now expires after a material interaction; hovering no longer keeps an orphan popup open. All mouse buttons outside the popup dismiss it.
+- Synchronized entry/exit motion, continuous reversal when closing during entry, no spring overshoot, cached selection geometry. Fine timer resolution is scoped to finite fades.
+- Short English/Indonesian README and a controlled GUI preview; original GUI layout and features retained.
+
 ## 1.0.0 — 2026-10-25
 
 First public Senja Bar release.
