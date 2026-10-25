@@ -1,0 +1,10 @@
+*.exe
+*.pdb
+dist/
+vendor/
+settings.ini
+*.log
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

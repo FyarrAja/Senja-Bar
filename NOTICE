@@ -1,0 +1,10 @@
+Senja Bar
+Copyright 2026 FyarrAja and contributors.
+Modified from LowBar (https://github.com/chematic/LowBar), Apache-2.0.
+Senja-specific UI, branding, taskbar materials, lifecycle and animation changes: October 2026.
+Distributed under GPL-3.0 in combination with ExplorerTAP. Original Apache-2.0 license and trademarks notice retained in docs/licenses and TRADEMARKS.md.
+
+Unmodified ExplorerTAP.dll, ExplorerHooks.dll, ProgramLog.dll, Xaml.dll and resources.pri match the official TranslucentTB 2026.2 portable x64 release.
+Upstream source and build instructions: https://github.com/TranslucentTB/TranslucentTB/tree/2026.2
+Corresponding source download: https://github.com/TranslucentTB/TranslucentTB/archive/refs/tags/2026.2.zip
+See docs/THIRD_PARTY_NOTICES.txt and docs/licenses for notices.

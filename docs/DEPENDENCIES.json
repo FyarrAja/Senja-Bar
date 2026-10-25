@@ -1,0 +1,12 @@
+{
+  "upstream": "TranslucentTB/TranslucentTB",
+  "version": "2026.2",
+  "source": "https://github.com/TranslucentTB/TranslucentTB/archive/refs/tags/2026.2.zip",
+  "files": {
+    "ExplorerTAP.dll": "c48f1a06168acd7839269dde0d15ccf5d09c702512b94dd6ba9a05df1b153dc2",
+    "ExplorerHooks.dll": "5ab9ca00b41a0676c94430c43a5de106acef2ade5c42e6c2ee45912de7a718d6",
+    "ProgramLog.dll": "0ac96ac53f5575369ad7b2f12ee2bd272e77438de8d041ec8aa6d4b900d2f701",
+    "Xaml.dll": "473cc6ed8e9a1f37dbfee0c0b4ef04de9bbe5b8872b7f75d7cb2c9e50576f13c",
+    "resources.pri": "6b6766492e75aa80bfc802265f10d3c32ed7757be2dc9ffa96738b0e159aeb3c"
+  }
+}
