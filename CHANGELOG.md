@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.5 — 2026-10-26
+
+- Add smooth press/release feedback to mode cards, switch rows, Refresh, Update and Exit. Icons and text scale together around each control's center.
+- Very quick clicks retain a visible pulse without delaying the action. Drag cancellation, capture loss and keyboard activation are handled; key repeat does not repeatedly invoke a held button.
+- Press feedback shares the existing finite animation ticker, stops at rest, and does not delay popup dismissal. Raster tests verify stable centering at 100–200% scaling.
+
 ## 1.1.4 — 2026-10-26
 
 - Adapt taskbar materials to the Windows system light/dark theme and nearby background hue, independently per monitor. Glass and Acrylic vary tint strength to keep system text legible; Solid follows the theme with a restrained background hue; Clear remains fully transparent.

@@ -71,6 +71,28 @@ func TestNativeOutlineRasterIsContinuous(t *testing.T) {
 			if pixels[0] != 0 || pixels[w-1] != 0 || pixels[(h-1)*w] != 0 || pixels[w*h-1] != 0 {
 				t.Fatal("outer corners must remain transparent")
 			}
+			// Exercise the real GDI+ transform at each DPI: shrink around the
+			// button center, never around the window origin (which causes jitter).
+			nativeG("GdipGraphicsClear", n.graphics, 0)
+			n.presses[6].value = 1
+			saved := n.beginPress(6)
+			n.round(20, 430, 154, 48, 17, 0xffffffff, false)
+			n.endPress(saved)
+			nativeG("GdipFlush", n.graphics, 1)
+			minX, minY, maxX, maxY := w, h, 0, 0
+			for y := 0; y < h; y++ {
+				for x := 0; x < w; x++ {
+					if pixels[y*w+x]>>24 > 127 {
+						minX = min(minX, x)
+						minY = min(minY, y)
+						maxX = max(maxX, x)
+						maxY = max(maxY, y)
+					}
+				}
+			}
+			if minX <= int(20*scale) || maxX >= int(174*scale) || math.Abs(float64(minX+maxX+1)/2-97*float64(scale)) > 1.1 || math.Abs(float64(minY+maxY+1)/2-454*float64(scale)) > 1.1 {
+				t.Fatalf("pressed button shifted instead of shrinking around center: %d,%d .. %d,%d", minX, minY, maxX, maxY)
+			}
 			runtime.KeepAlive(pixels)
 		})
 	}

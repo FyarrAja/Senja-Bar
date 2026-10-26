@@ -44,6 +44,8 @@ type nativeGlassPanel struct {
 	stop                                                       chan struct{}
 	queued                                                     chan struct{}
 	closing                                                    bool
+	presses                                                    [9]nativePress
+	pressed, keyPressed                                        int
 }
 
 func nativeStateCommand(actual, desired cssState) uint32 {
@@ -117,32 +119,8 @@ func (n *nativeGlassPanel) choose(command uint32) {
 	n.pump()
 }
 func nativeCommandAt(x, y int) uint32 {
-	if x >= 20 && x < 174 && y >= 108 && y < 204 {
-		return cmdStyleGlass
-	}
-	if x >= 184 && x < 338 && y >= 108 && y < 204 {
-		return cmdStyleAcrylic
-	}
-	if x >= 20 && x < 174 && y >= 214 && y < 310 {
-		return cmdStyleClear
-	}
-	if x >= 184 && x < 338 && y >= 214 && y < 310 {
-		return cmdStyleSolid
-	}
-	if x >= 20 && x < 338 && y >= 324 && y < 372 {
-		return cmdRounded
-	}
-	if x >= 20 && x < 338 && y >= 372 && y < 420 {
-		return cmdStartup
-	}
-	if x >= 20 && x < 174 && y >= 430 && y < 478 {
-		return cmdRefresh
-	}
-	if x >= 184 && x < 338 && y >= 430 && y < 478 {
-		return cmdCheckUpdates
-	}
-	if x >= 114 && x < 246 && y >= 488 && y < 524 {
-		return cmdExit
+	if i := nativeControlAt(x, y); i >= 0 {
+		return nativeControlCommands[i]
 	}
 	return 0
 }
@@ -317,15 +295,20 @@ func (n *nativeGlassPanel) paint() {
 	n.text("Pilih tampilan", 20, 80, 220, 22, 12, true, muted)
 	for i := 0; i < 4; i++ {
 		x, y := 20+(i%2)*164, 108+(i/2)*106
+		saved := n.beginPress(i)
 		n.round(x, y, 154, 96, 23, card, false)
 		n.round(x, y, 154, 96, 23, edge, true)
+		n.endPress(saved)
 	}
+	saved := n.beginPressAt(max(0, min(3, n.state.Style-1)), float32(n.plateX+77), float32(n.plateY+48))
 	n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 96, 23, 0xed2f77f4, false)
 	n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 96, 23, 0x73aacdff, true)
+	n.endPress(saved)
 	labels := []string{"Kaca", "Akrilik", "Bening", "Solid"}
 	descriptions := []string{"Blur lembut", "Blur lebih pekat", "Transparan penuh", "Gelap tanpa blur"}
 	for i := 0; i < 4; i++ {
 		x, y := 20+(i%2)*164, 108+(i/2)*106
+		saved := n.beginPress(i)
 		labelInk, smallInk := ink, muted
 		if n.state.Style == i+1 {
 			labelInk, smallInk = 0xffffffff, 0xffffffff
@@ -333,10 +316,12 @@ func (n *nativeGlassPanel) paint() {
 		n.icon(i, x+18, y+20, labelInk)
 		n.text(labels[i], x+14, y+53, 130, 23, 14, true, labelInk)
 		n.text(descriptions[i], x+14, y+75, 136, 17, 10, false, smallInk)
+		n.endPress(saved)
 	}
 	n.round(20, 324, 318, 96, 22, group, false)
 	n.line(33, 372, 325, 372, divider, 1)
 	for i, s := range []string{"Sudut membulat", "Mulai bersama Windows"} {
+		saved := n.beginPress(4 + i)
 		y := 338 + i*44
 		n.text(s, 32, y+3, 235, 24, 12, false, ink)
 		track := uint32(0x444f5665)
@@ -345,23 +330,31 @@ func (n *nativeGlassPanel) paint() {
 		}
 		n.round(284, y, 42, 25, 12, track, false)
 		n.round(287+int(n.switches[i]+.5), y+3, 19, 19, 9, 0xffffffff, false)
+		n.endPress(saved)
 	}
+	saved = n.beginPress(6)
 	n.round(20, 430, 154, 48, 17, card, false)
-	n.round(184, 430, 154, 48, 17, secondary, false)
 	n.text("↻", 41, 439, 24, 30, 20, false, ink)
 	n.text("Segarkan taskbar", 67, 445, 106, 22, 11, true, ink)
+	n.endPress(saved)
+	saved = n.beginPress(7)
+	n.round(184, 430, 154, 48, 17, secondary, false)
 	n.updateIcon(205, 444, muted)
 	n.text("Pembaruan", 225, 437, 105, 21, 11, true, muted)
 	updateLabels := [...]string{"Cek & pasang", "Memeriksa…", "Mengunduh…", "Memasang…", "Sudah terbaru", "Coba lagi"}
 	n.text(updateLabels[min(n.updatePhase, 5)], 224, 454, 110, 18, 9, false, muted)
+	n.endPress(saved)
+	saved = n.beginPress(8)
 	n.round(114, 488, 132, 36, 18, 0x28ef4456, false)
 	n.roundFloat(114.5, 488.5, 131, 35, 17.5, 0x18ff7885, true, 1)
 	n.powerIcon(151, 498, exitInk)
 	n.drawText("Keluar", 169, 488, 44, 36, 12, true, exitInk, true)
+	n.endPress(saved)
 	if n.focus >= 0 {
-		boxes := [][4]int{{20, 108, 154, 96}, {184, 108, 154, 96}, {20, 214, 154, 96}, {184, 214, 154, 96}, {20, 324, 318, 48}, {20, 372, 318, 48}, {20, 430, 154, 48}, {184, 430, 154, 48}, {114, 488, 132, 36}}
-		b := boxes[n.focus]
+		b := nativeControlBoxes[n.focus]
+		saved := n.beginPress(n.focus)
 		n.round(b[0]+2, b[1]+2, b[2]-4, b[3]-4, 14, 0xffa9cbff, true)
+		n.endPress(saved)
 	}
 	var ps previewPaint
 	user32.NewProc("BeginPaint").Call(n.hwnd, uintptr(unsafe.Pointer(&ps)))
@@ -403,6 +396,9 @@ func (n *nativeGlassPanel) animate(close bool) {
 		n.switchTo[1] = 17
 	}
 	n.started = time.Now()
+	n.ensureAnimationTicker()
+}
+func (n *nativeGlassPanel) ensureAnimationTicker() {
 	if n.stop != nil {
 		return
 	}
@@ -485,20 +481,62 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		for i := range n.switches {
 			n.switches[i] = lerp(n.switchFrom[i], n.switchTo[i])
 		}
+		pressAnimating := false
+		for i := range n.presses {
+			if n.presses[i].advance(time.Now()) {
+				pressAnimating = true
+			}
+		}
 		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		user32.NewProc("UpdateWindow").Call(hwnd)
-		if t >= 1 {
+		if t >= 1 && (n.closing || !pressAnimating) {
 			n.endAnimation()
 			if n.closing {
 				destroyWindow.Call(hwnd)
 			}
 		}
 		return 0
+	case 0x201: // WM_LBUTTONDOWN
+		if n.closing {
+			return 0
+		}
+		x, y := int(int16(l&0xffff))*96/int(menuDPI), int(int16(l>>16))*96/int(menuDPI)
+		n.pressed = nativeControlAt(x, y)
+		if n.pressed >= 0 {
+			user32.NewProc("SetCapture").Call(hwnd)
+			n.pressControl(n.pressed)
+		}
+		return 0
+	case 0x200: // WM_MOUSEMOVE, including captured drags outside the window.
+		if n.pressed >= 0 {
+			x, y := int(int16(l&0xffff))*96/int(menuDPI), int(int16(l>>16))*96/int(menuDPI)
+			if nativeControlAt(x, y) == n.pressed {
+				n.pressControl(n.pressed)
+			} else {
+				n.releaseControl(n.pressed, false)
+			}
+		}
+		return 0
+	case 0x215, 0x1f: // Capture loss / cancel mode must never invoke a button.
+		if n.pressed >= 0 {
+			i := n.pressed
+			n.pressed = -1
+			n.releaseControl(i, false)
+		}
+		if message == 0x1f {
+			user32.NewProc("ReleaseCapture").Call()
+		}
+		return 0
 	case wmLButtonUp:
 		n.focus = -1
 		x, y := int(int16(l&0xffff))*96/int(menuDPI), int(int16(l>>16))*96/int(menuDPI)
-		if command := nativeCommandAt(x, y); command != 0 {
-			n.choose(command)
+		i := n.pressed
+		n.pressed = -1
+		user32.NewProc("ReleaseCapture").Call()
+		clicked := i >= 0 && nativeControlAt(x, y) == i
+		n.releaseControl(i, clicked)
+		if clicked {
+			n.choose(nativeControlCommands[i])
 		}
 		return 0
 	case wmCSSResult:
@@ -537,9 +575,27 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 			n.focus = (n.focus + delta + 9) % 9
 			user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		}
-		if (w == 13 || w == 32) && n.focus >= 0 {
-			commands := []uint32{100, 101, 102, 103, 105, 110, 111, 112, 140}
-			n.choose(commands[n.focus])
+		if (w == 13 || w == 32) && n.focus >= 0 && l&(1<<30) == 0 {
+			n.keyPressed = n.focus
+			n.pressControl(n.keyPressed)
+		}
+		return 0
+	case 0x101: // WM_KEYUP, one activation per complete key press.
+		if (w == 13 || w == 32) && n.keyPressed >= 0 {
+			i := n.keyPressed
+			n.keyPressed = -1
+			clicked := i == n.focus
+			n.releaseControl(i, clicked)
+			if clicked {
+				n.choose(nativeControlCommands[i])
+			}
+		}
+		return 0
+	case 0x8: // WM_KILLFOCUS: a held key must not leave a pressed button behind.
+		if n.keyPressed >= 0 {
+			i := n.keyPressed
+			n.keyPressed = -1
+			n.releaseControl(i, false)
 		}
 		return 0
 	case 0x113:
@@ -588,7 +644,7 @@ func runNativeGlassPanel(preview bool) bool {
 		return false
 	}
 	defer nativeG("GdiplusShutdown", token)
-	n := &nativeGlassPanel{preview: preview, state: currentCSSState(), fonts: make(map[int]uintptr), slide: 12, focus: -1}
+	n := &nativeGlassPanel{preview: preview, state: currentCSSState(), fonts: make(map[int]uintptr), slide: 12, focus: -1, pressed: -1, keyPressed: -1}
 	if preview && len(os.Args) > 1 && os.Args[1] == "--native-check" {
 		n.preview = false
 	}

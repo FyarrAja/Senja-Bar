@@ -2,9 +2,9 @@ Unduh **[Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/latest/do
 
 Download **Senja-Bar.exe** and open it. No manual extraction or administrator access; your settings are preserved.
 
-- Warna taskbar mengikuti tema terang/gelap Windows dan nuansa latar di tiap monitor. / Taskbar colors follow the Windows light/dark theme and each monitor's nearby background hue.
-- Kaca dan Akrilik menyesuaikan tint untuk menjaga kontras ikon; Solid mengikuti tema; Bening tetap transparan penuh. / Glass and Acrylic adapt their tint for icon contrast; Solid follows the theme; Clear stays fully transparent.
-- Warna diperbarui melalui event Windows, tanpa polling terus-menerus. / Colors refresh through Windows events, without continuous polling.
+- Animasi tekan dan lepas yang halus untuk kartu mode, toggle, Segarkan, Pembaruan, dan Keluar. / Smooth press/release feedback for mode cards, switches, Refresh, Update and Exit.
+- Klik cepat tetap terlihat; menggeser keluar tombol membatalkan klik. / Quick clicks remain visible; dragging outside cancels activation.
+- Animasi berhenti saat selesai tanpa memperlambat penutupan menu. / Animations stop at rest without delaying menu dismissal.
 - **Pembaruan** langsung mengecek, mengunduh, memverifikasi checksum, dan memasang versi baru tanpa membuka browser. / **Pembaruan** checks, downloads, verifies and installs new releases in the app.
 - Updater hanya berjalan saat diminta lalu keluar. / The updater runs on demand and exits afterward.
 
