@@ -357,7 +357,11 @@ func (n *nativeGlassPanel) paint() {
 			updateInk = updateInk&0xffffff | 0x99000000
 		}
 		n.updateIcon(205, 444, updateInk)
-		n.text(updateLabel, 225, 437, 105, 21, 11, true, updateInk)
+		labelX, labelWidth := 225, 105
+		if updateMark {
+			labelX, labelWidth = 244, 86
+		}
+		n.text(updateLabel, labelX, 437, labelWidth, 21, 11, true, updateInk)
 		n.text(updateDetail, 224, 454, 110, 18, 9, false, updateInk)
 		if updateMark {
 			n.drawUpdateNotice(time.Now())

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.11 - 2026-10-26
+
+- Enlarge the new-update badge and its bold label; reserve space beside it for the action text.
+
+
 ## 1.1.10 - 2026-10-26
 
 - Replace the small update dot with a readable red Baru badge at the button top-left.

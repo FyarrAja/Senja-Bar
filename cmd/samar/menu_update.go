@@ -63,15 +63,15 @@ func updateNoticeScale(start, now time.Time) (float64, bool) {
 
 func (n *nativeGlassPanel) drawUpdateNotice(now time.Time) {
 	scale, _ := updateNoticeScale(n.noticeStarted, now)
-	// Keep the badge at the button's top-left, with four pixels of clearance
+	// Keep the badge at the button's top-left, with clearance
 	// from the settings group. Text and fill scale together.
 	var saved uint32
 	nativeG("GdipSaveGraphics", n.graphics, uintptr(unsafe.Pointer(&saved)))
-	nativeG("GdipTranslateWorldTransform", n.graphics, nativeF(207), nativeF(432), 0)
+	nativeG("GdipTranslateWorldTransform", n.graphics, nativeF(213), nativeF(433), 0)
 	nativeG("GdipScaleWorldTransform", n.graphics, nativeF(float32(scale)), nativeF(float32(scale)), 0)
-	nativeG("GdipTranslateWorldTransform", n.graphics, nativeF(-207), nativeF(-432), 0)
-	n.round(190, 424, 34, 16, 8, 0xffb72e46, false)
-	n.drawText("Baru", 190, 424, 34, 16, 8, true, 0xffffffff, true)
+	nativeG("GdipTranslateWorldTransform", n.graphics, nativeF(-213), nativeF(-433), 0)
+	n.round(190, 423, 46, 20, 10, 0xffb72e46, false)
+	n.drawText("Baru", 190, 423, 46, 20, 11, true, 0xffffffff, true)
 	nativeG("GdipRestoreGraphics", n.graphics, uintptr(saved))
 }
 
