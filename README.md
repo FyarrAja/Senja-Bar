@@ -13,7 +13,7 @@ Four Windows taskbar styles, controlled from the system tray.
   <img src="docs/preview-light.png" width="300" alt="Menu native Senja pada latar uji terang">
 </p>
 
-*Menu native pada latar uji polos, ditangkap dari aplikasi v1.1.5. Gambar ini memperlihatkan panel pengaturan; efek taskbar tidak ditampilkan.*
+*Menu native pada latar uji polos, ditangkap dari aplikasi v1.2.0. Update otomatis ditampilkan aktif pada uji ini; default pengaturan lama tetap nonaktif. Gambar ini memperlihatkan panel pengaturan; efek taskbar tidak ditampilkan.*
 
 ## Tampilan & fitur
 
@@ -82,7 +82,7 @@ Senja Bar provides four taskbar styles: **Glass**, **Acrylic**, **Clear**, and *
 
 Includes rounded taskbar corners, launch at startup, animated controls, refresh, and in-app updates. Changing styles keeps the panel open. Clicking outside or dismissing the tray closes it. **Keluar** exits Senja and restores the Windows taskbar.
 
-The images above are captures of the native v1.1.5 menu on plain test backgrounds. They show the settings panel, not taskbar effects.
+The images above are captures of the native v1.2.0 menu on plain test backgrounds. Automatic installation was enabled for this test; existing settings default to off. They show the settings panel, not taskbar effects.
 
 ### Install
 
