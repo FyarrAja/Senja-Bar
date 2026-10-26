@@ -27,6 +27,8 @@ func updatePresentation(phase uint32, pending bool, version string) (label, deta
 			return "Perbarui", "Coba lagi", true, true
 		}
 		detail = "Belum terhubung"
+	case 7:
+		return "Mulai ulang", "Pembaruan siap", true, true
 	case 6:
 		if pending {
 			return "Perbarui", "Versi baru tersedia", true, true
@@ -38,7 +40,7 @@ func updatePresentation(phase uint32, pending bool, version string) (label, deta
 	return label, detail, false, pending
 }
 func (n *nativeGlassPanel) controlEnabled(i int) bool {
-	if i >= 4 && i <= 6 && n.updatePhase == 2 {
+	if (i >= 4 && i <= 6 && n.updatePhase == 2) || (i >= 4 && i <= 5 && n.showReadyPrompt()) {
 		return false
 	}
 	if i != 7 {
@@ -154,4 +156,22 @@ func (n *nativeGlassPanel) drawDownload(ink, muted, card uint32) {
 		eta = "Belum diketahui"
 	}
 	n.text(eta, 190, 444, 135, 25, 13, true, ink)
+}
+
+func (n *nativeGlassPanel) showReadyPrompt() bool {
+	return n.updatePhase == updatestate.Ready && !n.readyDismissed
+}
+func (n *nativeGlassPanel) drawReady(ink, muted, card uint32) {
+	n.round(20, 324, 318, 154, 22, card, false)
+	n.text("Pembaruan siap diterapkan", 38, 338, 282, 28, 15, true, ink)
+	n.text("Mulai ulang Senja untuk menggunakan", 38, 373, 282, 23, 12, false, ink)
+	n.text("versi terbaru. Windows tetap berjalan.", 38, 393, 282, 23, 12, false, muted)
+	saved := n.beginPress(6)
+	n.round(38, 430, 128, 36, 13, 0x22ffffff, false)
+	n.drawText("Nanti", 38, 430, 128, 36, 12, true, ink, true)
+	n.endPress(saved)
+	saved = n.beginPress(7)
+	n.round(184, 430, 136, 36, 13, 0xff286be0, false)
+	n.drawText("Mulai ulang Senja", 184, 430, 136, 36, 12, true, 0xffffffff, true)
+	n.endPress(saved)
 }

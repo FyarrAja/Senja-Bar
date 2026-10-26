@@ -93,3 +93,22 @@ func TestUpdateNoticePulsesThenStops(t *testing.T) {
 		t.Fatal("idle badge animates")
 	}
 }
+
+func TestReadyPromptCanBeDeferredWithoutApplying(t *testing.T) {
+	n := nativeGlassPanel{preview: true, updatePhase: 7, updateAvailable: true, pressed: -1, keyPressed: -1}
+	if !n.showReadyPrompt() || n.controlEnabled(4) || n.controlEnabled(5) || !n.controlEnabled(6) || !n.controlEnabled(7) {
+		t.Fatal("invalid ready controls")
+	}
+	n.choose(cmdRefresh)
+	if n.showReadyPrompt() || n.updatePhase != 7 || len(n.actions) != 0 || !n.controlEnabled(4) {
+		t.Fatal("Nanti applied or lost update")
+	}
+	label, _, enabled, _ := updatePresentation(7, true, "1.1.12")
+	if label != "Mulai ulang" || !enabled {
+		t.Fatal(label, enabled)
+	}
+	reopened := nativeGlassPanel{updatePhase: 7, updateAvailable: true}
+	if !reopened.showReadyPrompt() {
+		t.Fatal("lost ready prompt on reopening")
+	}
+}

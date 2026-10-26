@@ -28,7 +28,7 @@ func TestCacheReplacementAndBound(t *testing.T) {
 	}
 }
 func TestPendingFlagSurvivesProgress(t *testing.T) {
-	for phase := uint32(0); phase <= Available; phase++ {
+	for phase := uint32(0); phase <= Ready; phase++ {
 		if Encode(phase, true) != phase|PendingFlag || Encode(phase, false) != phase {
 			t.Fatal(phase)
 		}

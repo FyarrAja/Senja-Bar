@@ -50,9 +50,12 @@ Senja mengecek release stabil saat mulai, lalu setiap 6 jam. Jika koneksi gagal,
 
 Selama mengunduh, pengaturan bawah dan tombol cepat berganti sementara menjadi panel progres yang lebih besar. Kontrol kembali setelah transfer selesai. Panel menampilkan **terunduh / total MB**, kecepatan rata-rata **MB/s**, estimasi waktu tersisa, persentase, dan bar progres. Ukuran total dibaca dari respons unduhan, bukan ditebak. Jika total tidak tersedia, tampil `-- MB` dan waktu belum diketahui. Kecepatan serta estimasi mulai tampil setelah ada pengukuran transfer.
 
-Menekan **Perbarui** mengunduh EXE, memverifikasi checksum SHA-256, lalu memasangnya **tanpa konfirmasi tambahan**. Senja lama ditutup dan versi baru berjalan. Folder instalasi lama dibersihkan setelah versi baru siap; file yang dikunci Windows dicoba lagi nanti. Pengaturan, preferensi startup, dan EXE unduhan pribadi dipertahankan. Tidak perlu browser atau restart Windows.
+Menekan **Perbarui** hanya mengunduh EXE dan memverifikasi checksum SHA-256. Setelah selesai, Senja tetap berjalan dan menampilkan **Pembaruan siap diterapkan**:
 
-Unduhan yang gagal diverifikasi tidak dijalankan. Tombol **Perbarui** dapat dicoba lagi jika pemasangan gagal.
+- **Mulai ulang Senja**: periksa kembali file unduhan, pasang update, lalu jalankan versi terbaru. Hanya Senja yang dimulai ulang; Windows tidak direstart.
+- **Nanti**: tetap gunakan versi saat ini. File update disimpan sehingga tidak perlu diunduh ulang. Tombol **Mulai ulang** tetap tersedia; membuka panel kembali menampilkan pilihan tersebut.
+
+Update tidak diterapkan otomatis setelah unduhan selesai, panel ditutup, atau Senja dibuka kembali. Folder instalasi lama dibersihkan setelah versi baru siap. Pengaturan, preferensi startup, dan EXE unduhan pribadi dipertahankan. File yang hilang atau berubah tidak dijalankan dan perlu diunduh lagi.
 
 ## Dukungan & batasan
 
@@ -95,7 +98,12 @@ Senja checks the latest stable release at startup and every 6 hours, retrying af
 
 During downloads, lower settings and quick actions temporarily become a larger progress panel; the controls return afterward. Downloads show **received / total MB**, measured average **MB/s**, estimated time remaining, percentage and a progress bar. Total size comes from the download response. An unknown total shows `-- MB` and no ETA. Speed and ETA appear after transfer measurements are available. MB uses decimal units (1 MB = 1,000,000 bytes).
 
-Clicking **Perbarui** downloads the EXE, verifies its SHA-256 checksum and installs it **without an additional confirmation**. The old Senja closes and the new version starts. Older managed installs are cleaned after the new engine is ready; locked files are retried later. Settings, enabled startup and personal downloaded EXEs are preserved. No browser or Windows restart is needed. Unverified downloads are not executed; failed installs can be retried from the button.
+Clicking **Perbarui** only downloads and SHA-256 verifies the EXE. Senja keeps running, then shows **Pembaruan siap diterapkan**:
+
+- **Mulai ulang Senja**: recheck the staged installer, install the update and relaunch Senja. Windows is not restarted.
+- **Nanti**: keep using the current version. The staged file is retained; **Mulai ulang** remains available without downloading again. Reopening the panel shows the choice again.
+
+Finishing a download, dismissing the panel or starting Senja again never applies the update automatically. Old managed installs are cleaned after the new version is ready. Settings, startup preferences and personal downloaded EXEs are preserved. Missing or modified staged files are rejected and must be downloaded again.
 
 ### Requirements & limitations
 

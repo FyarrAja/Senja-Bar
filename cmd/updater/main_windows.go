@@ -36,14 +36,14 @@ func reportProgress(done, total int64) {
 	}
 }
 func run() error {
-	if len(os.Args) != 2 && !(len(os.Args) == 3 && os.Args[2] == "--check-only") {
+	if len(os.Args) != 2 && !(len(os.Args) == 3 && (os.Args[2] == "--check-only" || os.Args[2] == "--apply-ready")) {
 		return fmt.Errorf("current version required")
 	}
 	base := os.Getenv("LOCALAPPDATA")
 	if base == "" {
 		return fmt.Errorf("LOCALAPPDATA unavailable")
 	}
-	if len(os.Args) == 3 {
+	if len(os.Args) == 3 && os.Args[2] == "--check-only" {
 		client := releaseupdate.Client()
 		client.Timeout = 20 * time.Second
 		release, newer, err := releaseupdate.Check(context.Background(), client, os.Args[1])
@@ -60,12 +60,16 @@ func run() error {
 		report(phase)
 		return nil
 	}
-	path, err := releaseupdate.PrepareWithProgress(context.Background(), releaseupdate.Client(), os.Args[1], filepath.Join(base, "Senja", "updates"), report, reportProgress)
-	if err != nil {
-		return err
+	root := filepath.Join(base, "Senja", "updates")
+	if len(os.Args) != 3 || os.Args[2] != "--apply-ready" {
+		return releaseupdate.Stage(context.Background(), releaseupdate.Client(), os.Args[1], root, report, reportProgress)
 	}
-	if path == "" {
-		return nil
+	path, err := releaseupdate.VerifiedPending(os.Args[1], root)
+	if err != nil {
+		// A missing or changed staged file must return to a fresh download,
+		// rather than offering a permanently broken restart action.
+		_ = os.Remove(filepath.Join(root, "pending.json"))
+		return err
 	}
 	report(releaseupdate.Installing)
 	command := exec.Command(path)

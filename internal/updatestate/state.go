@@ -10,6 +10,7 @@ import (
 )
 
 const Available = 6
+const Ready = 7
 const PendingFlag uint32 = 0x100
 
 type Record struct {
@@ -32,6 +33,9 @@ func Load(path string) (Record, error) {
 	return r, err
 }
 func Save(path string, r Record) error {
+	return saveJSON(path, r)
+}
+func saveJSON(path string, r any) error {
 	data, err := json.Marshal(r)
 	if err != nil {
 		return err
@@ -54,7 +58,7 @@ func Save(path string, r Record) error {
 	return os.Rename(f.Name(), path)
 }
 func Encode(phase uint32, pending bool) uint32 {
-	if phase > Available {
+	if phase > Ready {
 		phase = 0
 	}
 	if pending {

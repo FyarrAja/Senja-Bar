@@ -1,17 +1,19 @@
-**[Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.1.12/Senja-Bar.exe)**
+**[Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.1.13/Senja-Bar.exe)**
 
 ## Indonesia
 
-- Panel unduhan lebih lega: persentase besar, jumlah MB lebih jelas, bar lebih tebal, serta kecepatan dan sisa waktu dalam dua kolom.
-- Selama mengunduh, panel ini menggantikan pengaturan bawah dan tombol cepat. Kontrol tersembunyi dinonaktifkan dan kembali setelah transfer selesai.
-- Angka tetap berasal dari unduhan asli. Ukuran jendela dan gaya GUI dipertahankan.
+- Unduhan selesai tidak lagi langsung memasang update atau memulai ulang Senja.
+- Setelah checksum diverifikasi, tampil **Pembaruan siap diterapkan** dengan **Mulai ulang Senja** dan **Nanti**.
+- Pilih Nanti untuk tetap memakai versi lama; file tersimpan sehingga tidak perlu unduh ulang.
+- Versi dan checksum diperiksa kembali sebelum pemasangan. Menutup panel atau membuka ulang Senja tidak menerapkan update otomatis.
 
 ## English
 
-- A dedicated download panel with large percentage, readable MB counts, a thicker bar and separate speed/ETA columns.
-- Temporarily replace lower settings and quick actions during transfer; disable hidden controls and restore them afterward.
-- Keep real transfer measurements, window size and existing styling.
+- Finishing a download no longer installs or restarts Senja automatically.
+- Show **Pembaruan siap diterapkan** with **Mulai ulang Senja** and **Nanti** after verification.
+- Defer and keep using the old version without downloading again later.
+- Recheck the staged version and checksum before explicit apply; menu dismissal or app startup never applies it automatically.
 
-Clicking **Perbarui** installs without another confirmation. Settings and personal downloaded EXEs are preserved. Windows x64; primarily tested on Windows 11. Releases are unsigned. Menu backdrop blur and screen-reader integration are not implemented.
+Settings and personal downloaded EXEs are preserved. Windows x64; primarily tested on Windows 11. Releases are unsigned. Menu backdrop blur and screen-reader integration are not implemented.
 
 [Preview & guide](https://github.com/FyarrAja/Senja-Bar#readme)

@@ -61,6 +61,7 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		updateRunning = false
 		if wParam != 0 {
 			setUpdatePhase(5)
+			restorePendingUpdate()
 		} else if updateBackground {
 			restoreUpdateCache()
 		}

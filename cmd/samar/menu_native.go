@@ -32,6 +32,7 @@ type nativeGlassPanel struct {
 	checked                                                    bool
 	updatePhase                                                uint32
 	updateAvailable                                            bool
+	readyDismissed                                             bool
 	noticeStarted                                              time.Time
 	updateProgress                                             uint64
 	downloadStarted                                            time.Time
@@ -89,6 +90,11 @@ func (n *nativeGlassPanel) pump() {
 }
 func (n *nativeGlassPanel) choose(command uint32) {
 	if n.closing {
+		return
+	}
+	if command == cmdRefresh && n.showReadyPrompt() {
+		n.readyDismissed = true
+		user32.NewProc("InvalidateRect").Call(n.hwnd, 0, 0)
 		return
 	}
 	if command == cmdCheckUpdates && !n.controlEnabled(7) {
@@ -329,6 +335,8 @@ func (n *nativeGlassPanel) paint() {
 	}
 	if n.updatePhase == 2 {
 		n.drawDownload(ink, muted, secondary)
+	} else if n.showReadyPrompt() {
+		n.drawReady(ink, muted, secondary)
 	} else {
 		n.round(20, 324, 318, 96, 22, group, false)
 		n.line(33, 372, 325, 372, divider, 1)
@@ -489,12 +497,32 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		return 0
 	case wmUpdatePhase:
+		oldPhase := n.updatePhase
 		wasReady := n.updateAvailable && n.controlEnabled(7)
-		n.updatePhase = min(uint32(w)&0xff, updatestate.Available)
+		n.updatePhase = min(uint32(w)&0xff, updatestate.Ready)
 		n.updateAvailable = uint32(w)&updatestate.PendingFlag != 0
+		if n.updatePhase == updatestate.Ready && oldPhase != updatestate.Ready {
+			n.readyDismissed = false
+		}
 		if n.updateAvailable && n.controlEnabled(7) && !wasReady {
 			n.noticeStarted = time.Now()
 			n.ensureAnimationTicker()
+		}
+		if n.showReadyPrompt() {
+			if n.focus == 4 || n.focus == 5 {
+				n.focus = -1
+			}
+			if n.pressed == 4 || n.pressed == 5 {
+				i := n.pressed
+				n.pressed = -1
+				user32.NewProc("ReleaseCapture").Call()
+				n.releaseControl(i, false)
+			}
+			if n.keyPressed == 4 || n.keyPressed == 5 {
+				i := n.keyPressed
+				n.keyPressed = -1
+				n.releaseControl(i, false)
+			}
 		}
 		if n.updatePhase == 2 {
 			user32.NewProc("SetTimer").Call(hwnd, 0x4e44, 500, 0)
@@ -752,7 +780,7 @@ func runNativeGlassPanel(preview bool) bool {
 		}
 		var phase uintptr
 		user32.NewProc("SendMessageTimeoutW").Call(n.parent, wmUpdateQuery, 0, 0, 2, 200, uintptr(unsafe.Pointer(&phase)))
-		n.updatePhase = min(uint32(phase)&0xff, updatestate.Available)
+		n.updatePhase = min(uint32(phase)&0xff, updatestate.Ready)
 		n.updateAvailable = uint32(phase)&updatestate.PendingFlag != 0
 		if n.updatePhase == 2 {
 			var progress uintptr

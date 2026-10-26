@@ -48,8 +48,12 @@ func scheduleUpdateChecks(cfg *config) {
 	nextUpdateCheck(3 * time.Second)
 }
 func startUpdateCheckManually() {
-	// The button installs an already-known update. It is not a manual check.
-	if !updateAvailable || updateRunning {
+	// Download an available update, or apply an already staged update only after a second explicit action.
+	if updateRunning {
+		return
+	}
+	restorePendingUpdate()
+	if !updateAvailable {
 		return
 	}
 	startUpdateWorker(false)
@@ -60,12 +64,34 @@ func nextUpdateCheck(delay time.Duration) {
 	}
 }
 func startBackgroundUpdateCheck() {
+	if updatePhase == updatestate.Ready {
+		nextUpdateCheck(6 * time.Hour)
+		return
+	}
 	if updateRunning || shuttingDown || globalConfig == nil || !globalConfig.autoUpdate {
 		return
 	}
 	startUpdateWorker(true)
 }
+func restorePendingUpdate() bool {
+	p, err := updatestate.LoadPending(filepath.Join(os.Getenv("LOCALAPPDATA"), "Senja", "updates"))
+	if err != nil {
+		return false
+	}
+	next, e1 := parseReleaseVersion(p.Version)
+	current, e2 := parseReleaseVersion(buildVersion)
+	if e1 != nil || e2 != nil || !next.greaterThan(current) {
+		return false
+	}
+	updateLatest = p.Version
+	updateAvailable = true
+	setUpdatePhase(updatestate.Ready)
+	return true
+}
 func restoreUpdateCache() {
+	if restorePendingUpdate() {
+		return
+	}
 	r, err := updatestate.Load(filepath.Join(os.Getenv("LOCALAPPDATA"), "Senja", updateStateName))
 	if err != nil {
 		return
@@ -98,6 +124,8 @@ func startUpdateWorker(background bool) {
 	args := []string{buildVersion}
 	if background {
 		args = append(args, "--check-only")
+	} else if updatePhase == updatestate.Ready {
+		args = append(args, "--apply-ready")
 	}
 	command := exec.Command(helper, args...)
 	command.Dir = filepath.Dir(exe)
@@ -112,7 +140,11 @@ func startUpdateWorker(background bool) {
 	}
 	updateRunning = true
 	updateBackground = background
-	setUpdatePhase(1)
+	if len(args) > 1 && args[1] == "--apply-ready" {
+		setUpdatePhase(3)
+	} else {
+		setUpdatePhase(1)
+	}
 	hwnd := uintptr(mainHwnd)
 	go func() {
 		code := uintptr(0)
@@ -124,7 +156,7 @@ func startUpdateWorker(background bool) {
 }
 
 func setUpdatePhase(phase uint32) {
-	if phase > updatestate.Available {
+	if phase > updatestate.Ready {
 		return
 	}
 	if phase == updatestate.Available {

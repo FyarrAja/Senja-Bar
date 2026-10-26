@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.13 - 2026-10-26
+
+- Stop after downloading and verifying an update; keep the current engine running.
+- Show Pembaruan siap diterapkan with Mulai ulang Senja and Nanti actions.
+- Persist staged update metadata across menu dismissal/restart; recheck its checksum and version before explicit apply.
+
+
 ## 1.1.12 - 2026-10-26
 
 - Give downloads a dedicated 154px panel with large percentage, readable received/total MB, a thicker bar and two-column speed/ETA details.
