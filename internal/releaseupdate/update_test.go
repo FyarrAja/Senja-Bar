@@ -137,3 +137,33 @@ func TestCheckOnlyRequestsReleaseMetadata(t *testing.T) {
 		}
 	}
 }
+
+func TestDownloadProgressTracksWrittenBytes(t *testing.T) {
+	for _, length := range []int64{10, -1} {
+		client := &http.Client{Transport: transport(func(*http.Request) (*http.Response, error) {
+			return &http.Response{StatusCode: 200, ContentLength: length, Body: io.NopCloser(strings.NewReader("0123456789"))}, nil
+		})}
+		var last, total int64
+		calls := 0
+		err := getProgress(context.Background(), client, "https://github.com/test", 100, io.Discard, func(done, size int64) {
+			if done < last || done > 10 {
+				t.Fatalf("invalid byte progress %d after %d", done, last)
+			}
+			last, total = done, size
+			calls++
+		})
+		if err != nil || last != 10 || total != max(int64(0), length) || calls < 2 {
+			t.Fatalf("%v bytes=%d total=%d calls=%d", err, last, total, calls)
+		}
+	}
+}
+func TestFailedDownloadDoesNotReportCompletion(t *testing.T) {
+	client := &http.Client{Transport: transport(func(*http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: 200, ContentLength: 100, Body: io.NopCloser(strings.NewReader("partial"))}, nil
+	})}
+	var last int64
+	err := getProgress(context.Background(), client, "https://github.com/test", 5, io.Discard, func(done, total int64) { last = done })
+	if err == nil || last == 100 {
+		t.Fatalf("invalid successful progress %d: %v", last, err)
+	}
+}

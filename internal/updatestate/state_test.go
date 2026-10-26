@@ -37,3 +37,19 @@ func TestPendingFlagSurvivesProgress(t *testing.T) {
 		t.Fatal("unknown phase leaked")
 	}
 }
+
+func TestProgressWireKnownUnknownAndBounds(t *testing.T) {
+	for _, c := range []struct {
+		done, total int64
+		percent     int
+		kb          uint32
+	}{
+		{0, 100, 0, 0}, {5120, 10240, 50, 5}, {10240, 10240, 100, 10},
+		{2048, -1, -1, 2}, {-1, 100, 0, 0}, {100, 10, 100, 0}, {1 << 40, 0, -1, 65536},
+	} {
+		wire := Progress(c.done, c.total)
+		if Percent(wire) != c.percent || wire>>8 != c.kb {
+			t.Fatalf("%+v wire=%d percent=%d", c, wire, Percent(wire))
+		}
+	}
+}

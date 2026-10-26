@@ -96,6 +96,10 @@ func Client() *http.Client {
 }
 
 func get(ctx context.Context, client *http.Client, raw string, max int64, out io.Writer) error {
+	return getProgress(ctx, client, raw, max, out, nil)
+}
+
+func getProgress(ctx context.Context, client *http.Client, raw string, max int64, out io.Writer, progress func(int64, int64)) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, raw, nil)
 	if err != nil {
 		return err
@@ -112,6 +116,12 @@ func get(ctx context.Context, client *http.Client, raw string, max int64, out io
 	if res.ContentLength > max {
 		return fmt.Errorf("download exceeds size limit")
 	}
+	var meter *downloadMeter
+	if progress != nil {
+		meter = &downloadMeter{out: out, total: res.ContentLength, report: progress}
+		meter.emit(true)
+		out = meter
+	}
 	n, err := io.Copy(out, io.LimitReader(res.Body, max+1))
 	if err != nil {
 		return err
@@ -119,7 +129,30 @@ func get(ctx context.Context, client *http.Client, raw string, max int64, out io
 	if n > max {
 		return fmt.Errorf("download exceeds size limit")
 	}
+	if meter != nil {
+		meter.emit(true)
+	}
 	return nil
+}
+
+type downloadMeter struct {
+	out         io.Writer
+	done, total int64
+	report      func(int64, int64)
+	last        time.Time
+}
+
+func (m *downloadMeter) emit(force bool) {
+	if force || time.Since(m.last) >= 100*time.Millisecond {
+		m.report(m.done, max(int64(0), m.total))
+		m.last = time.Now()
+	}
+}
+func (m *downloadMeter) Write(b []byte) (int, error) {
+	n, err := m.out.Write(b)
+	m.done += int64(n)
+	m.emit(false)
+	return n, err
 }
 
 // Check fetches release metadata only. It never downloads or runs an installer.
@@ -177,6 +210,10 @@ func releaseURLs(release Release) (string, string, error) {
 // Prepare never executes a download. Only a newer stable release with matching
 // checksums is returned; the caller controls the final installer handoff.
 func Prepare(ctx context.Context, client *http.Client, current, dir string, report func(int)) (path string, err error) {
+	return PrepareWithProgress(ctx, client, current, dir, report, nil)
+}
+
+func PrepareWithProgress(ctx context.Context, client *http.Client, current, dir string, report func(int), progress func(int64, int64)) (path string, err error) {
 	report(Checking)
 	release, newer, err := Check(ctx, client, current)
 	if err != nil {
@@ -221,7 +258,7 @@ func Prepare(ctx context.Context, client *http.Client, current, dir string, repo
 	temp := file.Name()
 	defer func() { file.Close(); os.Remove(temp) }()
 	hash := sha256.New()
-	if err = get(ctx, client, exeURL, 64<<20, io.MultiWriter(file, hash)); err != nil {
+	if err = getProgress(ctx, client, exeURL, 64<<20, io.MultiWriter(file, hash), progress); err != nil {
 		return "", err
 	}
 	if err = file.Close(); err != nil {

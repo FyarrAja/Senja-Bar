@@ -1,6 +1,13 @@
 # Changelog
 
-## 1.1.7 — 2026-10-26
+## 1.1.8 - 2026-10-26
+
+- Move the update badge to the top-left corner of its button.
+- Show real download percentage and a finite, smoothly interpolated progress bar; show downloaded MB when length is unknown.
+- Throttle byte-progress notifications to ten per second, with no idle animation loop.
+
+
+## 1.1.7 â€” 2026-10-26
 
 - Automatically check release metadata at startup and every six hours, with a thirty-minute failure retry.
 - Notify once per new version and retain a red pending-update dot in the native panel.

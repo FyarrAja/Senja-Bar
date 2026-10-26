@@ -38,6 +38,17 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 			setUpdatePhase(uint32(wParam))
 		}
 		return 0
+	case wmUpdateProgress:
+		if updateRunning && updatePhase == 2 {
+			updateProgress = uint32(wParam)
+			menu, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(cssMenuClass))), 0)
+			if menu != 0 {
+				postMessageW.Call(menu, wmUpdateProgress, wParam, 0)
+			}
+		}
+		return 0
+	case wmUpdateProgressQuery:
+		return uintptr(updateProgress)
 	case wmUpdateQuery:
 		return uintptr(updatestate.Encode(updatePhase, updateAvailable))
 	case wmUpdateWorkerDone:

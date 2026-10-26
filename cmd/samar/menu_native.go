@@ -32,6 +32,8 @@ type nativeGlassPanel struct {
 	checked                                                    bool
 	updatePhase                                                uint32
 	updateAvailable                                            bool
+	updateProgress                                             uint32
+	downloadMotion                                             nativeDownloadMotion
 	arrowCursor, handCursor                                    uintptr
 	hwnd, dc, bitmap, oldBitmap, graphics, image, family       uintptr
 	fonts                                                      map[int]uintptr
@@ -349,11 +351,25 @@ func (n *nativeGlassPanel) paint() {
 	if !updateEnabled {
 		updateInk = updateInk&0xffffff | 0x99000000
 	}
+	if n.updatePhase == 2 {
+		updateInk = ink
+		updateLabel = "Mengunduh…"
+		percent := updatestate.Percent(n.updateProgress)
+		if percent >= 0 {
+			updateDetail = fmt.Sprintf("%d%%", percent)
+		} else {
+			updateDetail = fmt.Sprintf("%.1f MB", float64(n.updateProgress>>8)/1024)
+		}
+		n.round(200, 470, 122, 3, 1, 0x33ffffff, false)
+		if percent >= 0 && n.downloadMotion.value > 0 {
+			n.roundFloat(200, 470, float32(122*n.downloadMotion.value), 3, 1, 0xff4388ff, false, 0)
+		}
+	}
 	n.updateIcon(205, 444, updateInk)
 	n.text(updateLabel, 225, 437, 105, 21, 11, true, updateInk)
 	n.text(updateDetail, 224, 454, 110, 18, 9, false, updateInk)
 	if updateMark {
-		n.round(322, 435, 9, 9, 4, 0xfff45d6b, false)
+		n.round(190, 435, 9, 9, 4, 0xfff45d6b, false)
 	}
 	n.endPress(saved)
 	saved = n.beginPress(8)
@@ -462,9 +478,21 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 			user32.NewProc("SetCursor").Call(cursor)
 			return 1
 		}
+	case wmUpdateProgress:
+		n.updateProgress = uint32(w)
+		if percent := updatestate.Percent(n.updateProgress); percent >= 0 {
+			n.downloadMotion.target(float64(percent)/100, time.Now())
+			n.ensureAnimationTicker()
+		}
+		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+		return 0
 	case wmUpdatePhase:
 		n.updatePhase = min(uint32(w)&0xff, updatestate.Available)
 		n.updateAvailable = uint32(w)&updatestate.PendingFlag != 0
+		if n.updatePhase != 2 {
+			n.updateProgress = 0
+			n.downloadMotion = nativeDownloadMotion{}
+		}
 		if !n.controlEnabled(7) {
 			if n.pressed == 7 {
 				n.pressed = -1
@@ -506,6 +534,7 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		for i := range n.switches {
 			n.switches[i] = lerp(n.switchFrom[i], n.switchTo[i])
 		}
+		progressAnimating := n.downloadMotion.advance(time.Now())
 		pressAnimating := false
 		for i := range n.presses {
 			if n.presses[i].advance(time.Now()) {
@@ -514,7 +543,7 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		}
 		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		user32.NewProc("UpdateWindow").Call(hwnd)
-		if t >= 1 && (n.closing || !pressAnimating) {
+		if t >= 1 && (n.closing || (!pressAnimating && !progressAnimating)) {
 			n.endAnimation()
 			if n.closing {
 				destroyWindow.Call(hwnd)
@@ -689,6 +718,15 @@ func runNativeGlassPanel(preview bool) bool {
 		user32.NewProc("SendMessageTimeoutW").Call(n.parent, wmUpdateQuery, 0, 0, 2, 200, uintptr(unsafe.Pointer(&phase)))
 		n.updatePhase = min(uint32(phase)&0xff, updatestate.Available)
 		n.updateAvailable = uint32(phase)&updatestate.PendingFlag != 0
+		if n.updatePhase == 2 {
+			var progress uintptr
+			user32.NewProc("SendMessageTimeoutW").Call(n.parent, wmUpdateProgressQuery, 0, 0, 2, 200, uintptr(unsafe.Pointer(&progress)))
+			n.updateProgress = uint32(progress)
+			if percent := updatestate.Percent(n.updateProgress); percent >= 0 {
+				n.downloadMotion.value = float64(percent) / 100
+				n.downloadMotion.to = n.downloadMotion.value
+			}
+		}
 	}
 	nativePanel = n
 	defer func() { nativePanel = nil }()

@@ -1,21 +1,19 @@
-**[Unduh / Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.1.7/Senja-Bar.exe)**
+**[Unduh / Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.1.8/Senja-Bar.exe)**
 
 ## Indonesia
 
-- Pengecekan versi otomatis saat mulai dan setiap 6 jam; koneksi gagal dicoba lagi setelah 30 menit.
-- Notifikasi Windows sekali per versi baru dan titik merah pada tombol **Perbarui**.
-- Tombol hanya memasang update yang tersedia; saat sudah terbaru tombol tidak aktif.
-- Pengecekan tidak mengunduh EXE. Unduh, verifikasi checksum, dan pemasangan dimulai setelah tombol ditekan, tanpa konfirmasi tambahan.
-- Pengaturan dan unduhan pribadi dipertahankan; instalasi lama dibersihkan setelah versi baru siap.
+- Titik merah update dipindahkan ke kiri atas tombol.
+- Persentase dan bar progres mengikuti unduhan asli, dengan perpindahan bar yang halus.
+- Jika ukuran total tidak tersedia, tampil jumlah MB yang diterima.
+- Pengecekan tetap otomatis; pemasangan hanya dimulai saat **Perbarui** ditekan, tanpa konfirmasi tambahan.
 
 ## English
 
-- Automatic version checks at startup and every 6 hours; retry failed checks after 30 minutes.
-- One Windows notification per new version and a red dot on **Perbarui**.
-- Install-only update button; disabled when up to date.
-- Checks fetch metadata only. Download, checksum verification and installation begin on click, without another confirmation.
-- Settings and personal downloads are preserved; old managed installs are cleaned after the new engine is ready.
+- Move the update dot to the button's top-left corner.
+- Show real download percentage with a smoothly interpolated progress bar.
+- Show received MB when the total size is unknown.
+- Checks remain automatic; installation starts only when **Perbarui** is clicked, without another confirmation.
 
-Windows x64; primarily tested on Windows 11. Notifications follow Windows settings. Releases are unsigned. The translucent panel has no backdrop blur; screen-reader integration is not implemented.
+Settings and personal downloads are preserved. Notifications follow Windows settings. Windows x64; primarily tested on Windows 11. Releases are unsigned. The translucent panel has no backdrop blur; screen-reader integration is not implemented.
 
 [Preview & guide](https://github.com/FyarrAja/Senja-Bar#readme)

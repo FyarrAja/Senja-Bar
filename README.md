@@ -48,6 +48,8 @@ Senja mengecek release stabil saat mulai, lalu setiap 6 jam. Jika koneksi gagal,
 - **Sudah terbaru:** tombol menampilkan versi terpasang dan tidak aktif.
 - **Belum terhubung:** Senja mencoba lagi otomatis; tidak ada tombol cek manual.
 
+Saat mengunduh, tombol menampilkan persentase dan bar progres; jika ukuran total tidak diketahui, tampil jumlah MB yang diterima.
+
 Menekan **Perbarui** mengunduh EXE, memverifikasi checksum SHA-256, lalu memasangnya **tanpa konfirmasi tambahan**. Senja lama ditutup dan versi baru berjalan. Folder instalasi lama dibersihkan setelah versi baru siap; file yang dikunci Windows dicoba lagi nanti. Pengaturan, preferensi startup, dan EXE unduhan pribadi dipertahankan. Tidak perlu browser atau restart Windows.
 
 Unduhan yang gagal diverifikasi tidak dijalankan. Tombol **Perbarui** dapat dicoba lagi jika pemasangan gagal.
@@ -90,6 +92,8 @@ Senja checks the latest stable release at startup and every 6 hours, retrying af
 - **Update available:** one Windows notification per new version, plus a red dot on **Perbarui**. Windows notification settings apply.
 - **Up to date:** the disabled button shows the installed version.
 - **Offline:** checks retry automatically; there is no manual check button.
+
+Downloads show a percentage and progress bar, or received MB when total size is unknown.
 
 Clicking **Perbarui** downloads the EXE, verifies its SHA-256 checksum and installs it **without an additional confirmation**. The old Senja closes and the new version starts. Older managed installs are cleaned after the new engine is ready; locked files are retried later. Settings, enabled startup and personal downloaded EXEs are preserved. No browser or Windows restart is needed. Unverified downloads are not executed; failed installs can be retried from the button.
 

@@ -2,7 +2,11 @@
 
 package main
 
-import "strings"
+import (
+	"math"
+	"strings"
+	"time"
+)
 
 func updatePresentation(phase uint32, pending bool, version string) (label, detail string, enabled, mark bool) {
 	label = "Pembaruan"
@@ -36,4 +40,27 @@ func (n *nativeGlassPanel) controlEnabled(i int) bool {
 	}
 	_, _, enabled, _ := updatePresentation(n.updatePhase, n.updateAvailable, buildVersion)
 	return enabled
+}
+
+// Finite interpolation shares the existing menu ticker; no idle animation loop.
+type nativeDownloadMotion struct {
+	value, from, to float64
+	started         time.Time
+}
+
+func (m *nativeDownloadMotion) target(to float64, now time.Time) {
+	m.advance(now)
+	m.from, m.to, m.started = m.value, max(m.value, min(1, to)), now
+}
+func (m *nativeDownloadMotion) advance(now time.Time) bool {
+	if m.value == m.to {
+		return false
+	}
+	t := min(1., max(0., float64(now.Sub(m.started))/float64(160*time.Millisecond)))
+	m.value = m.from + (m.to-m.from)*(1-math.Pow(1-t, 3))
+	if t >= 1 {
+		m.value = m.to
+		return false
+	}
+	return true
 }

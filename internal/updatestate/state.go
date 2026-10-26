@@ -62,3 +62,14 @@ func Encode(phase uint32, pending bool) uint32 {
 	}
 	return phase
 }
+
+// Progress packs a bounded percentage (+1; zero means unknown) and downloaded KiB.
+func Progress(done, total int64) uint32 {
+	done = max(int64(0), min(done, 64<<20))
+	percent := uint32(0)
+	if total > 0 {
+		percent = uint32(min(int64(100), done*100/total)) + 1
+	}
+	return uint32(done/1024)<<8 | percent
+}
+func Percent(wire uint32) int { return int(min(wire&255, 101)) - 1 }
