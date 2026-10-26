@@ -19,10 +19,6 @@ type guid struct {
 	data4 [8]byte
 }
 
-// Neutral tint lets the live compositor backdrop supply every hue.
-const glassTintABGR = 0x14000000
-const acrylicTintABGR = 0x40000000
-
 type tapSurfaceState struct {
 	host                   int
 	hostKnown, borderKnown bool
@@ -165,28 +161,43 @@ func applyRounding(hwnd syscall.Handle, enable bool) {
 }
 
 func accentForStyle(style int) accentPolicy {
+	return accentForPalette(style, taskbarColors(false, backdropRGB{21, 21, 21}))
+}
+func accentForPalette(style int, palette taskbarPalette) accentPolicy {
 	switch style {
 	case styleNormal:
 		return accentPolicy{state: 0, flags: 0, gradient: 0, animation: 0}
 	case styleGlass:
-		return accentPolicy{state: 3, flags: 2, gradient: glassTintABGR}
+		return accentPolicy{state: 3, flags: 2, gradient: palette.glass}
 	case styleAcrylic:
-		return accentPolicy{state: 4, flags: 2, gradient: acrylicTintABGR}
+		return accentPolicy{state: 4, flags: 2, gradient: palette.acrylic}
 	case styleClear:
 		// Explicitly use our zero-alpha color. Without this flag Windows can
 		// substitute the user's accent color, leaving an opaque blue host.
 		return accentPolicy{state: 2, flags: 2, gradient: 0x00000000}
 	case styleSolid:
-		return accentPolicy{state: 1, flags: 2, gradient: 0xff151515}
+		return accentPolicy{state: 1, flags: 2, gradient: palette.solid}
 	default:
 		return accentPolicy{state: 0}
 	}
 }
 
-func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
+func setAccent(hwnd syscall.Handle, style int, rounded bool) (ok bool) {
 	if hwnd == 0 {
 		return false
 	}
+	palette := taskbarPalette{}
+	if style != styleNormal && style != styleClear {
+		palette = paletteForTaskbar(hwnd)
+	}
+	defer func() {
+		if ok {
+			if style != styleNormal && style != styleClear && adaptivePalettes[hwnd] != palette {
+				logEvent("INFO", "taskbar.palette", fmt.Sprintf("hwnd=%d glass=%08X acrylic=%08X solid=%08X", hwnd, palette.glass, palette.acrylic, palette.solid))
+			}
+			adaptivePalettes[hwnd] = palette
+		}
+	}()
 
 	// Modern Windows 11 XAML path via TAP
 	if initTAPService(hwnd) && tapServicePtr != 0 {
@@ -212,7 +223,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 
 		switch style {
 		case styleSolid:
-			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 1, 0xff151515) || !setTAPBorder(hwnd, setBorderFn, 0) {
+			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 1, uintptr(palette.solid)) || !setTAPBorder(hwnd, setBorderFn, 0) {
 				return false
 			}
 			applyRounding(hwnd, rounded)
@@ -232,7 +243,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 				radius = globalConfig.blurRadius
 			}
 			blurBits := uintptr(math.Float32bits(radius))
-			color := uintptr(glassTintABGR)
+			color := uintptr(palette.glass)
 			if !tapCall(setBlurFn, tapServicePtr, uintptr(hwnd), color, blurBits) || !setTAPBorder(hwnd, setBorderFn, 0) {
 				return false
 			}
@@ -241,7 +252,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 
 		case styleAcrylic:
 			// Senja Acrylic: Fluent acrylic material with subtle texture & tint
-			color := uintptr(acrylicTintABGR)
+			color := uintptr(palette.acrylic)
 			// ExplorerTAP TaskbarBrush: Acrylic=0, SolidColor=1.
 			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 0, color) || !setTAPBorder(hwnd, setBorderFn, 0) {
 				return false
@@ -260,7 +271,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 	}
 
 	// Windows 10 Win32 fallback
-	ok := setNativeAccent(hwnd, style)
+	ok = setNativeAccentForPalette(hwnd, style, palette)
 	applyRounding(hwnd, rounded && style != styleNormal)
 	return ok
 }
@@ -275,7 +286,14 @@ func tapCall(function uintptr, args ...uintptr) bool {
 }
 
 func setNativeAccent(hwnd syscall.Handle, style int) bool {
-	policy := accentForStyle(style)
+	palette := taskbarPalette{}
+	if style != styleNormal && style != styleClear {
+		palette = paletteForTaskbar(hwnd)
+	}
+	return setNativeAccentForPalette(hwnd, style, palette)
+}
+func setNativeAccentForPalette(hwnd syscall.Handle, style int, palette taskbarPalette) bool {
+	policy := accentForPalette(style, palette)
 	data := compositionAttributeData{attribute: 19, data: uintptr(unsafe.Pointer(&policy)), dataSize: unsafe.Sizeof(policy)}
 	ok, _, err := setWindowComposition.Call(uintptr(hwnd), uintptr(unsafe.Pointer(&data)))
 	if ok == 0 {

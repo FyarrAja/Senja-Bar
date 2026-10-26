@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.4 — 2026-10-26
+
+- Adapt taskbar materials to the Windows system light/dark theme and nearby background hue, independently per monitor. Glass and Acrylic vary tint strength to keep system text legible; Solid follows the theme with a restrained background hue; Clear remains fully transparent.
+- Refresh colors on foreground, move/minimize, wallpaper and theme events, with debouncing and no idle polling. Sample only nine pixels outside the taskbar and exclude Senja's popup; no images are retained or decoded.
+- Keep native and XAML material tint values consistent, with taskbar borders still hidden in all four custom modes.
+
 ## 1.1.3 — 2026-10-26
 
 - Set explicit system arrow/hand cursors for the native GUI instead of inheriting the shell's launch/busy cursor.

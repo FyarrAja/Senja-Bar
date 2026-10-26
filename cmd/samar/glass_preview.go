@@ -89,7 +89,16 @@ func runGlassMaterialPreview() {
 	if atom, _, _ := registerClassExW.Call(uintptr(unsafe.Pointer(&class))); atom == 0 {
 		return
 	}
-	hwnd, _, _ := createWindowExW.Call(0, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(utf16ptr("Senja — Material Preview"))), 0x00cf0000, 540, 170, 840, 700, 0, 0, uintptr(getModuleHandle()), 0)
+	x, y, w, h, style := int32(540), int32(170), int32(840), int32(700), uintptr(0x00cf0000)
+	for _, arg := range os.Args {
+		if arg == "--taskbar-backdrop" {
+			monitor, _, _ := user32.NewProc("MonitorFromWindow").Call(0, 1)
+			mi := cssMonitorInfo{Size: uint32(unsafe.Sizeof(cssMonitorInfo{}))}
+			user32.NewProc("GetMonitorInfoW").Call(monitor, uintptr(unsafe.Pointer(&mi)))
+			x, y, w, h, style = mi.Work.left, mi.Work.bottom-220, mi.Work.right-mi.Work.left, 220, wsPopup
+		}
+	}
+	hwnd, _, _ := createWindowExW.Call(0, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(utf16ptr("Senja — Material Preview"))), style, uintptr(x), uintptr(y), uintptr(w), uintptr(h), 0, 0, uintptr(getModuleHandle()), 0)
 	if hwnd == 0 {
 		return
 	}

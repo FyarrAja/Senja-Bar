@@ -10,7 +10,7 @@ Glass taskbar, simple controls. / Taskbar kaca, kontrol simpel.
 
 ## Indonesia
 
-Senja Bar mengubah tampilan taskbar Windows dengan empat mode: **Kaca**, **Akrilik**, **Bening**, dan **Solid**. Warna kaca mengikuti latar, dengan animasi perpindahan mode, toggle, serta buka–tutup menu.
+Senja Bar mengubah tampilan taskbar Windows dengan empat mode: **Kaca**, **Akrilik**, **Bening**, dan **Solid**. Tint mengikuti tema taskbar Windows dan nuansa latar tiap monitor; Bening tetap transparan penuh. Ada animasi perpindahan mode, toggle, serta buka–tutup menu.
 
 Ada sudut membulat, mulai bersama Windows, segarkan taskbar, dan tombol pembaruan. Menu tetap terbuka saat mengganti mode, lalu menutup saat tray ditutup atau kamu klik di luar. Keluar dari aplikasi mengembalikan taskbar Windows.
 
@@ -18,7 +18,7 @@ Ada sudut membulat, mulai bersama Windows, segarkan taskbar, dan tombol pembarua
 
 ## English
 
-Senja Bar gives the Windows taskbar four looks: **Glass**, **Acrylic**, **Clear**, and **Solid**. Live glass follows the background, with animated mode selection, switches and popup transitions.
+Senja Bar gives the Windows taskbar four looks: **Glass**, **Acrylic**, **Clear**, and **Solid**. Tint follows the Windows taskbar theme and each monitor's nearby background hue; Clear stays fully transparent. Includes animated mode selection, switches and popup transitions.
 
 Includes rounded corners, launch at startup, refresh and release updates. Changing modes keeps the menu open; dismissing the tray or clicking outside closes it. Exiting restores the Windows taskbar.
 

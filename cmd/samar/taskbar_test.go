@@ -10,6 +10,9 @@ import (
 )
 
 func TestEveryCustomTaskbarModeDisablesBorderAndRestoreEnablesIt(t *testing.T) {
+	oldPalettes := adaptivePalettes
+	defer func() { adaptivePalettes = oldPalettes }()
+	adaptivePalettes = make(map[syscall.Handle]taskbarPalette)
 	oldAvailable, oldService, oldSurfaces := tapAvailable, tapServicePtr, tapSurfaces
 	defer func() { tapAvailable, tapServicePtr, tapSurfaces = oldAvailable, oldService, oldSurfaces }()
 	var border uintptr = 99
@@ -80,11 +83,9 @@ func TestClearTaskbarUsesTransparentColorInsteadOfSystemAccent(t *testing.T) {
 
 func TestMaterialConsistencyAcrossNativeAndXAML(t *testing.T) {
 	glass, acrylic, clear, normal := accentForStyle(styleGlass), accentForStyle(styleAcrylic), accentForStyle(styleClear), accentForStyle(styleNormal)
-	if glass.gradient != glassTintABGR || acrylic.gradient != acrylicTintABGR {
+	palette := taskbarColors(false, backdropRGB{21, 21, 21})
+	if glass.gradient != palette.glass || acrylic.gradient != palette.acrylic {
 		t.Fatal("native fallback and XAML must use identical tint values")
-	}
-	if glass.gradient&0xffffff != 0 || acrylic.gradient&0xffffff != 0 {
-		t.Fatal("materials must not impose a colored tint")
 	}
 	if glass.gradient>>24 >= acrylic.gradient>>24 || clear.gradient != 0 {
 		t.Fatal("expected clear < glass < acrylic tint strength")

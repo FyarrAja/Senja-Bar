@@ -113,6 +113,8 @@ func main() {
 	}
 	trayData = &tray
 	applyStyle(cfg.style)
+	stopBackdropWatch := watchTaskbarBackdrop(uintptr(hwnd))
+	defer stopBackdropWatch()
 	if err := saveConfig(cfg); err != nil {
 		logError("config.save", "initial config save failed", err)
 	}

@@ -15,6 +15,11 @@ func requestExit(hwnd syscall.Handle) {
 func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) uintptr {
 	defer recoverPanic("window procedure")
 	switch message {
+	case wmApp + 64:
+		if !shuttingDown {
+			user32.NewProc("SetTimer").Call(hwnd, 0x5355, 120, 0)
+		}
+		return 0
 	case wmUpdatePhase:
 		if updateRunning {
 			setUpdatePhase(uint32(wParam))
@@ -91,6 +96,11 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		}
 		return 0
 	case 0x0113:
+		if wParam == 0x5355 {
+			user32.NewProc("KillTimer").Call(hwnd, wParam)
+			refreshTaskbarBackdrop()
+			return 0
+		}
 		if wParam == 0x5354 {
 			user32.NewProc("KillTimer").Call(hwnd, wParam)
 			if globalConfig != nil && !shuttingDown {
