@@ -327,23 +327,23 @@ func (n *nativeGlassPanel) paint() {
 		n.text(descriptions[i], x+14, y+75, 136, 17, 10, false, smallInk)
 		n.endPress(saved)
 	}
-	n.round(20, 324, 318, 96, 22, group, false)
-	n.line(33, 372, 325, 372, divider, 1)
-	for i, s := range []string{"Sudut membulat", "Mulai bersama Windows"} {
-		saved := n.beginPress(4 + i)
-		y := 338 + i*44
-		n.text(s, 32, y+3, 235, 24, 12, false, ink)
-		track := uint32(0x444f5665)
-		if n.switchTo[i] > 0 {
-			track = 0xff4388ff
-		}
-		n.round(284, y, 42, 25, 12, track, false)
-		n.round(287+int(n.switches[i]+.5), y+3, 19, 19, 9, 0xffffffff, false)
-		n.endPress(saved)
-	}
 	if n.updatePhase == 2 {
 		n.drawDownload(ink, muted, secondary)
 	} else {
+		n.round(20, 324, 318, 96, 22, group, false)
+		n.line(33, 372, 325, 372, divider, 1)
+		for i, s := range []string{"Sudut membulat", "Mulai bersama Windows"} {
+			saved := n.beginPress(4 + i)
+			y := 338 + i*44
+			n.text(s, 32, y+3, 235, 24, 12, false, ink)
+			track := uint32(0x444f5665)
+			if n.switchTo[i] > 0 {
+				track = 0xff4388ff
+			}
+			n.round(284, y, 42, 25, 12, track, false)
+			n.round(287+int(n.switches[i]+.5), y+3, 19, 19, 9, 0xffffffff, false)
+			n.endPress(saved)
+		}
 		saved = n.beginPress(6)
 		n.round(20, 430, 154, 48, 17, card, false)
 		n.text("↻", 41, 439, 24, 30, 20, false, ink)
@@ -498,8 +498,19 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		}
 		if n.updatePhase == 2 {
 			user32.NewProc("SetTimer").Call(hwnd, 0x4e44, 500, 0)
-			if n.focus == 6 || n.focus == 7 {
+			if n.focus >= 4 && n.focus <= 7 {
 				n.focus = -1
+			}
+			if n.pressed >= 4 && n.pressed <= 7 {
+				i := n.pressed
+				n.pressed = -1
+				user32.NewProc("ReleaseCapture").Call()
+				n.releaseControl(i, false)
+			}
+			if n.keyPressed >= 4 && n.keyPressed <= 7 {
+				i := n.keyPressed
+				n.keyPressed = -1
+				n.releaseControl(i, false)
 			}
 		}
 		if n.updatePhase != 2 {

@@ -25,7 +25,7 @@ func TestUpdateActionAvailability(t *testing.T) {
 			t.Fatalf("%+v: %s %v %v", c, label, enabled, mark)
 		}
 		n := nativeGlassPanel{updatePhase: c.phase, updateAvailable: c.pending}
-		if n.controlEnabled(7) != c.enabled || n.controlEnabled(6) != (c.phase != 2) {
+		if n.controlEnabled(7) != c.enabled || n.controlEnabled(6) != (c.phase != 2) || n.controlEnabled(4) != (c.phase != 2) || n.controlEnabled(5) != (c.phase != 2) {
 			t.Fatalf("control state %+v", c)
 		}
 	}

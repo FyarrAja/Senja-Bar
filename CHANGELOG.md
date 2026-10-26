@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.12 - 2026-10-26
+
+- Give downloads a dedicated 154px panel with large percentage, readable received/total MB, a thicker bar and two-column speed/ETA details.
+- Temporarily replace lower settings and quick actions during downloads, disable their hidden controls, and restore them afterward.
+
+
 ## 1.1.11 - 2026-10-26
 
 - Enlarge the new-update badge and its bold label; reserve space beside it for the action text.

@@ -38,7 +38,7 @@ func updatePresentation(phase uint32, pending bool, version string) (label, deta
 	return label, detail, false, pending
 }
 func (n *nativeGlassPanel) controlEnabled(i int) bool {
-	if i == 6 && n.updatePhase == 2 {
+	if i >= 4 && i <= 6 && n.updatePhase == 2 {
 		return false
 	}
 	if i != 7 {
@@ -133,19 +133,25 @@ func downloadCopy(d updatestate.Download) (amount, speed, eta string) {
 func (n *nativeGlassPanel) drawDownload(ink, muted, card uint32) {
 	d := n.downloadStats(time.Now())
 	amount, speed, eta := downloadCopy(d)
-	n.round(20, 430, 318, 48, 17, card, false)
-	n.updateIcon(34, 438, ink)
-	label := "Mengunduh..."
-	if percent := d.Percent(); percent >= 0 {
-		label = fmt.Sprintf("Mengunduh %d%%", percent)
+	n.round(20, 324, 318, 154, 22, card, false)
+	n.text("Mengunduh update", 38, 337, 192, 27, 14, true, ink)
+	percent := "--"
+	if d.Percent() >= 0 {
+		percent = fmt.Sprintf("%d%%", d.Percent())
 	}
-	n.text(label, 54, 432, 157, 19, 11, true, ink)
-	n.text(eta, 217, 433, 113, 18, 9, false, muted)
-	n.text(amount, 34, 451, 181, 18, 10, false, ink)
-	n.text(speed, 239, 451, 95, 18, 10, false, ink)
-	n.round(34, 471, 290, 3, 1, 0x33ffffff, false)
+	n.drawText(percent, 237, 334, 85, 36, 24, true, ink, true)
+	n.text(amount, 38, 370, 282, 27, 15, true, ink)
+	n.round(38, 405, 282, 6, 3, 0x33ffffff, false)
 	if d.Percent() >= 0 && n.downloadMotion.value > 0 {
-		width := float32(290 * n.downloadMotion.value)
-		n.roundFloat(34, 471, width, 3, min(float32(1), width/2), 0xff4388ff, false, 0)
+		width := float32(282 * n.downloadMotion.value)
+		n.roundFloat(38, 405, width, 6, min(float32(3), width/2), 0xff4388ff, false, 0)
 	}
+	n.text("Kecepatan", 38, 425, 135, 20, 11, false, muted)
+	n.text("Sisa waktu", 190, 425, 135, 20, 11, false, muted)
+	n.text(speed, 38, 444, 135, 25, 13, true, ink)
+	eta = strings.TrimPrefix(eta, "Sisa ")
+	if d.Total <= 0 {
+		eta = "Belum diketahui"
+	}
+	n.text(eta, 190, 444, 135, 25, 13, true, ink)
 }
