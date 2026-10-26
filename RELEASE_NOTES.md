@@ -1,14 +1,14 @@
-**[Unduh / Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.1.5/Senja-Bar.exe)**
+**[Unduh / Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.1.6/Senja-Bar.exe)**
 
 [Preview & panduan / Preview & guide](https://github.com/FyarrAja/Senja-Bar#readme) · [Changelog](https://github.com/FyarrAja/Senja-Bar/blob/main/CHANGELOG.md)
 
 ## Indonesia
 
-### Perubahan v1.1.5
+### Perubahan v1.1.6
 
-- Efek tekan dan lepas pada kartu mode, toggle, Segarkan, Pembaruan, dan Keluar.
-- Klik cepat tetap mendapat animasi; menggeser keluar tombol membatalkan klik.
-- Animasi berhenti saat selesai dan tidak menambah waktu penutupan panel.
+- Instalasi lama dibersihkan setelah versi baru berhasil menyiapkan tray dan taskbar.
+- Pengaturan, instalasi aktif, versi lebih baru, dan file EXE unduhan pribadi tidak dihapus.
+- File lama yang masih dikunci Windows dicoba lagi pada startup berikutnya.
 
 ### Pasang atau perbarui
 
@@ -20,11 +20,11 @@ Windows x64; terutama diuji pada Windows 11. Panel transparan belum memiliki blu
 
 ## English
 
-### Changes in v1.1.5
+### Changes in v1.1.6
 
-- Press/release feedback on mode cards, switches, Refresh, Update and Exit.
-- Quick clicks remain animated; dragging outside cancels activation.
-- Animations stop at rest without extending panel dismissal.
+- Clean older managed installs after the new engine initializes its tray and taskbar.
+- Preserve settings, the active install, newer versions and personal downloaded EXEs.
+- Retry old Windows-locked files on a later startup.
 
 ### Install or update
 

@@ -47,7 +47,8 @@ Pengaturan disimpan di `%LOCALAPPDATA%\Senja\settings.ini`. Paket ZIP portable j
 1. **Memeriksa…** — cek release stabil terbaru dari repository ini.
 2. **Mengunduh…** — jika versinya lebih baru, unduh EXE dan cocokkan checksum SHA-256 dengan file checksum release.
 3. **Memasang…** — siapkan file versi baru, tutup Senja lama beserta panelnya, lalu jalankan versi baru.
-4. Pengaturan dan preferensi mulai bersama Windows dipertahankan. Tidak perlu membuka browser atau restart Windows. Buka kembali panel dari tray setelah selesai.
+4. Setelah versi baru berhasil menyiapkan tray dan taskbar, folder instalasi lama yang terverifikasi dibersihkan. File yang masih dikunci Windows dicoba lagi pada startup berikutnya.
+5. Pengaturan dan preferensi mulai bersama Windows dipertahankan. File EXE unduhan pribadi tidak dihapus. Tidak perlu membuka browser atau restart Windows. Buka kembali panel dari tray setelah selesai.
 
 Jika versinya sama atau lebih lama, status menjadi **Sudah terbaru** tanpa pemasangan ulang. Jika pengecekan atau unduhan gagal, tampil pesan kesalahan; unduhan yang tidak terverifikasi tidak dijalankan. Kamu dapat mencoba lagi.
 
@@ -91,7 +92,8 @@ Settings are stored in `%LOCALAPPDATA%\Senja\settings.ini`.
 1. **Memeriksa…** — check this repository's latest stable release.
 2. **Mengunduh…** — download a newer EXE and verify it against the release's SHA-256 checksums.
 3. **Memasang…** — prepare the new files, close the old Senja and its panel, and start the new version.
-4. Settings and the enabled startup preference are preserved. No browser or Windows restart is needed. Reopen the panel from the tray afterward.
+4. Once the new engine has initialized its tray and taskbar, verified older managed installs are cleaned up. Windows-locked files are retried on a later startup.
+5. Settings, the enabled startup preference and personal downloaded EXEs are preserved. No browser or Windows restart is needed. Reopen the panel from the tray afterward.
 
 Equal or older releases show **Sudah terbaru** and are not installed. Check/download failures show an error; unverified downloads are not executed. Updates run only when requested, without scheduled background checks.
 

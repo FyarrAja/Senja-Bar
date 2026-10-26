@@ -15,6 +15,11 @@ func requestExit(hwnd syscall.Handle) {
 func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) uintptr {
 	defer recoverPanic("window procedure")
 	switch message {
+	case wmApp + 65:
+		if !shuttingDown && lastStyleApplyOK {
+			go cleanPreviousInstalls()
+		}
+		return 0
 	case wmApp + 64:
 		if !shuttingDown {
 			user32.NewProc("SetTimer").Call(hwnd, 0x5355, 120, 0)

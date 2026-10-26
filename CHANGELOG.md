@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.6 — 2026-10-26
+
+- Clean verified older managed installation folders only after the new engine has initialized its tray and taskbar successfully. Keep the active install, newer versions, settings and personal Downloads untouched.
+- Retry files briefly when Windows still holds an old updater or DLL open. Keep the ownership marker for a later startup if locked files remain; do not kill Explorer or force-delete in-use files.
+- Reject portable paths, unknown folders, invalid readiness markers and reparse-point trees before cleanup.
+
 ## 1.1.5 — 2026-10-26
 
 - Add smooth press/release feedback to mode cards, switch rows, Refresh, Update and Exit. Icons and text scale together around each control's center.

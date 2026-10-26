@@ -119,6 +119,11 @@ func main() {
 		logError("config.save", "initial config save failed", err)
 	}
 	logEvent("INFO", "main", "entering messageLoop")
+	// Process the readiness message only after the tray/material are ready.
+	// Cleanup runs once off the window thread; failed startups keep old files.
+	if lastStyleApplyOK {
+		postMessageW.Call(uintptr(hwnd), wmApp+65, 0, 0)
+	}
 	// Release transient startup allocations once. No periodic full-GC worker:
 	// an idle engine should remain asleep until Windows sends a message.
 	debug.FreeOSMemory()
