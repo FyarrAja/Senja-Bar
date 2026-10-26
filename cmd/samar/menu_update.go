@@ -8,6 +8,7 @@ import (
 	"samar/internal/updatestate"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 func updatePresentation(phase uint32, pending bool, version string) (label, detail string, enabled, mark bool) {
@@ -45,6 +46,33 @@ func (n *nativeGlassPanel) controlEnabled(i int) bool {
 	}
 	_, _, enabled, _ := updatePresentation(n.updatePhase, n.updateAvailable, buildVersion)
 	return enabled
+}
+
+// Three small pulses draw attention once, then leave a static readable badge.
+func updateNoticeScale(start, now time.Time) (float64, bool) {
+	if start.IsZero() {
+		return 1, false
+	}
+	t := now.Sub(start)
+	if t < 0 || t >= 1800*time.Millisecond {
+		return 1, false
+	}
+	pulse := math.Sin(math.Pi * float64(t) / float64(600*time.Millisecond))
+	return 1 + .08*pulse*pulse, true
+}
+
+func (n *nativeGlassPanel) drawUpdateNotice(now time.Time) {
+	scale, _ := updateNoticeScale(n.noticeStarted, now)
+	// Keep the badge at the button's top-left, with four pixels of clearance
+	// from the settings group. Text and fill scale together.
+	var saved uint32
+	nativeG("GdipSaveGraphics", n.graphics, uintptr(unsafe.Pointer(&saved)))
+	nativeG("GdipTranslateWorldTransform", n.graphics, nativeF(207), nativeF(432), 0)
+	nativeG("GdipScaleWorldTransform", n.graphics, nativeF(float32(scale)), nativeF(float32(scale)), 0)
+	nativeG("GdipTranslateWorldTransform", n.graphics, nativeF(-207), nativeF(-432), 0)
+	n.round(190, 424, 34, 16, 8, 0xffb72e46, false)
+	n.drawText("Baru", 190, 424, 34, 16, 8, true, 0xffffffff, true)
+	nativeG("GdipRestoreGraphics", n.graphics, uintptr(saved))
 }
 
 // Finite interpolation shares the existing menu ticker; no idle animation loop.

@@ -32,6 +32,7 @@ type nativeGlassPanel struct {
 	checked                                                    bool
 	updatePhase                                                uint32
 	updateAvailable                                            bool
+	noticeStarted                                              time.Time
 	updateProgress                                             uint64
 	downloadStarted                                            time.Time
 	downloadMotion                                             nativeDownloadMotion
@@ -359,7 +360,7 @@ func (n *nativeGlassPanel) paint() {
 		n.text(updateLabel, 225, 437, 105, 21, 11, true, updateInk)
 		n.text(updateDetail, 224, 454, 110, 18, 9, false, updateInk)
 		if updateMark {
-			n.round(190, 435, 9, 9, 4, 0xfff45d6b, false)
+			n.drawUpdateNotice(time.Now())
 		}
 		n.endPress(saved)
 
@@ -484,8 +485,13 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		return 0
 	case wmUpdatePhase:
+		wasReady := n.updateAvailable && n.controlEnabled(7)
 		n.updatePhase = min(uint32(w)&0xff, updatestate.Available)
 		n.updateAvailable = uint32(w)&updatestate.PendingFlag != 0
+		if n.updateAvailable && n.controlEnabled(7) && !wasReady {
+			n.noticeStarted = time.Now()
+			n.ensureAnimationTicker()
+		}
 		if n.updatePhase == 2 {
 			user32.NewProc("SetTimer").Call(hwnd, 0x4e44, 500, 0)
 			if n.focus == 6 || n.focus == 7 {
@@ -540,6 +546,8 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 			n.switches[i] = lerp(n.switchFrom[i], n.switchTo[i])
 		}
 		progressAnimating := n.downloadMotion.advance(time.Now())
+		_, noticeAnimating := updateNoticeScale(n.noticeStarted, time.Now())
+		noticeAnimating = noticeAnimating && n.updateAvailable && n.controlEnabled(7)
 		pressAnimating := false
 		for i := range n.presses {
 			if n.presses[i].advance(time.Now()) {
@@ -548,7 +556,7 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		}
 		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		user32.NewProc("UpdateWindow").Call(hwnd)
-		if t >= 1 && (n.closing || (!pressAnimating && !progressAnimating)) {
+		if t >= 1 && (n.closing || (!pressAnimating && !progressAnimating && !noticeAnimating)) {
 			n.endAnimation()
 			if n.closing {
 				destroyWindow.Call(hwnd)
@@ -896,6 +904,9 @@ func runNativeGlassPanel(preview bool) bool {
 	}
 	if n.updatePhase == 2 {
 		user32.NewProc("SetTimer").Call(n.hwnd, 0x4e44, 500, 0)
+	}
+	if n.updateAvailable && n.controlEnabled(7) {
+		n.noticeStarted = time.Now()
 	}
 	n.animate(false)
 	messageLoop()

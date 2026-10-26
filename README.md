@@ -44,7 +44,7 @@ Pengaturan disimpan di `%LOCALAPPDATA%\Senja\settings.ini`. Paket ZIP portable j
 
 Senja mengecek release stabil saat mulai, lalu setiap 6 jam. Jika koneksi gagal, pengecekan dicoba lagi setelah 30 menit. Pengecekan hanya membaca informasi versi, tanpa mengunduh EXE.
 
-- **Ada update:** notifikasi Windows sekali untuk setiap versi baru, serta titik merah pada tombol **Perbarui**. Notifikasi mengikuti pengaturan Windows.
+- **Ada update:** notifikasi Windows sekali untuk setiap versi baru, serta badge merah **Baru** pada tombol **Perbarui**, dengan tiga denyut singkat saat ditampilkan. Notifikasi mengikuti pengaturan Windows.
 - **Sudah terbaru:** tombol menampilkan versi terpasang dan tidak aktif.
 - **Belum terhubung:** Senja mencoba lagi otomatis; tidak ada tombol cek manual.
 
@@ -89,7 +89,7 @@ Settings are stored in `%LOCALAPPDATA%\Senja\settings.ini`.
 
 Senja checks the latest stable release at startup and every 6 hours, retrying after 30 minutes on failure. Checks read version metadata only; they do not download an EXE.
 
-- **Update available:** one Windows notification per new version, plus a red dot on **Perbarui**. Windows notification settings apply.
+- **Update available:** one Windows notification per new version, plus a red **Baru** badge on **Perbarui**, with three brief pulses when shown. Windows notification settings apply.
 - **Up to date:** the disabled button shows the installed version.
 - **Offline:** checks retry automatically; there is no manual check button.
 

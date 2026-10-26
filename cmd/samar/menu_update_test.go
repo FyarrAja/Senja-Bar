@@ -74,3 +74,22 @@ func TestDownloadCopyRealMeasurements(t *testing.T) {
 		t.Fatal(amount, eta)
 	}
 }
+
+func TestUpdateNoticePulsesThenStops(t *testing.T) {
+	start := time.Now()
+	for _, offset := range []time.Duration{0, 600 * time.Millisecond, 1200 * time.Millisecond, 1800 * time.Millisecond, 3 * time.Second} {
+		scale, active := updateNoticeScale(start, start.Add(offset))
+		if math.Abs(scale-1) > 1e-9 || active != (offset < 1800*time.Millisecond) {
+			t.Fatal(offset, scale, active)
+		}
+	}
+	for _, offset := range []time.Duration{300 * time.Millisecond, 900 * time.Millisecond, 1500 * time.Millisecond} {
+		scale, active := updateNoticeScale(start, start.Add(offset))
+		if math.Abs(scale-1.08) > 1e-9 || !active {
+			t.Fatal(offset, scale, active)
+		}
+	}
+	if scale, active := updateNoticeScale(time.Time{}, start); scale != 1 || active {
+		t.Fatal("idle badge animates")
+	}
+}

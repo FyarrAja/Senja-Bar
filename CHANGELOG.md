@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.10 - 2026-10-26
+
+- Replace the small update dot with a readable red Baru badge at the button top-left.
+- Pulse the badge three times when an available update is shown, then stop its animation completely.
+
+
 ## 1.1.9 - 2026-10-26
 
 - Show exact received/total MB, measured average speed and estimated remaining time during downloads.
