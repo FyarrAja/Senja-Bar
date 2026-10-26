@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.3 — 2026-10-26
+
+- Set explicit system arrow/hand cursors for the native GUI instead of inheriting the shell's launch/busy cursor.
+- Hide the Windows 11 taskbar border in Glass, Acrylic, Clear and Solid modes; exiting still restores the Windows appearance.
+
 ## 1.1.2 — 2026-10-26
 
 - Native per-pixel-alpha menu removes the opaque rectangular backing without WebView2. The panel is translucent; menu backdrop blur remains unfinished. Taskbar Glass/Acrylic effects are unchanged.

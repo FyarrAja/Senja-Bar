@@ -10,7 +10,7 @@ const (
 
 // buildVersion is replaced by scripts/package-release.ps1 for official builds.
 // The fallback keeps local development builds usable.
-var buildVersion = "1.1.2"
+var buildVersion = "1.1.3"
 
 func latestReleaseURL() string {
 	return "https://github.com/" + githubRepository + "/releases/latest"

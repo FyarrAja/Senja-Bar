@@ -212,7 +212,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 
 		switch style {
 		case styleSolid:
-			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 1, 0xff151515) || !setTAPBorder(hwnd, setBorderFn, 1) {
+			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 1, 0xff151515) || !setTAPBorder(hwnd, setBorderFn, 0) {
 				return false
 			}
 			applyRounding(hwnd, rounded)
@@ -233,7 +233,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 			}
 			blurBits := uintptr(math.Float32bits(radius))
 			color := uintptr(glassTintABGR)
-			if !tapCall(setBlurFn, tapServicePtr, uintptr(hwnd), color, blurBits) || !setTAPBorder(hwnd, setBorderFn, 1) {
+			if !tapCall(setBlurFn, tapServicePtr, uintptr(hwnd), color, blurBits) || !setTAPBorder(hwnd, setBorderFn, 0) {
 				return false
 			}
 			applyRounding(hwnd, rounded)
@@ -243,7 +243,7 @@ func setAccent(hwnd syscall.Handle, style int, rounded bool) bool {
 			// Senja Acrylic: Fluent acrylic material with subtle texture & tint
 			color := uintptr(acrylicTintABGR)
 			// ExplorerTAP TaskbarBrush: Acrylic=0, SolidColor=1.
-			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 0, color) || !setTAPBorder(hwnd, setBorderFn, 1) {
+			if !tapCall(setAppearanceFn, tapServicePtr, uintptr(hwnd), 0, color) || !setTAPBorder(hwnd, setBorderFn, 0) {
 				return false
 			}
 			applyRounding(hwnd, rounded)

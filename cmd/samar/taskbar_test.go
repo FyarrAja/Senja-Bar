@@ -3,9 +3,40 @@
 package main
 
 import (
+	"runtime"
 	"syscall"
 	"testing"
+	"unsafe"
 )
+
+func TestEveryCustomTaskbarModeDisablesBorderAndRestoreEnablesIt(t *testing.T) {
+	oldAvailable, oldService, oldSurfaces := tapAvailable, tapServicePtr, tapSurfaces
+	defer func() { tapAvailable, tapServicePtr, tapSurfaces = oldAvailable, oldService, oldSurfaces }()
+	var border uintptr = 99
+	vtable := [9]uintptr{}
+	vtable[3] = syscall.NewCallback(func(_, _, _, _ uintptr) uintptr { return 0 })
+	vtable[4] = syscall.NewCallback(func(_, _, _, _ uintptr) uintptr { return 0 })
+	vtable[5] = syscall.NewCallback(func(_, _ uintptr) uintptr { return 0 })
+	vtable[6] = syscall.NewCallback(func(_, _, value uintptr) uintptr { border = value; return 0 })
+	service := uintptr(unsafe.Pointer(&vtable[0]))
+	tapAvailable, tapServicePtr = true, uintptr(unsafe.Pointer(&service))
+	for _, style := range []int{styleGlass, styleAcrylic, styleClear, styleSolid, styleNormal} {
+		host := styleClear
+		want := uintptr(0)
+		if style == styleNormal {
+			host = styleNormal
+			want = 1
+		}
+		hwnd := syscall.Handle(0x7fffffff) // Invalid HWND: no live taskbar calls.
+		tapSurfaces = map[syscall.Handle]tapSurfaceState{hwnd: {host: host, hostKnown: true}}
+		border = 99
+		if !setAccent(hwnd, style, false) || border != want {
+			t.Fatalf("style %d: border=%d, want %d", style, border, want)
+		}
+	}
+	runtime.KeepAlive(vtable)
+	runtime.KeepAlive(service)
+}
 
 func TestTAPBorderAvoidsRedundantCOMCallsAndRetriesFailures(t *testing.T) {
 	original := tapSurfaces

@@ -30,6 +30,7 @@ type nativeGlassPanel struct {
 	pixels                                                     uintptr
 	checked                                                    bool
 	updatePhase                                                uint32
+	arrowCursor, handCursor                                    uintptr
 	hwnd, dc, bitmap, oldBitmap, graphics, image, family       uintptr
 	fonts                                                      map[int]uintptr
 	bounds                                                     rect
@@ -440,6 +441,18 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		return r
 	}
 	switch message {
+	case 0x20: // WM_SETCURSOR: never inherit the shell's launch/busy cursor.
+		if int16(l&0xffff) == 1 {
+			cursor := n.arrowCursor
+			var p point
+			getCursorPos.Call(uintptr(unsafe.Pointer(&p)))
+			user32.NewProc("ScreenToClient").Call(hwnd, uintptr(unsafe.Pointer(&p)))
+			if nativeCommandAt(int(p.x)*96/int(menuDPI), int(p.y)*96/int(menuDPI)) != 0 && n.handCursor != 0 {
+				cursor = n.handCursor
+			}
+			user32.NewProc("SetCursor").Call(cursor)
+			return 1
+		}
 	case wmUpdatePhase:
 		n.updatePhase = min(uint32(w), 5)
 		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
@@ -597,7 +610,9 @@ func runNativeGlassPanel(preview bool) bool {
 		className = utf16ptr(cssMenuClass)
 	}
 	brush, _, _ := gdi32.NewProc("GetStockObject").Call(4)
-	class := wndClassEx{cbSize: uint32(unsafe.Sizeof(wndClassEx{})), lpfnWndProc: syscall.NewCallback(nativeGlassProc), hInstance: getModuleHandle(), lpszClassName: className, hbrBackground: syscall.Handle(brush)}
+	n.arrowCursor, _, _ = loadCursorW.Call(0, cursorArrow)
+	n.handCursor, _, _ = loadCursorW.Call(0, 32649) // IDC_HAND, shared system cursor.
+	class := wndClassEx{cbSize: uint32(unsafe.Sizeof(wndClassEx{})), lpfnWndProc: syscall.NewCallback(nativeGlassProc), hInstance: getModuleHandle(), hCursor: syscall.Handle(n.arrowCursor), lpszClassName: className, hbrBackground: syscall.Handle(brush)}
 	if r, _, _ := registerClassExW.Call(uintptr(unsafe.Pointer(&class))); r == 0 {
 		return false
 	}
