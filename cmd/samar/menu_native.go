@@ -33,6 +33,7 @@ type nativeGlassPanel struct {
 	updatePhase                                                uint32
 	updateAvailable                                            bool
 	readyDismissed                                             bool
+	commandError                                               bool
 	noticeStarted                                              time.Time
 	updateProgress                                             uint64
 	downloadStarted                                            time.Time
@@ -44,14 +45,14 @@ type nativeGlassPanel struct {
 	w, h                                                       int32
 	state                                                      cssState
 	plateX, plateY, plateFromX, plateFromY, plateToX, plateToY float64
-	switches, switchFrom, switchTo                             [2]float64
+	switches, switchFrom, switchTo                             [3]float64
 	alpha, alphaFrom, alphaTo                                  float64
 	slide, slideFrom, slideTo                                  float64
 	started                                                    time.Time
 	stop                                                       chan struct{}
 	queued                                                     chan struct{}
 	closing                                                    bool
-	presses                                                    [9]nativePress
+	presses                                                    [10]nativePress
 	pressed, keyPressed                                        int
 }
 
@@ -64,6 +65,9 @@ func nativeStateCommand(actual, desired cssState) uint32 {
 	}
 	if actual.Startup != desired.Startup {
 		return cmdStartup
+	}
+	if actual.AutoInstall != desired.AutoInstall {
+		return cmdAutoInstall
 	}
 	return 0
 }
@@ -114,6 +118,8 @@ func (n *nativeGlassPanel) choose(command uint32) {
 		n.desired.Rounded = !n.desired.Rounded
 	case cmdStartup:
 		n.desired.Startup = !n.desired.Startup
+	case cmdAutoInstall:
+		n.desired.AutoInstall = !n.desired.AutoInstall
 	case cmdRefresh, cmdCheckUpdates:
 		found := false
 		for _, c := range n.actions {
@@ -306,31 +312,35 @@ func (n *nativeGlassPanel) paint() {
 	n.line(24, 46, 56, 46, brand, 3)
 	n.line(30, 52, 50, 52, brand, 3)
 	n.text("Senja", 66, 18, 170, 35, 27, true, ink)
-	n.text("Tampilan taskbar", 68, 51, 180, 18, 11, false, muted)
+	if n.commandError {
+		n.text("Perubahan belum diterapkan", 68, 51, 260, 18, 11, false, exitInk)
+	} else {
+		n.text("Tampilan taskbar", 68, 51, 180, 18, 11, false, muted)
+	}
 	n.text("Pilih tampilan", 20, 80, 220, 22, 12, true, muted)
 	for i := 0; i < 4; i++ {
-		x, y := 20+(i%2)*164, 108+(i/2)*106
+		x, y := 20+(i%2)*164, 102+(i/2)*94
 		saved := n.beginPress(i)
-		n.round(x, y, 154, 96, 23, card, false)
-		n.round(x, y, 154, 96, 23, edge, true)
+		n.round(x, y, 154, 84, 21, card, false)
+		n.round(x, y, 154, 84, 21, edge, true)
 		n.endPress(saved)
 	}
-	saved := n.beginPressAt(max(0, min(3, n.state.Style-1)), float32(n.plateX+77), float32(n.plateY+48))
-	n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 96, 23, 0xed2f77f4, false)
-	n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 96, 23, 0x73aacdff, true)
+	saved := n.beginPressAt(max(0, min(3, n.state.Style-1)), float32(n.plateX+77), float32(n.plateY+42))
+	n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 84, 21, 0xed2f77f4, false)
+	n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 84, 21, 0x73aacdff, true)
 	n.endPress(saved)
 	labels := []string{"Kaca", "Akrilik", "Bening", "Solid"}
-	descriptions := []string{"Blur lembut", "Blur lebih pekat", "Transparan penuh", "Gelap tanpa blur"}
+	descriptions := []string{"Blur lembut", "Blur lebih pekat", "Transparan penuh", "Tanpa transparansi"}
 	for i := 0; i < 4; i++ {
-		x, y := 20+(i%2)*164, 108+(i/2)*106
+		x, y := 20+(i%2)*164, 102+(i/2)*94
 		saved := n.beginPress(i)
 		labelInk, smallInk := ink, muted
 		if n.state.Style == i+1 {
 			labelInk, smallInk = 0xffffffff, 0xffffffff
 		}
-		n.icon(i, x+18, y+20, labelInk)
-		n.text(labels[i], x+14, y+53, 130, 23, 14, true, labelInk)
-		n.text(descriptions[i], x+14, y+75, 136, 17, 10, false, smallInk)
+		n.icon(i, x+18, y+12, labelInk)
+		n.text(labels[i], x+14, y+41, 130, 23, 14, true, labelInk)
+		n.text(descriptions[i], x+14, y+64, 136, 17, 10, false, smallInk)
 		n.endPress(saved)
 	}
 	if n.updatePhase == 2 {
@@ -338,16 +348,20 @@ func (n *nativeGlassPanel) paint() {
 	} else if n.showReadyPrompt() {
 		n.drawReady(ink, muted, secondary)
 	} else {
-		n.round(20, 324, 318, 96, 22, group, false)
-		n.line(33, 372, 325, 372, divider, 1)
-		for i, s := range []string{"Sudut membulat", "Mulai bersama Windows"} {
-			saved := n.beginPress(4 + i)
-			y := 338 + i*44
-			n.text(s, 32, y+3, 235, 24, 12, false, ink)
-			track := uint32(0x444f5665)
-			if n.switchTo[i] > 0 {
-				track = 0xff4388ff
+		n.round(20, 294, 318, 126, 22, group, false)
+		n.line(33, 336, 325, 336, divider, 1)
+		n.line(33, 378, 325, 378, divider, 1)
+		for i, s := range []string{"Sudut membulat", "Mulai bersama Windows", "Update otomatis"} {
+			index := []int{4, 5, 9}[i]
+			saved := n.beginPress(index)
+			y := 302 + i*42
+			if i == 2 {
+				n.text(s, 32, y-3, 235, 23, 12, false, ink)
+				n.text("Unduh & terapkan otomatis", 32, y+16, 235, 16, 9, false, muted)
+			} else {
+				n.text(s, 32, y+3, 235, 24, 12, false, ink)
 			}
+			track := nativeSwitchTrack(n.switches[i], n.light)
 			n.round(284, y, 42, 25, 12, track, false)
 			n.round(287+int(n.switches[i]+.5), y+3, 19, 19, 9, 0xffffffff, false)
 			n.endPress(saved)
@@ -355,12 +369,18 @@ func (n *nativeGlassPanel) paint() {
 		saved = n.beginPress(6)
 		n.round(20, 430, 154, 48, 17, card, false)
 		n.text("↻", 41, 439, 24, 30, 20, false, ink)
-		n.text("Segarkan taskbar", 67, 445, 106, 22, 11, true, ink)
+		n.text("Segarkan taskbar", 67, 445, 106, 22, 12, true, ink)
 		n.endPress(saved)
 		saved = n.beginPress(7)
 		n.round(184, 430, 154, 48, 17, secondary, false)
 		updateLabel, updateDetail, updateEnabled, updateMark := updatePresentation(n.updatePhase, n.updateAvailable, buildVersion)
-		updateInk := muted
+		if n.state.AutoInstall && n.updatePhase == updatestate.Ready {
+			updateLabel = "Update otomatis"
+			updateDetail = "Menyiapkan..."
+			updateEnabled = false
+			updateMark = false
+		}
+		updateInk := ink
 		if !updateEnabled {
 			updateInk = updateInk&0xffffff | 0x99000000
 		}
@@ -369,8 +389,8 @@ func (n *nativeGlassPanel) paint() {
 		if updateMark {
 			labelX, labelWidth = 244, 86
 		}
-		n.text(updateLabel, labelX, 437, labelWidth, 21, 11, true, updateInk)
-		n.text(updateDetail, 224, 454, 110, 18, 9, false, updateInk)
+		n.text(updateLabel, labelX, 437, labelWidth, 21, 12, true, updateInk)
+		n.text(updateDetail, 224, 454, 110, 18, 10, false, updateInk)
 		if updateMark {
 			n.drawUpdateNotice(time.Now())
 		}
@@ -422,14 +442,17 @@ func (n *nativeGlassPanel) animate(close bool) {
 	}
 	n.plateFromX, n.plateFromY = n.plateX, n.plateY
 	i := max(0, min(3, n.state.Style-1))
-	n.plateToX, n.plateToY = float64(20+i%2*164), float64(108+i/2*106)
+	n.plateToX, n.plateToY = float64(20+i%2*164), float64(102+i/2*94)
 	n.switchFrom = n.switches
-	n.switchTo = [2]float64{}
+	n.switchTo = [3]float64{}
 	if n.state.Rounded {
 		n.switchTo[0] = 17
 	}
 	if n.state.Startup {
 		n.switchTo[1] = 17
+	}
+	if n.state.AutoInstall {
+		n.switchTo[2] = 17
 	}
 	n.started = time.Now()
 	n.ensureAnimationTicker()
@@ -509,16 +532,16 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 			n.ensureAnimationTicker()
 		}
 		if n.showReadyPrompt() {
-			if n.focus == 4 || n.focus == 5 {
+			if n.focus == 4 || n.focus == 5 || n.focus == 9 {
 				n.focus = -1
 			}
-			if n.pressed == 4 || n.pressed == 5 {
+			if n.pressed == 4 || n.pressed == 5 || n.pressed == 9 {
 				i := n.pressed
 				n.pressed = -1
 				user32.NewProc("ReleaseCapture").Call()
 				n.releaseControl(i, false)
 			}
-			if n.keyPressed == 4 || n.keyPressed == 5 {
+			if n.keyPressed == 4 || n.keyPressed == 5 || n.keyPressed == 9 {
 				i := n.keyPressed
 				n.keyPressed = -1
 				n.releaseControl(i, false)
@@ -526,16 +549,16 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		}
 		if n.updatePhase == 2 {
 			user32.NewProc("SetTimer").Call(hwnd, 0x4e44, 500, 0)
-			if n.focus >= 4 && n.focus <= 7 {
+			if (n.focus >= 4 && n.focus <= 7) || n.focus == 9 {
 				n.focus = -1
 			}
-			if n.pressed >= 4 && n.pressed <= 7 {
+			if (n.pressed >= 4 && n.pressed <= 7) || n.pressed == 9 {
 				i := n.pressed
 				n.pressed = -1
 				user32.NewProc("ReleaseCapture").Call()
 				n.releaseControl(i, false)
 			}
-			if n.keyPressed >= 4 && n.keyPressed <= 7 {
+			if (n.keyPressed >= 4 && n.keyPressed <= 7) || n.keyPressed == 9 {
 				i := n.keyPressed
 				n.keyPressed = -1
 				n.releaseControl(i, false)
@@ -657,6 +680,7 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 			return 0
 		}
 		n.busy = 0
+		n.commandError = w != 0
 		n.actual = currentCSSState()
 		if w != 0 {
 			n.desired = n.actual
@@ -685,10 +709,7 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 			if shift&0x8000 != 0 {
 				delta = -1
 			}
-			n.focus = (n.focus + delta + 9) % 9
-			for !n.controlEnabled(n.focus) {
-				n.focus = (n.focus + delta + 9) % 9
-			}
+			n.focus = n.nextFocus(n.focus, delta)
 			user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		}
 		if (w == 13 || w == 32) && n.focus >= 0 && l&(1<<30) == 0 {
@@ -799,6 +820,9 @@ func runNativeGlassPanel(preview bool) bool {
 	defer func() { nativePanel = nil }()
 	// The preview is an app window solely so supported UI tools can inspect it.
 	className := utf16ptr("SenjaNativeGlassPreview")
+	if preview && !n.preview {
+		className = utf16ptr("SenjaNativeCheckPanel")
+	}
 	if !preview {
 		className = utf16ptr(cssMenuClass)
 	}
@@ -917,12 +941,15 @@ func runNativeGlassPanel(preview bool) bool {
 		return false
 	}
 	i := max(0, min(3, n.state.Style-1))
-	n.plateX, n.plateY = float64(20+i%2*164), float64(108+i/2*106)
+	n.plateX, n.plateY = float64(20+i%2*164), float64(102+i/2*94)
 	if n.state.Rounded {
 		n.switches[0] = 17
 	}
 	if n.state.Startup {
 		n.switches[1] = 17
+	}
+	if n.state.AutoInstall {
+		n.switches[2] = 17
 	}
 	n.updateContrast()
 	user32.NewProc("SetTimer").Call(n.hwnd, 0x4e43, 500, 0)

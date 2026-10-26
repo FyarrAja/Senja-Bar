@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 - 2026-10-27
+
+- Add a persisted Update otomatis toggle: opt in to automatic check, verified download and apply; keep manual staged confirmation when off.
+- Check the latest release before applying a previously staged update; avoid duplicate workers and silent retry loops. Automatic failures retry later without repeated error dialogs.
+- Refine card density, three-row settings, transfer and ready panels, readable status text and smoothly interpolated switch colors.
+- Fix visual Tab order, hidden-toggle input, failed-save rollback and live update status delivery to the native check window.
+
+
 ## 1.1.13 - 2026-10-26
 
 - Stop after downloading and verifying an update; keep the current engine running.

@@ -99,7 +99,7 @@ func TestNativeOutlineRasterIsContinuous(t *testing.T) {
 }
 
 func TestNativeMenuHitTargetsExcludeCardGaps(t *testing.T) {
-	for _, p := range [][2]int{{180, 150}, {80, 208}, {180, 208}, {180, 450}, {113, 500}, {246, 500}, {0, 0}} {
+	for _, p := range [][2]int{{180, 150}, {80, 190}, {180, 190}, {180, 450}, {113, 500}, {246, 500}, {0, 0}} {
 		if c := nativeCommandAt(p[0], p[1]); c != 0 {
 			t.Fatalf("gap %v invoked %d", p, c)
 		}
@@ -107,7 +107,7 @@ func TestNativeMenuHitTargetsExcludeCardGaps(t *testing.T) {
 	for _, p := range []struct {
 		x, y int
 		c    uint32
-	}{{80, 150, 100}, {240, 150, 101}, {80, 250, 102}, {240, 250, 103}, {300, 350, 105}, {300, 395, 110}, {80, 450, 111}, {240, 450, 112}, {180, 500, 140}} {
+	}{{80, 150, 100}, {240, 150, 101}, {80, 250, 102}, {240, 250, 103}, {300, 315, 105}, {300, 355, 110}, {300, 395, 114}, {80, 450, 111}, {240, 450, 112}, {180, 500, 140}} {
 		if c := nativeCommandAt(p.x, p.y); c != p.c {
 			t.Fatalf("control at %d,%d: %d != %d", p.x, p.y, c, p.c)
 		}

@@ -144,7 +144,7 @@ func TestOverflowHideExemptionIsBoundedToMaterialInteraction(t *testing.T) {
 }
 
 func TestCSSBridgeAllowsOnlyVisibleCommands(t *testing.T) {
-	for _, id := range []uint32{100, 101, 102, 103, 105, 110, 111, 112, 140} {
+	for _, id := range []uint32{100, 101, 102, 103, 105, 110, 111, 112, 114, 140} {
 		if !validCSSCommand(id) {
 			t.Fatalf("visible command %d rejected", id)
 		}

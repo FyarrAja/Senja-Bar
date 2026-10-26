@@ -24,7 +24,8 @@ type parsedVersion struct {
 }
 
 var (
-	updateMu sync.Mutex
+	updateMu          sync.Mutex
+	updateAutoChecked bool
 	// Written only by the engine's window thread. Protocol phases match the
 	// isolated updater; importing its HTTP client here would burden idle startup.
 	updateProgress        uint64
@@ -41,7 +42,7 @@ func scheduleUpdateChecks(cfg *config) {
 		return
 	}
 	user32.NewProc("KillTimer").Call(uintptr(mainHwnd), 0x5550)
-	if !cfg.autoUpdate {
+	if !autoChecksEnabled(cfg) {
 		return
 	}
 	restoreUpdateCache()
@@ -52,23 +53,25 @@ func startUpdateCheckManually() {
 	if updateRunning {
 		return
 	}
-	restorePendingUpdate()
+	if updatePhase != updatestate.Available {
+		restorePendingUpdate()
+	}
 	if !updateAvailable {
 		return
 	}
 	startUpdateWorker(false)
 }
 func nextUpdateCheck(delay time.Duration) {
-	if mainHwnd != 0 && globalConfig != nil && globalConfig.autoUpdate && !shuttingDown {
+	if mainHwnd != 0 && autoChecksEnabled(globalConfig) && !shuttingDown {
 		user32.NewProc("SetTimer").Call(uintptr(mainHwnd), 0x5550, uintptr(delay/time.Millisecond), 0)
 	}
 }
 func startBackgroundUpdateCheck() {
-	if updatePhase == updatestate.Ready {
+	if updatePhase == updatestate.Ready && (globalConfig == nil || !globalConfig.autoInstall) {
 		nextUpdateCheck(6 * time.Hour)
 		return
 	}
-	if updateRunning || shuttingDown || globalConfig == nil || !globalConfig.autoUpdate {
+	if updateRunning || shuttingDown || !autoChecksEnabled(globalConfig) {
 		return
 	}
 	startUpdateWorker(true)
@@ -90,6 +93,12 @@ func restorePendingUpdate() bool {
 }
 func restoreUpdateCache() {
 	if restorePendingUpdate() {
+		if globalConfig != nil && globalConfig.autoInstall {
+			r, err := updatestate.Load(filepath.Join(os.Getenv("LOCALAPPDATA"), "Senja", updateStateName))
+			if err == nil && pendingReplacementIsNewer(updateLatest, r.Latest) {
+				setUpdatePhase(updatestate.Available)
+			}
+		}
 		return
 	}
 	r, err := updatestate.Load(filepath.Join(os.Getenv("LOCALAPPDATA"), "Senja", updateStateName))
@@ -111,10 +120,11 @@ func restoreUpdateCache() {
 		setUpdatePhase(4)
 	}
 }
-func startUpdateWorker(background bool) {
+func startUpdateWorker(background bool, auto ...bool) {
+	automatic := len(auto) > 0 && auto[0]
 	exe, err := os.Executable()
 	if err != nil {
-		if !background {
+		if !background && !automatic {
 			postUpdateResult(err.Error())
 		}
 		nextUpdateCheck(30 * time.Minute)
@@ -127,12 +137,15 @@ func startUpdateWorker(background bool) {
 	} else if updatePhase == updatestate.Ready {
 		args = append(args, "--apply-ready")
 	}
+	if automatic {
+		args = append(args, "--quiet")
+	}
 	command := exec.Command(helper, args...)
 	command.Dir = filepath.Dir(exe)
 	command.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	if err = command.Start(); err != nil {
 		setUpdatePhase(5)
-		if !background {
+		if !background && !automatic {
 			postUpdateResult("Pembaruan tidak dapat dimulai.\n" + err.Error())
 		}
 		nextUpdateCheck(30 * time.Minute)
@@ -182,10 +195,7 @@ func setUpdatePhase(phase uint32) {
 	}
 	updatePhase = phase
 	logEvent("INFO", "updater.phase", fmt.Sprintf("phase=%d", phase))
-	hwnd, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(cssMenuClass))), 0)
-	if hwnd != 0 {
-		postMessageW.Call(hwnd, wmUpdatePhase, uintptr(updatestate.Encode(phase, updateAvailable)), 0)
-	}
+	notifyNativePanels(wmUpdatePhase, uintptr(updatestate.Encode(phase, updateAvailable)), 0)
 	if phase == updatestate.Available {
 		announceAvailableUpdate()
 	}
@@ -285,4 +295,46 @@ func validateReleaseArchive(path string) error {
 		}
 	}
 	return nil
+}
+
+func autoChecksEnabled(cfg *config) bool { return cfg != nil && (cfg.autoUpdate || cfg.autoInstall) }
+func automaticUpdateAction(phase uint32, checked, running, enabled bool) int {
+	if !enabled || running {
+		return 0
+	}
+	if !checked {
+		return 1
+	}
+	if phase == updatestate.Available {
+		return 2
+	}
+	if phase == updatestate.Ready {
+		return 3
+	}
+	return 0
+}
+func advanceAutomaticUpdate() {
+	if shuttingDown || globalConfig == nil {
+		return
+	}
+	switch automaticUpdateAction(updatePhase, updateAutoChecked, updateRunning, globalConfig.autoInstall) {
+	case 1:
+		startBackgroundUpdateCheck()
+	case 2, 3:
+		startUpdateWorker(false, true)
+	}
+}
+func notifyNativePanels(message uint32, w, l uintptr) {
+	for _, name := range []string{cssMenuClass, "SenjaNativeCheckPanel"} {
+		hwnd, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(name))), 0)
+		if hwnd != 0 {
+			postMessageW.Call(hwnd, uintptr(message), w, l)
+		}
+	}
+}
+
+func pendingReplacementIsNewer(pending, latest string) bool {
+	a, e1 := parseReleaseVersion(pending)
+	b, e2 := parseReleaseVersion(latest)
+	return e1 == nil && e2 == nil && b.greaterThan(a)
 }

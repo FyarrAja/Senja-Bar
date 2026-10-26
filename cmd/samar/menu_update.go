@@ -40,7 +40,10 @@ func updatePresentation(phase uint32, pending bool, version string) (label, deta
 	return label, detail, false, pending
 }
 func (n *nativeGlassPanel) controlEnabled(i int) bool {
-	if (i >= 4 && i <= 6 && n.updatePhase == 2) || (i >= 4 && i <= 5 && n.showReadyPrompt()) {
+	if ((i >= 4 && i <= 6 || i == 9) && n.updatePhase == 2) || ((i == 4 || i == 5 || i == 9) && n.showReadyPrompt()) {
+		return false
+	}
+	if i == 7 && n.state.AutoInstall && n.updatePhase == updatestate.Ready {
 		return false
 	}
 	if i != 7 {
@@ -135,18 +138,18 @@ func downloadCopy(d updatestate.Download) (amount, speed, eta string) {
 func (n *nativeGlassPanel) drawDownload(ink, muted, card uint32) {
 	d := n.downloadStats(time.Now())
 	amount, speed, eta := downloadCopy(d)
-	n.round(20, 324, 318, 154, 22, card, false)
-	n.text("Mengunduh update", 38, 337, 192, 27, 14, true, ink)
+	n.round(20, 294, 318, 184, 22, card, false)
+	n.text("Mengunduh update", 38, 311, 192, 27, 14, true, ink)
 	percent := "--"
 	if d.Percent() >= 0 {
 		percent = fmt.Sprintf("%d%%", d.Percent())
 	}
-	n.drawText(percent, 237, 334, 85, 36, 24, true, ink, true)
-	n.text(amount, 38, 370, 282, 27, 15, true, ink)
-	n.round(38, 405, 282, 6, 3, 0x33ffffff, false)
+	n.drawText(percent, 237, 306, 85, 36, 24, true, ink, true)
+	n.text(amount, 38, 350, 282, 27, 15, true, ink)
+	n.round(38, 388, 282, 6, 3, 0x33ffffff, false)
 	if d.Percent() >= 0 && n.downloadMotion.value > 0 {
 		width := float32(282 * n.downloadMotion.value)
-		n.roundFloat(38, 405, width, 6, min(float32(3), width/2), 0xff4388ff, false, 0)
+		n.roundFloat(38, 388, width, 6, min(float32(3), width/2), 0xff4388ff, false, 0)
 	}
 	n.text("Kecepatan", 38, 425, 135, 20, 11, false, muted)
 	n.text("Sisa waktu", 190, 425, 135, 20, 11, false, muted)
@@ -159,13 +162,13 @@ func (n *nativeGlassPanel) drawDownload(ink, muted, card uint32) {
 }
 
 func (n *nativeGlassPanel) showReadyPrompt() bool {
-	return n.updatePhase == updatestate.Ready && !n.readyDismissed
+	return n.updatePhase == updatestate.Ready && !n.readyDismissed && !n.state.AutoInstall
 }
 func (n *nativeGlassPanel) drawReady(ink, muted, card uint32) {
-	n.round(20, 324, 318, 154, 22, card, false)
-	n.text("Pembaruan siap diterapkan", 38, 338, 282, 28, 15, true, ink)
-	n.text("Mulai ulang Senja untuk menggunakan", 38, 373, 282, 23, 12, false, ink)
-	n.text("versi terbaru. Windows tetap berjalan.", 38, 393, 282, 23, 12, false, muted)
+	n.round(20, 294, 318, 184, 22, card, false)
+	n.text("Pembaruan siap diterapkan", 38, 310, 282, 28, 15, true, ink)
+	n.text("Mulai ulang Senja untuk menggunakan", 38, 348, 282, 23, 12, false, ink)
+	n.text("versi terbaru. Windows tetap berjalan.", 38, 372, 282, 23, 12, false, muted)
 	saved := n.beginPress(6)
 	n.round(38, 430, 128, 36, 13, 0x22ffffff, false)
 	n.drawText("Nanti", 38, 430, 128, 36, 12, true, ink, true)

@@ -1,19 +1,19 @@
-**[Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.1.13/Senja-Bar.exe)**
+**[Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.2.0/Senja-Bar.exe)**
 
 ## Indonesia
 
-- Unduhan selesai tidak lagi langsung memasang update atau memulai ulang Senja.
-- Setelah checksum diverifikasi, tampil **Pembaruan siap diterapkan** dengan **Mulai ulang Senja** dan **Nanti**.
-- Pilih Nanti untuk tetap memakai versi lama; file tersimpan sehingga tidak perlu unduh ulang.
-- Versi dan checksum diperiksa kembali sebelum pemasangan. Menutup panel atau membuka ulang Senja tidak menerapkan update otomatis.
+- Toggle **Update otomatis**: cek, unduh terverifikasi, lalu terapkan update dan mulai ulang Senja tanpa konfirmasi tambahan. Default nonaktif untuk pengaturan lama; pilihan disimpan.
+- Jika toggle mati, unduhan tetap menunggu **Mulai ulang Senja / Nanti**.
+- Tata letak kartu dan tiga baris pengaturan lebih rapi, switch lebih halus, serta teks progres/status lebih terbaca.
+- Perbaikan urutan Tab, kontrol tersembunyi, pemulihan saat gagal menyimpan, status update langsung, dan pemilihan release terbaru sebelum auto-apply.
 
 ## English
 
-- Finishing a download no longer installs or restarts Senja automatically.
-- Show **Pembaruan siap diterapkan** with **Mulai ulang Senja** and **Nanti** after verification.
-- Defer and keep using the old version without downloading again later.
-- Recheck the staged version and checksum before explicit apply; menu dismissal or app startup never applies it automatically.
+- Persisted **Update otomatis** toggle for automatic checks, verified downloads, apply and Senja restart without another confirmation. Off by default for existing settings.
+- Keep staged **Mulai ulang Senja / Nanti** confirmation when disabled.
+- Refine card density, settings spacing, switch color interpolation and status readability.
+- Fix Tab order, hidden-control input, failed-save rollback, live update status and latest-release selection before automatic apply.
 
-Settings and personal downloaded EXEs are preserved. Windows x64; primarily tested on Windows 11. Releases are unsigned. Menu backdrop blur and screen-reader integration are not implemented.
+Settings and personal downloaded EXEs are preserved. Windows x64; primarily tested on Windows 11. Releases are unsigned. Menu backdrop blur and screen-reader integration are not implemented. This release fixes the issues listed above; it is not a claim that every bug is resolved.
 
 [Preview & guide](https://github.com/FyarrAja/Senja-Bar#readme)

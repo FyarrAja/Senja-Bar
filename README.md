@@ -50,12 +50,14 @@ Senja mengecek release stabil saat mulai, lalu setiap 6 jam. Jika koneksi gagal,
 
 Selama mengunduh, pengaturan bawah dan tombol cepat berganti sementara menjadi panel progres yang lebih besar. Kontrol kembali setelah transfer selesai. Panel menampilkan **terunduh / total MB**, kecepatan rata-rata **MB/s**, estimasi waktu tersisa, persentase, dan bar progres. Ukuran total dibaca dari respons unduhan, bukan ditebak. Jika total tidak tersedia, tampil `-- MB` dan waktu belum diketahui. Kecepatan serta estimasi mulai tampil setelah ada pengukuran transfer.
 
-Menekan **Perbarui** hanya mengunduh EXE dan memverifikasi checksum SHA-256. Setelah selesai, Senja tetap berjalan dan menampilkan **Pembaruan siap diterapkan**:
+**Update otomatis** adalah toggle untuk mengecek, mengunduh, memverifikasi, dan menerapkan update tanpa konfirmasi tambahan. Senja dimulai ulang otomatis saat pemasangan. Toggle ini tidak aktif secara default pada pengaturan lama; pilihan disimpan. Matikan sebelum pemasangan dimulai jika ingin memakai alur manual.
+
+Jika toggle mati, menekan **Perbarui** hanya mengunduh EXE dan memverifikasi checksum SHA-256. Setelah selesai, Senja tetap berjalan dan menampilkan **Pembaruan siap diterapkan**:
 
 - **Mulai ulang Senja**: periksa kembali file unduhan, pasang update, lalu jalankan versi terbaru. Hanya Senja yang dimulai ulang; Windows tidak direstart.
 - **Nanti**: tetap gunakan versi saat ini. File update disimpan sehingga tidak perlu diunduh ulang. Tombol **Mulai ulang** tetap tersedia; membuka panel kembali menampilkan pilihan tersebut.
 
-Update tidak diterapkan otomatis setelah unduhan selesai, panel ditutup, atau Senja dibuka kembali. Folder instalasi lama dibersihkan setelah versi baru siap. Pengaturan, preferensi startup, dan EXE unduhan pribadi dipertahankan. File yang hilang atau berubah tidak dijalankan dan perlu diunduh lagi.
+Dalam mode manual, update tidak diterapkan otomatis setelah unduhan selesai, panel ditutup, atau Senja dibuka kembali. Folder instalasi lama dibersihkan setelah versi baru siap. Pengaturan, preferensi startup, dan EXE unduhan pribadi dipertahankan. File yang hilang atau berubah tidak dijalankan dan perlu diunduh lagi.
 
 ## Dukungan & batasan
 
@@ -98,12 +100,14 @@ Senja checks the latest stable release at startup and every 6 hours, retrying af
 
 During downloads, lower settings and quick actions temporarily become a larger progress panel; the controls return afterward. Downloads show **received / total MB**, measured average **MB/s**, estimated time remaining, percentage and a progress bar. Total size comes from the download response. An unknown total shows `-- MB` and no ETA. Speed and ETA appear after transfer measurements are available. MB uses decimal units (1 MB = 1,000,000 bytes).
 
-Clicking **Perbarui** only downloads and SHA-256 verifies the EXE. Senja keeps running, then shows **Pembaruan siap diterapkan**:
+**Update otomatis** checks, downloads, verifies and applies updates without an extra confirmation, then restarts Senja. It defaults to off for existing settings and persists your choice. Disable it before installation begins to use the manual flow.
+
+With the toggle off, clicking **Perbarui** only downloads and SHA-256 verifies the EXE. Senja keeps running, then shows **Pembaruan siap diterapkan**:
 
 - **Mulai ulang Senja**: recheck the staged installer, install the update and relaunch Senja. Windows is not restarted.
 - **Nanti**: keep using the current version. The staged file is retained; **Mulai ulang** remains available without downloading again. Reopening the panel shows the choice again.
 
-Finishing a download, dismissing the panel or starting Senja again never applies the update automatically. Old managed installs are cleaned after the new version is ready. Settings, startup preferences and personal downloaded EXEs are preserved. Missing or modified staged files are rejected and must be downloaded again.
+In manual mode, finishing a download, dismissing the panel or starting Senja again never applies the update automatically. Old managed installs are cleaned after the new version is ready. Settings, startup preferences and personal downloaded EXEs are preserved. Missing or modified staged files are rejected and must be downloaded again.
 
 ### Requirements & limitations
 

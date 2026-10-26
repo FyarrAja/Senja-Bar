@@ -20,6 +20,9 @@ func requestExit(hwnd syscall.Handle) {
 func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) uintptr {
 	defer recoverPanic("window procedure")
 	switch message {
+	case wmApp + 70:
+		advanceAutomaticUpdate()
+		return 0
 	case wmApp + 66:
 		startBackgroundUpdateCheck()
 		return 0
@@ -42,10 +45,7 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		if updateRunning && updatePhase == 2 {
 			updateProgress = uint64(wParam)
 			updateProgressStarted = time.Now().Add(-time.Duration(min(lParam, uintptr(24*time.Hour/time.Millisecond))) * time.Millisecond)
-			menu, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(cssMenuClass))), 0)
-			if menu != 0 {
-				postMessageW.Call(menu, wmUpdateProgress, wParam, lParam)
-			}
+			notifyNativePanels(wmUpdateProgress, wParam, lParam)
 		}
 		return 0
 	case wmUpdateElapsedQuery:
@@ -63,6 +63,7 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 			setUpdatePhase(5)
 			restorePendingUpdate()
 		} else if updateBackground {
+			updateAutoChecked = true
 			restoreUpdateCache()
 		}
 		if wParam != 0 {
@@ -71,15 +72,22 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 			nextUpdateCheck(6 * time.Hour)
 		}
 		updateBackground = false
+		if wParam == 0 {
+			postMessageW.Call(hwnd, wmApp+70, 0, 0)
+		}
 		return 0
 	case wmCSSCommand:
 		// Posted, never sent: COM cannot call Explorer from an input-synchronous
 		// SendMessage handler (RPC_E_CANTCALLOUT_ININPUTSYNCCALL).
 		if globalConfig != nil && !shuttingDown && validCSSCommand(uint32(wParam)) {
 			startupBefore := globalConfig.startup
+			autoBefore := globalConfig.autoInstall
 			selectCommand(syscall.Handle(hwnd), uint32(wParam), globalConfig)
 			status := uintptr(0)
 			if (wParam >= cmdStyleGlass && wParam <= cmdStyleSolid || wParam == cmdRounded || wParam == cmdRefresh) && !lastStyleApplyOK {
+				status = 1
+			}
+			if wParam == cmdAutoInstall && globalConfig.autoInstall == autoBefore {
 				status = 1
 			}
 			if wParam == cmdStartup && globalConfig.startup == startupBefore {
@@ -176,7 +184,7 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		}
 		return 0
 	case wmClose:
-		closeCSSMenu()
+		notifyNativePanels(wmCSSShutdown, 0, 0)
 		destroyWindow.Call(hwnd)
 		return 0
 	case wmDestroy:

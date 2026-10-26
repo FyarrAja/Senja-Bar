@@ -89,6 +89,7 @@ func makeMenuRows(cfg *config) []*menuRow {
 		{id: 601, kind: "divider", disabled: true},
 		{id: cmdRounded, label: "Sudut membulat", kind: "toggle", active: cfg.rounded},
 		{id: cmdStartup, label: "Mulai bersama Windows", kind: "toggle", active: cfg.startup},
+		{id: cmdAutoInstall, label: "Update otomatis", detail: "Unduh dan terapkan otomatis", kind: "toggle", active: cfg.autoInstall},
 		{id: cmdRefresh, label: "Segarkan taskbar"},
 		{id: 602, kind: "divider", disabled: true},
 		{id: cmdCheckUpdates, label: updateLabel, detail: updateDetail, disabled: !updateEnabled},

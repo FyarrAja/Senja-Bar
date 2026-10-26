@@ -8,8 +8,30 @@ import (
 	"unsafe"
 )
 
-var nativeControlBoxes = [9][4]int{{20, 108, 154, 96}, {184, 108, 154, 96}, {20, 214, 154, 96}, {184, 214, 154, 96}, {20, 324, 318, 48}, {20, 372, 318, 48}, {20, 430, 154, 48}, {184, 430, 154, 48}, {114, 488, 132, 36}}
-var nativeControlCommands = [9]uint32{cmdStyleGlass, cmdStyleAcrylic, cmdStyleClear, cmdStyleSolid, cmdRounded, cmdStartup, cmdRefresh, cmdCheckUpdates, cmdExit}
+var nativeControlBoxes = [10][4]int{{20, 102, 154, 84}, {184, 102, 154, 84}, {20, 196, 154, 84}, {184, 196, 154, 84}, {20, 294, 318, 42}, {20, 336, 318, 42}, {20, 430, 154, 48}, {184, 430, 154, 48}, {114, 488, 132, 36}, {20, 378, 318, 42}}
+var nativeControlCommands = [10]uint32{cmdStyleGlass, cmdStyleAcrylic, cmdStyleClear, cmdStyleSolid, cmdRounded, cmdStartup, cmdRefresh, cmdCheckUpdates, cmdExit, cmdAutoInstall}
+var nativeFocusOrder = [10]int{0, 1, 2, 3, 4, 5, 9, 6, 7, 8}
+
+func (n *nativeGlassPanel) nextFocus(current, delta int) int {
+	pos := -1
+	for i, v := range nativeFocusOrder {
+		if v == current {
+			pos = i
+			break
+		}
+	}
+	if pos < 0 && delta < 0 {
+		pos = 0
+	}
+	for i := 0; i < len(nativeFocusOrder); i++ {
+		pos = (pos + delta + len(nativeFocusOrder)) % len(nativeFocusOrder)
+		v := nativeFocusOrder[pos]
+		if n.controlEnabled(v) {
+			return v
+		}
+	}
+	return -1
+}
 
 type nativePress struct {
 	value, from, to float64
@@ -94,7 +116,7 @@ func (n *nativeGlassPanel) beginPressAt(i int, cx, cy float32) uint32 {
 		return saved
 	}
 	depth := .035
-	if i == 4 || i == 5 {
+	if i == 4 || i == 5 || i == 9 {
 		depth = .015
 	}
 	if i == 8 {
@@ -108,4 +130,18 @@ func (n *nativeGlassPanel) beginPressAt(i int, cx, cy float32) uint32 {
 }
 func (n *nativeGlassPanel) endPress(saved uint32) {
 	nativeG("GdipRestoreGraphics", n.graphics, uintptr(saved))
+}
+
+func nativeSwitchTrack(position float64, light ...bool) uint32 {
+	t := max(0., min(1., position/17))
+	off, on := uint32(0xff555b66), uint32(0xff4388ff)
+	if len(light) > 0 && light[0] {
+		off, on = 0xff8792a5, 0xff286be0
+	}
+	var color uint32
+	for shift := uint(0); shift < 32; shift += 8 {
+		a, b := float64(off>>shift&255), float64(on>>shift&255)
+		color |= uint32(a+(b-a)*t+.5) << shift
+	}
+	return color
 }

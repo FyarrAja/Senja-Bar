@@ -78,9 +78,13 @@ func run() error {
 	return command.Run()
 }
 func main() {
+	quiet := len(os.Args) > 1 && os.Args[len(os.Args)-1] == "--quiet"
+	if quiet {
+		os.Args = os.Args[:len(os.Args)-1]
+	}
 	if err := run(); err != nil {
 		report(releaseupdate.Failed)
-		if len(os.Args) == 3 && os.Args[2] == "--check-only" {
+		if quiet || (len(os.Args) == 3 && os.Args[2] == "--check-only") {
 			os.Exit(1)
 		} // Background/offline checks stay quiet.
 		// Only failures need a dialog; normal progress stays in the menu.

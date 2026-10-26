@@ -58,6 +58,8 @@ func loadConfig() config {
 			}
 		case "startup":
 			cfg.startup = value == "1" || strings.EqualFold(value, "true")
+		case "auto_install":
+			cfg.autoInstall = value == "1" || strings.EqualFold(value, "true")
 		case "auto_update":
 			cfg.autoUpdate = value == "1" || strings.EqualFold(value, "true")
 		case "blur_radius":
@@ -89,7 +91,7 @@ func saveConfig(cfg config) error {
 	if cfg.blurRadius <= 0 {
 		cfg.blurRadius = 18.0
 	}
-	content := fmt.Sprintf("style=%d\nstartup=%d\nauto_update=%d\nblur_radius=%.1f\nrounded=%d\n", cfg.style, boolInt(cfg.startup), boolInt(cfg.autoUpdate), cfg.blurRadius, boolInt(cfg.rounded))
+	content := fmt.Sprintf("style=%d\nstartup=%d\nauto_update=%d\nauto_install=%d\nblur_radius=%.1f\nrounded=%d\n", cfg.style, boolInt(cfg.startup), boolInt(cfg.autoUpdate), boolInt(cfg.autoInstall), cfg.blurRadius, boolInt(cfg.rounded))
 	tmp := configPath() + ".tmp"
 	if err := os.WriteFile(tmp, []byte(content), 0600); err != nil {
 		return err

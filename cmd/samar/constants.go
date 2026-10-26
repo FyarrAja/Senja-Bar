@@ -87,6 +87,7 @@ const (
 	cmdRefresh      = 111
 	cmdCheckUpdates = 112
 	cmdAutoUpdates  = 113
+	cmdAutoInstall  = 114
 	cmdExit         = 140
 )
 

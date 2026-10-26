@@ -48,7 +48,11 @@ func notifyUpdateAvailable(version string) bool {
 	data.uTimeoutOrVersion = 10000
 	data.dwInfoFlags = 1 | 0x80 // NIIF_INFO | NIIF_RESPECT_QUIET_TIME
 	utf16from("Senja — Update tersedia", data.szInfoTitle[:])
-	utf16from("Versi "+version+" tersedia. Buka Senja lalu pilih Perbarui untuk memasang.", data.szInfo[:])
+	message := "Versi " + version + " tersedia. Buka Senja untuk mengunduh pembaruan."
+	if globalConfig != nil && globalConfig.autoInstall {
+		message = "Versi " + version + " tersedia. Senja akan mengunduh dan menerapkannya secara otomatis."
+	}
+	utf16from(message, data.szInfo[:])
 	ok, _, _ := shellNotifyIconW.Call(nimModify, uintptr(unsafe.Pointer(&data)))
 	return ok != 0
 }

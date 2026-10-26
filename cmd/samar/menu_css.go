@@ -31,9 +31,10 @@ const wmCSSToggle = wmApp + 25
 const wmCSSShutdown = wmApp + 26
 
 type cssState struct {
-	Style   int  `json:"style"`
-	Rounded bool `json:"rounded"`
-	Startup bool `json:"startup"`
+	Style       int  `json:"style"`
+	Rounded     bool `json:"rounded"`
+	Startup     bool `json:"startup"`
+	AutoInstall bool `json:"autoInstall"`
 }
 type cssMonitorInfo struct {
 	Size          uint32
@@ -271,11 +272,11 @@ func trayOverflowAt(anchor point) uintptr {
 
 func currentCSSState() cssState {
 	cfg := loadConfig()
-	return cssState{cfg.style, cfg.rounded, isStartupEnabled()}
+	return cssState{cfg.style, cfg.rounded, isStartupEnabled(), cfg.autoInstall}
 }
 func validCSSCommand(command uint32) bool {
 	switch command {
-	case cmdStyleGlass, cmdStyleAcrylic, cmdStyleClear, cmdStyleSolid, cmdRounded, cmdStartup, cmdRefresh, cmdCheckUpdates, cmdExit:
+	case cmdStyleGlass, cmdStyleAcrylic, cmdStyleClear, cmdStyleSolid, cmdRounded, cmdStartup, cmdRefresh, cmdCheckUpdates, cmdAutoInstall, cmdExit:
 		return true
 	}
 	return false

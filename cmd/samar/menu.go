@@ -69,6 +69,16 @@ func selectCommand(hwnd syscall.Handle, command uint32, cfg *config) {
 		applyStyle(cfg.style)
 	case cmdCheckUpdates:
 		startUpdateCheckManually()
+	case cmdAutoInstall:
+		previous := cfg.autoInstall
+		cfg.autoInstall = !previous
+		if err := saveConfig(*cfg); err != nil {
+			cfg.autoInstall = previous
+			logError("config.save", "unable to save automatic install setting", err)
+			return
+		}
+		updateAutoChecked = false
+		scheduleUpdateChecks(cfg)
 	case cmdAutoUpdates:
 		cfg.autoUpdate = !cfg.autoUpdate
 		if err := saveConfig(*cfg); err != nil {

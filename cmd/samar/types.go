@@ -66,11 +66,12 @@ type compositionAttributeData struct {
 }
 
 type config struct {
-	style      int
-	startup    bool
-	autoUpdate bool
-	blurRadius float32
-	rounded    bool
+	style       int
+	startup     bool
+	autoUpdate  bool
+	autoInstall bool
+	blurRadius  float32
+	rounded     bool
 }
 
 type stringsTable struct {

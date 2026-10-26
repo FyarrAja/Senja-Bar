@@ -2,26 +2,26 @@
   "FixedFileInfo": {
     "FileVersion": {
       "Major": 1,
-      "Minor": 1,
-      "Patch": 13,
+      "Minor": 2,
+      "Patch": 0,
       "Build": 0
     },
     "ProductVersion": {
       "Major": 1,
-      "Minor": 1,
-      "Patch": 13,
+      "Minor": 2,
+      "Patch": 0,
       "Build": 0
     }
   },
   "StringFileInfo": {
     "CompanyName": "FyarrAja",
     "FileDescription": "Senja Bar Taskbar Engine",
-    "FileVersion": "1.1.13.0",
+    "FileVersion": "1.2.0.0",
     "InternalName": "senja",
     "LegalCopyright": "Copyright 2026 FyarrAja and contributors. See LICENSE and NOTICE.",
     "OriginalFilename": "Senja.exe",
     "ProductName": "Senja Bar",
-    "ProductVersion": "1.1.13.0"
+    "ProductVersion": "1.2.0.0"
   },
   "VarFileInfo": {
     "Translation": {
