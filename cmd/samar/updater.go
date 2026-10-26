@@ -27,12 +27,13 @@ var (
 	updateMu sync.Mutex
 	// Written only by the engine's window thread. Protocol phases match the
 	// isolated updater; importing its HTTP client here would burden idle startup.
-	updateProgress   uint32
-	updatePhase      uint32
-	updateRunning    bool
-	updateBackground bool
-	updateAvailable  bool
-	updateLatest     string
+	updateProgress        uint64
+	updateProgressStarted time.Time
+	updatePhase           uint32
+	updateRunning         bool
+	updateBackground      bool
+	updateAvailable       bool
+	updateLatest          string
 )
 
 func scheduleUpdateChecks(cfg *config) {
@@ -145,6 +146,7 @@ func setUpdatePhase(phase uint32) {
 	}
 	if phase != 2 {
 		updateProgress = 0
+		updateProgressStarted = time.Time{}
 	}
 	updatePhase = phase
 	logEvent("INFO", "updater.phase", fmt.Sprintf("phase=%d", phase))

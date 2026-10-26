@@ -16,6 +16,7 @@ const (
 	wmUpdateWorkerDone    = wmApp + 63
 	wmUpdateProgress      = wmApp + 67
 	wmUpdateProgressQuery = wmApp + 68
+	wmUpdateElapsedQuery  = wmApp + 69
 	wmNull                = 0x0000
 	wmRButtonUp           = 0x0205
 	wmLButtonUp           = 0x0202

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.9 - 2026-10-26
+
+- Show exact received/total MB, measured average speed and estimated remaining time during downloads.
+- Preserve byte counts and elapsed time when reopening the panel; refresh stalled transfer estimates twice per second only while downloading.
+- Expand the quick-action row into a readable download panel while the transfer is active; never invent an unknown total or ETA.
+
+
 ## 1.1.8 - 2026-10-26
 
 - Move the update badge to the top-left corner of its button.

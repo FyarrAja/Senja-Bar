@@ -4,6 +4,7 @@ package main
 
 import (
 	"math"
+	"samar/internal/updatestate"
 	"testing"
 	"time"
 )
@@ -24,7 +25,7 @@ func TestUpdateActionAvailability(t *testing.T) {
 			t.Fatalf("%+v: %s %v %v", c, label, enabled, mark)
 		}
 		n := nativeGlassPanel{updatePhase: c.phase, updateAvailable: c.pending}
-		if n.controlEnabled(7) != c.enabled || !n.controlEnabled(6) {
+		if n.controlEnabled(7) != c.enabled || n.controlEnabled(6) != (c.phase != 2) {
 			t.Fatalf("control state %+v", c)
 		}
 	}
@@ -52,5 +53,24 @@ func TestDownloadMotionContinuousMonotonicAndFinite(t *testing.T) {
 	m.target(.1, start.Add(time.Second))
 	if m.to != .8 {
 		t.Fatal("bar moved backward", m)
+	}
+}
+
+func TestDownloadCopyRealMeasurements(t *testing.T) {
+	d := updatestate.Download{Done: 2500000, Total: 10000000, Elapsed: 2 * time.Second}
+	amount, speed, eta := downloadCopy(d)
+	if amount != "2.50 / 10.00 MB" || speed != "1.25 MB/s" || eta != "Sisa 6 dtk" {
+		t.Fatal(amount, speed, eta)
+	}
+	d.Done = 0
+	d.Elapsed = 0
+	amount, speed, eta = downloadCopy(d)
+	if amount != "0.00 / 10.00 MB" || speed != "-- MB/s" || eta != "Menghitung..." {
+		t.Fatal(amount, speed, eta)
+	}
+	d.Total = 0
+	amount, _, eta = downloadCopy(d)
+	if amount != "0.00 / -- MB" || eta != "Waktu belum diketahui" {
+		t.Fatal(amount, eta)
 	}
 }

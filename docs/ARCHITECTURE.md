@@ -1,5 +1,7 @@
 # Architecture
 
+From 1.1.9, download messages carry exact bounded received/response Content-Length byte counts and elapsed transfer time. The panel derives decimal MB, average bytes per second, and remaining bytes divided by the measured rate. Warm-up under 250 ms, zero received bytes, or unknown total never produces a guessed ETA. Reopening queries counts plus elapsed time from the engine. A 500 ms window timer refreshes speed/ETA during visible downloads, including stalls, and is removed on phase completion or dismissal. The quick-action row becomes a transfer summary while downloading.
+
 The persistent Go/Win32 engine owns the tray icon, taskbar materials and per-user settings. It waits for Windows messages. Version 1.1.2 opens an on-demand GDI+ panel and releases its process on dismissal. The older WebView2 path remains available for comparison with --css-preview/--css-check.
 
 Taskbar materials use the ExplorerTAP COM interface with checked HRESULTs. CSS commands are posted asynchronously to the engine and acknowledged after completion; this avoids synchronous input COM-call failures. Allowed commands are explicitly listed in menu_css.go. The menu has no HTTP listener, remote page, external font, or arbitrary command bridge.

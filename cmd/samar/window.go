@@ -40,13 +40,19 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		return 0
 	case wmUpdateProgress:
 		if updateRunning && updatePhase == 2 {
-			updateProgress = uint32(wParam)
+			updateProgress = uint64(wParam)
+			updateProgressStarted = time.Now().Add(-time.Duration(min(lParam, uintptr(24*time.Hour/time.Millisecond))) * time.Millisecond)
 			menu, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(cssMenuClass))), 0)
 			if menu != 0 {
-				postMessageW.Call(menu, wmUpdateProgress, wParam, 0)
+				postMessageW.Call(menu, wmUpdateProgress, wParam, lParam)
 			}
 		}
 		return 0
+	case wmUpdateElapsedQuery:
+		if updateProgressStarted.IsZero() {
+			return 0
+		}
+		return uintptr(time.Since(updateProgressStarted) / time.Millisecond)
 	case wmUpdateProgressQuery:
 		return uintptr(updateProgress)
 	case wmUpdateQuery:

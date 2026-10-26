@@ -3,7 +3,9 @@
 package main
 
 import (
+	"fmt"
 	"math"
+	"samar/internal/updatestate"
 	"strings"
 	"time"
 )
@@ -35,6 +37,9 @@ func updatePresentation(phase uint32, pending bool, version string) (label, deta
 	return label, detail, false, pending
 }
 func (n *nativeGlassPanel) controlEnabled(i int) bool {
+	if i == 6 && n.updatePhase == 2 {
+		return false
+	}
 	if i != 7 {
 		return true
 	}
@@ -63,4 +68,56 @@ func (m *nativeDownloadMotion) advance(now time.Time) bool {
 		return false
 	}
 	return true
+}
+
+func (n *nativeGlassPanel) downloadStats(now time.Time) updatestate.Download {
+	elapsed := time.Duration(0)
+	if !n.downloadStarted.IsZero() {
+		elapsed = now.Sub(n.downloadStarted)
+	}
+	return updatestate.ReadDownload(n.updateProgress, elapsed)
+}
+func downloadCopy(d updatestate.Download) (amount, speed, eta string) {
+	amount = fmt.Sprintf("%.2f / -- MB", float64(d.Done)/1e6)
+	if d.Total > 0 {
+		amount = fmt.Sprintf("%.2f / %.2f MB", float64(d.Done)/1e6, float64(d.Total)/1e6)
+	}
+	speed = "-- MB/s"
+	if rate := d.BytesPerSecond(); rate > 0 {
+		speed = fmt.Sprintf("%.2f MB/s", rate/1e6)
+	}
+	eta = "Menghitung..."
+	if remaining, ok := d.Remaining(); ok {
+		seconds := int(remaining / time.Second)
+		if seconds >= 3600 {
+			eta = fmt.Sprintf("Sisa %dj %dm", seconds/3600, seconds%3600/60)
+		} else if seconds >= 60 {
+			eta = fmt.Sprintf("Sisa %dm %dd", seconds/60, seconds%60)
+		} else {
+			eta = fmt.Sprintf("Sisa %d dtk", seconds)
+		}
+	}
+	if d.Total <= 0 {
+		eta = "Waktu belum diketahui"
+	}
+	return
+}
+func (n *nativeGlassPanel) drawDownload(ink, muted, card uint32) {
+	d := n.downloadStats(time.Now())
+	amount, speed, eta := downloadCopy(d)
+	n.round(20, 430, 318, 48, 17, card, false)
+	n.updateIcon(34, 438, ink)
+	label := "Mengunduh..."
+	if percent := d.Percent(); percent >= 0 {
+		label = fmt.Sprintf("Mengunduh %d%%", percent)
+	}
+	n.text(label, 54, 432, 157, 19, 11, true, ink)
+	n.text(eta, 217, 433, 113, 18, 9, false, muted)
+	n.text(amount, 34, 451, 181, 18, 10, false, ink)
+	n.text(speed, 239, 451, 95, 18, 10, false, ink)
+	n.round(34, 471, 290, 3, 1, 0x33ffffff, false)
+	if d.Percent() >= 0 && n.downloadMotion.value > 0 {
+		width := float32(290 * n.downloadMotion.value)
+		n.roundFloat(34, 471, width, 3, min(float32(1), width/2), 0xff4388ff, false, 0)
+	}
 }

@@ -22,11 +22,17 @@ func report(phase int) {
 		user32.NewProc("PostMessageW").Call(hwnd, 0x8000+61, uintptr(phase), 0)
 	}
 }
+
+var downloadStarted time.Time
+
 func reportProgress(done, total int64) {
+	if downloadStarted.IsZero() {
+		downloadStarted = time.Now()
+	}
 	name, _ := syscall.UTF16PtrFromString("SenjaHostWindow")
 	hwnd, _, _ := user32.NewProc("FindWindowW").Call(uintptr(unsafe.Pointer(name)), 0)
 	if hwnd != 0 {
-		user32.NewProc("PostMessageW").Call(hwnd, 0x8000+67, uintptr(updatestate.Progress(done, total)), 0)
+		user32.NewProc("PostMessageW").Call(hwnd, 0x8000+67, uintptr(updatestate.DownloadWire(done, total)), uintptr(time.Since(downloadStarted)/time.Millisecond))
 	}
 }
 func run() error {

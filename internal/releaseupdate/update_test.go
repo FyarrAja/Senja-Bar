@@ -157,6 +157,24 @@ func TestDownloadProgressTracksWrittenBytes(t *testing.T) {
 		}
 	}
 }
+
+func TestDownloadPublishesResponseSizeBeforeBody(t *testing.T) {
+	client := &http.Client{Transport: transport(func(*http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: 200, ContentLength: 10, Body: io.NopCloser(strings.NewReader("0123456789"))}, nil
+	})}
+	first := true
+	err := getProgress(context.Background(), client, "https://github.com/test", 100, io.Discard, func(done, total int64) {
+		if first {
+			if done != 0 || total != 10 {
+				t.Fatalf("initial measurement %d/%d", done, total)
+			}
+			first = false
+		}
+	})
+	if err != nil || first {
+		t.Fatal(err, first)
+	}
+}
 func TestFailedDownloadDoesNotReportCompletion(t *testing.T) {
 	client := &http.Client{Transport: transport(func(*http.Request) (*http.Response, error) {
 		return &http.Response{StatusCode: 200, ContentLength: 100, Body: io.NopCloser(strings.NewReader("partial"))}, nil
