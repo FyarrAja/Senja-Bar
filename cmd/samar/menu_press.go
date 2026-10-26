@@ -61,7 +61,7 @@ func nativeControlAt(x, y int) int {
 	return -1
 }
 func (n *nativeGlassPanel) pressControl(i int) {
-	if i < 0 || i >= len(n.presses) || n.closing {
+	if i < 0 || i >= len(n.presses) || n.closing || !n.controlEnabled(i) {
 		return
 	}
 	if n.presses[i].to == 1 && !n.presses[i].releasePending {

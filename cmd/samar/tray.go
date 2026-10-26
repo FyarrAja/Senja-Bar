@@ -39,6 +39,20 @@ func removeTrayIcon(data *notifyIconData) {
 	shellNotifyIconW.Call(nimDelete, uintptr(unsafe.Pointer(data)))
 }
 
+func notifyUpdateAvailable(version string) bool {
+	if trayData == nil || trayData.hWnd == 0 {
+		return false
+	}
+	data := *trayData
+	data.uFlags = 0x10 // NIF_INFO
+	data.uTimeoutOrVersion = 10000
+	data.dwInfoFlags = 1 | 0x80 // NIIF_INFO | NIIF_RESPECT_QUIET_TIME
+	utf16from("Senja — Update tersedia", data.szInfoTitle[:])
+	utf16from("Versi "+version+" tersedia. Buka Senja lalu pilih Perbarui untuk memasang.", data.szInfo[:])
+	ok, _, _ := shellNotifyIconW.Call(nimModify, uintptr(unsafe.Pointer(&data)))
+	return ok != 0
+}
+
 func reinstallTrayIcon(hwnd syscall.Handle) {
 	if trayData != nil {
 		removeTrayIcon(trayData)

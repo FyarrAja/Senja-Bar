@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.7 — 2026-10-26
+
+- Automatically check release metadata at startup and every six hours, with a thirty-minute failure retry.
+- Notify once per new version and retain a red pending-update dot in the native panel.
+- Make the update action install-only; disable it when current or no update is known.
+- Keep HTTP in a short-lived worker; background checks never download executable assets.
+
+
 ## 1.1.6 â€” 2026-10-26
 
 - Clean verified older managed installation folders only after the new engine has initialized its tray and taskbar successfully. Keep the active install, newer versions, settings and personal Downloads untouched.

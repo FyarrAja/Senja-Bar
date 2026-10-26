@@ -119,3 +119,21 @@ func TestDownloadRedirectPolicy(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckOnlyRequestsReleaseMetadata(t *testing.T) {
+	data, _ := json.Marshal(stable())
+	for _, current := range []string{"1.1.6", "1.2.0", "1.3.0"} {
+		requests := 0
+		client := &http.Client{Transport: transport(func(req *http.Request) (*http.Response, error) {
+			requests++
+			if req.URL.String() != "https://api.github.com/repos/"+Repository+"/releases/latest" {
+				t.Fatalf("background check downloaded an asset: %s", req.URL)
+			}
+			return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(string(data))), Header: make(http.Header)}, nil
+		})}
+		r, newer, err := Check(context.Background(), client, current)
+		if err != nil || requests != 1 || r.Tag != "v1.2.0" || newer != (current == "1.1.6") {
+			t.Fatalf("%s: %+v %v %v requests=%d", current, r, newer, err, requests)
+		}
+	}
+}

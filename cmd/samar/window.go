@@ -2,7 +2,12 @@
 
 package main
 
-import "syscall"
+import (
+	"samar/internal/updatestate"
+	"syscall"
+	"time"
+	"unsafe"
+)
 
 func requestExit(hwnd syscall.Handle) {
 	if shuttingDown {
@@ -15,6 +20,9 @@ func requestExit(hwnd syscall.Handle) {
 func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) uintptr {
 	defer recoverPanic("window procedure")
 	switch message {
+	case wmApp + 66:
+		startBackgroundUpdateCheck()
+		return 0
 	case wmApp + 65:
 		if !shuttingDown && lastStyleApplyOK {
 			go cleanPreviousInstalls()
@@ -31,12 +39,20 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		}
 		return 0
 	case wmUpdateQuery:
-		return uintptr(updatePhase)
+		return uintptr(updatestate.Encode(updatePhase, updateAvailable))
 	case wmUpdateWorkerDone:
 		updateRunning = false
-		if wParam != 0 && updatePhase != 5 {
+		if wParam != 0 {
 			setUpdatePhase(5)
+		} else if updateBackground {
+			restoreUpdateCache()
 		}
+		if wParam != 0 {
+			nextUpdateCheck(30 * time.Minute)
+		} else {
+			nextUpdateCheck(6 * time.Hour)
+		}
+		updateBackground = false
 		return 0
 	case wmCSSCommand:
 		// Posted, never sent: COM cannot call Explorer from an input-synchronous
@@ -75,6 +91,13 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		}
 	case wmTray:
 		event := uint32(lParam & 0xFFFF)
+		if event == 0x405 {
+			existing, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(cssMenuClass))), 0)
+			if existing == 0 {
+				postMessageW.Call(hwnd, wmShowMenu, 0, 0)
+			}
+			return 0
+		} // Notification click opens settings, never installs.
 		if event == wmRButtonUp || event == wmLButtonDbl {
 			if globalConfig != nil && !shuttingDown && !menuPosted {
 				menuPosted = true
@@ -101,6 +124,11 @@ func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) ui
 		}
 		return 0
 	case 0x0113:
+		if wParam == 0x5550 {
+			user32.NewProc("KillTimer").Call(hwnd, wParam)
+			startBackgroundUpdateCheck()
+			return 0
+		}
 		if wParam == 0x5355 {
 			user32.NewProc("KillTimer").Call(hwnd, wParam)
 			refreshTaskbarBackdrop()

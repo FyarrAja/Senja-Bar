@@ -26,6 +26,7 @@ const (
 	Installing
 	Current
 	Failed
+	Available
 )
 
 type Asset struct {
@@ -121,22 +122,63 @@ func get(ctx context.Context, client *http.Client, raw string, max int64, out io
 	return nil
 }
 
+// Check fetches release metadata only. It never downloads or runs an installer.
+func Check(ctx context.Context, client *http.Client, current string) (Release, bool, error) {
+	var data strings.Builder
+	if err := get(ctx, client, "https://api.github.com/repos/"+Repository+"/releases/latest", 1<<20, &data); err != nil {
+		return Release{}, false, err
+	}
+	var release Release
+	if err := json.Unmarshal([]byte(data.String()), &release); err != nil {
+		return release, false, err
+	}
+	if release.Draft || release.Prerelease {
+		return release, false, fmt.Errorf("release is not stable")
+	}
+	newer, err := Newer(release.Tag, current)
+	if err != nil {
+		return release, false, err
+	}
+	if newer {
+		if _, _, err = releaseURLs(release); err != nil {
+			return release, false, err
+		}
+	}
+	return release, newer, nil
+}
+func releaseURLs(release Release) (string, string, error) {
+	var exeURL, sumURL string
+	for _, a := range release.Assets {
+		switch a.Name {
+		case Installer:
+			if !trustedAsset(a.URL, release.Tag, Installer) {
+				return "", "", fmt.Errorf("untrusted installer URL")
+			}
+			if exeURL != "" {
+				return "", "", fmt.Errorf("duplicate installer")
+			}
+			exeURL = a.URL
+		case "SHA256SUMS.txt":
+			if !trustedAsset(a.URL, release.Tag, a.Name) {
+				return "", "", fmt.Errorf("untrusted checksum URL")
+			}
+			if sumURL != "" {
+				return "", "", fmt.Errorf("duplicate checksums")
+			}
+			sumURL = a.URL
+		}
+	}
+	if exeURL == "" || sumURL == "" {
+		return "", "", fmt.Errorf("release installer/checksums unavailable")
+	}
+	return exeURL, sumURL, nil
+}
+
 // Prepare never executes a download. Only a newer stable release with matching
 // checksums is returned; the caller controls the final installer handoff.
 func Prepare(ctx context.Context, client *http.Client, current, dir string, report func(int)) (path string, err error) {
 	report(Checking)
-	var data strings.Builder
-	if err = get(ctx, client, "https://api.github.com/repos/"+Repository+"/releases/latest", 1<<20, &data); err != nil {
-		return "", err
-	}
-	var release Release
-	if err = json.Unmarshal([]byte(data.String()), &release); err != nil {
-		return "", err
-	}
-	if release.Draft || release.Prerelease {
-		return "", fmt.Errorf("release is not stable")
-	}
-	newer, err := Newer(release.Tag, current)
+	release, newer, err := Check(ctx, client, current)
 	if err != nil {
 		return "", err
 	}
@@ -144,32 +186,12 @@ func Prepare(ctx context.Context, client *http.Client, current, dir string, repo
 		report(Current)
 		return "", nil
 	}
-	var exeURL, sumURL string
-	for _, a := range release.Assets {
-		switch a.Name {
-		case Installer:
-			if !trustedAsset(a.URL, release.Tag, Installer) {
-				return "", fmt.Errorf("untrusted installer URL")
-			}
-			if exeURL != "" {
-				return "", fmt.Errorf("duplicate installer")
-			}
-			exeURL = a.URL
-		case "SHA256SUMS.txt":
-			if !trustedAsset(a.URL, release.Tag, a.Name) {
-				return "", fmt.Errorf("untrusted checksum URL")
-			}
-			if sumURL != "" {
-				return "", fmt.Errorf("duplicate checksums")
-			}
-			sumURL = a.URL
-		}
-	}
-	if exeURL == "" || sumURL == "" {
-		return "", fmt.Errorf("release installer/checksums unavailable")
+	exeURL, sumURL, err := releaseURLs(release)
+	if err != nil {
+		return "", err
 	}
 	report(Downloading)
-	data.Reset()
+	var data strings.Builder
 	if err = get(ctx, client, sumURL, 64<<10, &data); err != nil {
 		return "", err
 	}

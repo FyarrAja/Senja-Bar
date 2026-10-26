@@ -79,6 +79,7 @@ func menuRowHeight(row *menuRow) int32 {
 }
 
 func makeMenuRows(cfg *config) []*menuRow {
+	updateLabel, updateDetail, updateEnabled, _ := updatePresentation(updatePhase, updateAvailable, buildVersion)
 	return []*menuRow{
 		{id: 600, label: "Senja", detail: "Tampilan taskbar", kind: "brand", disabled: true},
 		{id: cmdStyleGlass, label: "Kaca", detail: "Transparan dengan blur lembut", kind: "style", active: cfg.style == styleGlass},
@@ -90,7 +91,7 @@ func makeMenuRows(cfg *config) []*menuRow {
 		{id: cmdStartup, label: "Mulai bersama Windows", kind: "toggle", active: cfg.startup},
 		{id: cmdRefresh, label: "Segarkan taskbar"},
 		{id: 602, kind: "divider", disabled: true},
-		{id: cmdCheckUpdates, label: "Pembaruan", detail: "Buka release terbaru"},
+		{id: cmdCheckUpdates, label: updateLabel, detail: updateDetail, disabled: !updateEnabled},
 		{id: cmdExit, label: "Keluar dari Senja", kind: "exit"},
 	}
 }

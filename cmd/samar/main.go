@@ -124,6 +124,7 @@ func main() {
 	if lastStyleApplyOK {
 		postMessageW.Call(uintptr(hwnd), wmApp+65, 0, 0)
 	}
+	scheduleUpdateChecks(&cfg)
 	// Release transient startup allocations once. No periodic full-GC worker:
 	// an idle engine should remain asleep until Windows sends a message.
 	debug.FreeOSMemory()

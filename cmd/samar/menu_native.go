@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"runtime"
+	"samar/internal/updatestate"
 	"strconv"
 	"syscall"
 	"time"
@@ -30,6 +31,7 @@ type nativeGlassPanel struct {
 	pixels                                                     uintptr
 	checked                                                    bool
 	updatePhase                                                uint32
+	updateAvailable                                            bool
 	arrowCursor, handCursor                                    uintptr
 	hwnd, dc, bitmap, oldBitmap, graphics, image, family       uintptr
 	fonts                                                      map[int]uintptr
@@ -83,6 +85,9 @@ func (n *nativeGlassPanel) pump() {
 }
 func (n *nativeGlassPanel) choose(command uint32) {
 	if n.closing {
+		return
+	}
+	if command == cmdCheckUpdates && !n.controlEnabled(7) {
 		return
 	}
 	if command == cmdExit {
@@ -339,10 +344,17 @@ func (n *nativeGlassPanel) paint() {
 	n.endPress(saved)
 	saved = n.beginPress(7)
 	n.round(184, 430, 154, 48, 17, secondary, false)
-	n.updateIcon(205, 444, muted)
-	n.text("Pembaruan", 225, 437, 105, 21, 11, true, muted)
-	updateLabels := [...]string{"Cek & pasang", "Memeriksa…", "Mengunduh…", "Memasang…", "Sudah terbaru", "Coba lagi"}
-	n.text(updateLabels[min(n.updatePhase, 5)], 224, 454, 110, 18, 9, false, muted)
+	updateLabel, updateDetail, updateEnabled, updateMark := updatePresentation(n.updatePhase, n.updateAvailable, buildVersion)
+	updateInk := muted
+	if !updateEnabled {
+		updateInk = updateInk&0xffffff | 0x99000000
+	}
+	n.updateIcon(205, 444, updateInk)
+	n.text(updateLabel, 225, 437, 105, 21, 11, true, updateInk)
+	n.text(updateDetail, 224, 454, 110, 18, 9, false, updateInk)
+	if updateMark {
+		n.round(322, 435, 9, 9, 4, 0xfff45d6b, false)
+	}
 	n.endPress(saved)
 	saved = n.beginPress(8)
 	n.round(114, 488, 132, 36, 18, 0x28ef4456, false)
@@ -443,14 +455,27 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 			var p point
 			getCursorPos.Call(uintptr(unsafe.Pointer(&p)))
 			user32.NewProc("ScreenToClient").Call(hwnd, uintptr(unsafe.Pointer(&p)))
-			if nativeCommandAt(int(p.x)*96/int(menuDPI), int(p.y)*96/int(menuDPI)) != 0 && n.handCursor != 0 {
+			i := nativeControlAt(int(p.x)*96/int(menuDPI), int(p.y)*96/int(menuDPI))
+			if i >= 0 && n.controlEnabled(i) && n.handCursor != 0 {
 				cursor = n.handCursor
 			}
 			user32.NewProc("SetCursor").Call(cursor)
 			return 1
 		}
 	case wmUpdatePhase:
-		n.updatePhase = min(uint32(w), 5)
+		n.updatePhase = min(uint32(w)&0xff, updatestate.Available)
+		n.updateAvailable = uint32(w)&updatestate.PendingFlag != 0
+		if !n.controlEnabled(7) {
+			if n.pressed == 7 {
+				n.pressed = -1
+				user32.NewProc("ReleaseCapture").Call()
+				n.releaseControl(7, false)
+			}
+			if n.keyPressed == 7 {
+				n.keyPressed = -1
+				n.releaseControl(7, false)
+			}
+		}
 		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		return 0
 	case 0x14:
@@ -502,6 +527,9 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		}
 		x, y := int(int16(l&0xffff))*96/int(menuDPI), int(int16(l>>16))*96/int(menuDPI)
 		n.pressed = nativeControlAt(x, y)
+		if n.pressed >= 0 && !n.controlEnabled(n.pressed) {
+			n.pressed = -1
+		}
 		if n.pressed >= 0 {
 			user32.NewProc("SetCapture").Call(hwnd)
 			n.pressControl(n.pressed)
@@ -573,6 +601,9 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 				delta = -1
 			}
 			n.focus = (n.focus + delta + 9) % 9
+			for !n.controlEnabled(n.focus) {
+				n.focus = (n.focus + delta + 9) % 9
+			}
 			user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		}
 		if (w == 13 || w == 32) && n.focus >= 0 && l&(1<<30) == 0 {
@@ -584,7 +615,7 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		if (w == 13 || w == 32) && n.keyPressed >= 0 {
 			i := n.keyPressed
 			n.keyPressed = -1
-			clicked := i == n.focus
+			clicked := i == n.focus && n.controlEnabled(i)
 			n.releaseControl(i, clicked)
 			if clicked {
 				n.choose(nativeControlCommands[i])
@@ -656,7 +687,8 @@ func runNativeGlassPanel(preview bool) bool {
 		}
 		var phase uintptr
 		user32.NewProc("SendMessageTimeoutW").Call(n.parent, wmUpdateQuery, 0, 0, 2, 200, uintptr(unsafe.Pointer(&phase)))
-		n.updatePhase = min(uint32(phase), 5)
+		n.updatePhase = min(uint32(phase)&0xff, updatestate.Available)
+		n.updateAvailable = uint32(phase)&updatestate.PendingFlag != 0
 	}
 	nativePanel = n
 	defer func() { nativePanel = nil }()

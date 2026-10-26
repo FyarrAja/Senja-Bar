@@ -39,8 +39,8 @@ func TestMenuReflectsLoadedConfiguration(t *testing.T) {
 			if row.id == cmdRounded && row.active {
 				t.Fatal("rounding status changed")
 			}
-			if row.id == cmdCheckUpdates && row.disabled {
-				t.Fatal("release page must be available")
+			if row.id == cmdCheckUpdates && !row.disabled {
+				t.Fatal("update action must wait for an available release")
 			}
 		}
 		if activeStyles != 1 {

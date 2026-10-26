@@ -1,37 +1,21 @@
-**[Unduh / Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.1.6/Senja-Bar.exe)**
-
-[Preview & panduan / Preview & guide](https://github.com/FyarrAja/Senja-Bar#readme) · [Changelog](https://github.com/FyarrAja/Senja-Bar/blob/main/CHANGELOG.md)
+**[Unduh / Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.1.7/Senja-Bar.exe)**
 
 ## Indonesia
 
-### Perubahan v1.1.6
-
-- Instalasi lama dibersihkan setelah versi baru berhasil menyiapkan tray dan taskbar.
-- Pengaturan, instalasi aktif, versi lebih baru, dan file EXE unduhan pribadi tidak dihapus.
-- File lama yang masih dikunci Windows dicoba lagi pada startup berikutnya.
-
-### Pasang atau perbarui
-
-Jalankan **Senja-Bar.exe**. File pendamping disiapkan otomatis tanpa ekstrak manual atau akses admin; pengaturan tetap tersimpan.
-
-Pada aplikasi yang sudah mendukung updater, klik **Pembaruan**. Jika ada versi lebih baru, aplikasi langsung mengunduh, memverifikasi checksum, lalu memasangnya. **Tidak ada konfirmasi tambahan.** Senja lama dan panelnya ditutup, versi baru berjalan, lalu menu dapat dibuka kembali dari tray. Tidak perlu restart Windows.
-
-Windows x64; terutama diuji pada Windows 11. Panel transparan belum memiliki blur latar; integrasi screen reader belum tersedia. Release belum ditandatangani secara digital.
+- Pengecekan versi otomatis saat mulai dan setiap 6 jam; koneksi gagal dicoba lagi setelah 30 menit.
+- Notifikasi Windows sekali per versi baru dan titik merah pada tombol **Perbarui**.
+- Tombol hanya memasang update yang tersedia; saat sudah terbaru tombol tidak aktif.
+- Pengecekan tidak mengunduh EXE. Unduh, verifikasi checksum, dan pemasangan dimulai setelah tombol ditekan, tanpa konfirmasi tambahan.
+- Pengaturan dan unduhan pribadi dipertahankan; instalasi lama dibersihkan setelah versi baru siap.
 
 ## English
 
-### Changes in v1.1.6
+- Automatic version checks at startup and every 6 hours; retry failed checks after 30 minutes.
+- One Windows notification per new version and a red dot on **Perbarui**.
+- Install-only update button; disabled when up to date.
+- Checks fetch metadata only. Download, checksum verification and installation begin on click, without another confirmation.
+- Settings and personal downloads are preserved; old managed installs are cleaned after the new engine is ready.
 
-- Clean older managed installs after the new engine initializes its tray and taskbar.
-- Preserve settings, the active install, newer versions and personal downloaded EXEs.
-- Retry old Windows-locked files on a later startup.
+Windows x64; primarily tested on Windows 11. Notifications follow Windows settings. Releases are unsigned. The translucent panel has no backdrop blur; screen-reader integration is not implemented.
 
-### Install or update
-
-Run **Senja-Bar.exe**. Companion files are prepared without manual extraction or administrator access; settings are preserved.
-
-In a version with the updater, click **Pembaruan**. A newer release is downloaded, checksum-verified and installed automatically. **There is no additional confirmation.** The old Senja and panel close, the new version starts, and you can reopen settings from the tray. No Windows restart is needed.
-
-Windows x64, primarily tested on Windows 11. The translucent panel has no backdrop blur yet; screen-reader integration is not implemented. Releases are unsigned.
-
-Portable ZIP, SHA-256 checksums and source are available in the assets below.
+[Preview & guide](https://github.com/FyarrAja/Senja-Bar#readme)

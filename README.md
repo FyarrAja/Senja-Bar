@@ -42,17 +42,15 @@ Pengaturan disimpan di `%LOCALAPPDATA%\Senja\settings.ini`. Paket ZIP portable j
 
 ## Alur pembaruan
 
-**Menekan Pembaruan berarti memulai pengecekan dan pemasangan otomatis jika ada versi lebih baru. Belum ada dialog konfirmasi tambahan.**
+Senja mengecek release stabil saat mulai, lalu setiap 6 jam. Jika koneksi gagal, pengecekan dicoba lagi setelah 30 menit. Pengecekan hanya membaca informasi versi, tanpa mengunduh EXE.
 
-1. **Memeriksa…** — cek release stabil terbaru dari repository ini.
-2. **Mengunduh…** — jika versinya lebih baru, unduh EXE dan cocokkan checksum SHA-256 dengan file checksum release.
-3. **Memasang…** — siapkan file versi baru, tutup Senja lama beserta panelnya, lalu jalankan versi baru.
-4. Setelah versi baru berhasil menyiapkan tray dan taskbar, folder instalasi lama yang terverifikasi dibersihkan. File yang masih dikunci Windows dicoba lagi pada startup berikutnya.
-5. Pengaturan dan preferensi mulai bersama Windows dipertahankan. File EXE unduhan pribadi tidak dihapus. Tidak perlu membuka browser atau restart Windows. Buka kembali panel dari tray setelah selesai.
+- **Ada update:** notifikasi Windows sekali untuk setiap versi baru, serta titik merah pada tombol **Perbarui**. Notifikasi mengikuti pengaturan Windows.
+- **Sudah terbaru:** tombol menampilkan versi terpasang dan tidak aktif.
+- **Belum terhubung:** Senja mencoba lagi otomatis; tidak ada tombol cek manual.
 
-Jika versinya sama atau lebih lama, status menjadi **Sudah terbaru** tanpa pemasangan ulang. Jika pengecekan atau unduhan gagal, tampil pesan kesalahan; unduhan yang tidak terverifikasi tidak dijalankan. Kamu dapat mencoba lagi.
+Menekan **Perbarui** mengunduh EXE, memverifikasi checksum SHA-256, lalu memasangnya **tanpa konfirmasi tambahan**. Senja lama ditutup dan versi baru berjalan. Folder instalasi lama dibersihkan setelah versi baru siap; file yang dikunci Windows dicoba lagi nanti. Pengaturan, preferensi startup, dan EXE unduhan pribadi dipertahankan. Tidak perlu browser atau restart Windows.
 
-Pengecekan hanya berjalan saat tombol ditekan. Tidak ada pengecekan update berkala di latar belakang.
+Unduhan yang gagal diverifikasi tidak dijalankan. Tombol **Perbarui** dapat dicoba lagi jika pemasangan gagal.
 
 ## Dukungan & batasan
 
@@ -64,7 +62,7 @@ Pengecekan hanya berjalan saat tombol ditekan. Tidak ada pengecekan update berka
 | Release | Belum ditandatangani secara digital. Checksum dipakai untuk memeriksa integritas unduhan. |
 | Memori | Pemakaian bergantung pada Windows dan kondisi aplikasi; tidak ada jaminan total RAM 1–2 MB. |
 
-Proses panel berakhir saat ditutup. Animasi berhenti saat selesai; updater hanya berjalan ketika diminta. Adaptasi taskbar mengikuti event Windows tanpa polling warna terus-menerus. Rincian ada di [arsitektur](docs/ARCHITECTURE.md).
+Proses panel berakhir saat ditutup. Animasi berhenti saat selesai; proses updater berakhir setelah pengecekan atau pemasangan. Adaptasi taskbar mengikuti event Windows tanpa polling warna terus-menerus. Rincian ada di [arsitektur](docs/ARCHITECTURE.md).
 
 ## English
 
@@ -87,15 +85,13 @@ Settings are stored in `%LOCALAPPDATA%\Senja\settings.ini`.
 
 ### Update flow
 
-**Clicking Pembaruan checks for updates and automatically installs a newer version if available. There is no additional confirmation dialog.**
+Senja checks the latest stable release at startup and every 6 hours, retrying after 30 minutes on failure. Checks read version metadata only; they do not download an EXE.
 
-1. **Memeriksa…** — check this repository's latest stable release.
-2. **Mengunduh…** — download a newer EXE and verify it against the release's SHA-256 checksums.
-3. **Memasang…** — prepare the new files, close the old Senja and its panel, and start the new version.
-4. Once the new engine has initialized its tray and taskbar, verified older managed installs are cleaned up. Windows-locked files are retried on a later startup.
-5. Settings, the enabled startup preference and personal downloaded EXEs are preserved. No browser or Windows restart is needed. Reopen the panel from the tray afterward.
+- **Update available:** one Windows notification per new version, plus a red dot on **Perbarui**. Windows notification settings apply.
+- **Up to date:** the disabled button shows the installed version.
+- **Offline:** checks retry automatically; there is no manual check button.
 
-Equal or older releases show **Sudah terbaru** and are not installed. Check/download failures show an error; unverified downloads are not executed. Updates run only when requested, without scheduled background checks.
+Clicking **Perbarui** downloads the EXE, verifies its SHA-256 checksum and installs it **without an additional confirmation**. The old Senja closes and the new version starts. Older managed installs are cleaned after the new engine is ready; locked files are retried later. Settings, enabled startup and personal downloaded EXEs are preserved. No browser or Windows restart is needed. Unverified downloads are not executed; failed installs can be retried from the button.
 
 ### Requirements & limitations
 

@@ -7,7 +7,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"samar/internal/releaseupdate"
+	"samar/internal/updatestate"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -21,12 +23,29 @@ func report(phase int) {
 	}
 }
 func run() error {
-	if len(os.Args) != 2 {
+	if len(os.Args) != 2 && !(len(os.Args) == 3 && os.Args[2] == "--check-only") {
 		return fmt.Errorf("current version required")
 	}
 	base := os.Getenv("LOCALAPPDATA")
 	if base == "" {
 		return fmt.Errorf("LOCALAPPDATA unavailable")
+	}
+	if len(os.Args) == 3 {
+		client := releaseupdate.Client()
+		client.Timeout = 20 * time.Second
+		release, newer, err := releaseupdate.Check(context.Background(), client, os.Args[1])
+		if err != nil {
+			return err
+		}
+		if err = updatestate.Save(filepath.Join(base, "Senja", "update-state.json"), updatestate.Record{Latest: release.Tag, CheckedAt: time.Now().UTC()}); err != nil {
+			return err
+		}
+		phase := releaseupdate.Current
+		if newer {
+			phase = releaseupdate.Available
+		}
+		report(phase)
+		return nil
 	}
 	path, err := releaseupdate.Prepare(context.Background(), releaseupdate.Client(), os.Args[1], filepath.Join(base, "Senja", "updates"), report)
 	if err != nil {
@@ -44,6 +63,9 @@ func run() error {
 func main() {
 	if err := run(); err != nil {
 		report(releaseupdate.Failed)
+		if len(os.Args) == 3 && os.Args[2] == "--check-only" {
+			os.Exit(1)
+		} // Background/offline checks stay quiet.
 		// Only failures need a dialog; normal progress stays in the menu.
 		message, _ := syscall.UTF16PtrFromString("Pembaruan gagal. Versi lama tetap dapat digunakan.\nCoba lagi saat koneksi tersedia.\n\n" + err.Error())
 		title, _ := syscall.UTF16PtrFromString("Senja — Pembaruan")

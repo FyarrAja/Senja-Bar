@@ -28,7 +28,7 @@ jobs:
           RELEASE_VERSION: ${{ inputs.version || github.ref_name }}
         run: |
           $version = $env:RELEASE_VERSION.TrimStart('v')
-          go test ./cmd/samar ./internal/releaseupdate ./internal/installcache ./cmd/updater
+          go test ./cmd/samar ./internal/releaseupdate ./internal/installcache ./internal/updatestate ./cmd/updater
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
           node --test scripts/test-menu-commands.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Menu command tests failed' }

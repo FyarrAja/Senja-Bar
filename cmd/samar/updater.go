@@ -8,10 +8,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"samar/internal/updatestate"
 	"strconv"
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -25,33 +27,89 @@ var (
 	updateMu sync.Mutex
 	// Written only by the engine's window thread. Protocol phases match the
 	// isolated updater; importing its HTTP client here would burden idle startup.
-	updatePhase   uint32
-	updateRunning bool
+	updatePhase      uint32
+	updateRunning    bool
+	updateBackground bool
+	updateAvailable  bool
+	updateLatest     string
 )
 
 func scheduleUpdateChecks(cfg *config) {
-	logEvent("INFO", "updater", "updates run on demand only")
-}
-
-func startUpdateCheckManually() {
-	if updateRunning {
+	if cfg == nil || mainHwnd == 0 {
 		return
 	}
+	user32.NewProc("KillTimer").Call(uintptr(mainHwnd), 0x5550)
+	if !cfg.autoUpdate {
+		return
+	}
+	restoreUpdateCache()
+	nextUpdateCheck(3 * time.Second)
+}
+func startUpdateCheckManually() {
+	// The button installs an already-known update. It is not a manual check.
+	if !updateAvailable || updateRunning {
+		return
+	}
+	startUpdateWorker(false)
+}
+func nextUpdateCheck(delay time.Duration) {
+	if mainHwnd != 0 && globalConfig != nil && globalConfig.autoUpdate && !shuttingDown {
+		user32.NewProc("SetTimer").Call(uintptr(mainHwnd), 0x5550, uintptr(delay/time.Millisecond), 0)
+	}
+}
+func startBackgroundUpdateCheck() {
+	if updateRunning || shuttingDown || globalConfig == nil || !globalConfig.autoUpdate {
+		return
+	}
+	startUpdateWorker(true)
+}
+func restoreUpdateCache() {
+	r, err := updatestate.Load(filepath.Join(os.Getenv("LOCALAPPDATA"), "Senja", updateStateName))
+	if err != nil {
+		return
+	}
+	next, err := parseReleaseVersion(r.Latest)
+	if err != nil {
+		return
+	}
+	current, err := parseReleaseVersion(buildVersion)
+	if err != nil {
+		return
+	}
+	updateLatest = r.Latest
+	if next.greaterThan(current) {
+		setUpdatePhase(updatestate.Available)
+	} else {
+		setUpdatePhase(4)
+	}
+}
+func startUpdateWorker(background bool) {
 	exe, err := os.Executable()
 	if err != nil {
-		postUpdateResult(err.Error())
+		if !background {
+			postUpdateResult(err.Error())
+		}
+		nextUpdateCheck(30 * time.Minute)
 		return
 	}
 	helper := filepath.Join(filepath.Dir(exe), "Senja-Update.exe")
-	command := exec.Command(helper, buildVersion)
+	args := []string{buildVersion}
+	if background {
+		args = append(args, "--check-only")
+	}
+	command := exec.Command(helper, args...)
 	command.Dir = filepath.Dir(exe)
 	command.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	if err = command.Start(); err != nil {
 		setUpdatePhase(5)
-		postUpdateResult("Pembaruan tidak dapat dimulai.\n" + err.Error())
+		if !background {
+			postUpdateResult("Pembaruan tidak dapat dimulai.\n" + err.Error())
+		}
+		nextUpdateCheck(30 * time.Minute)
 		return
 	}
 	updateRunning = true
+	updateBackground = background
 	setUpdatePhase(1)
 	hwnd := uintptr(mainHwnd)
 	go func() {
@@ -64,20 +122,56 @@ func startUpdateCheckManually() {
 }
 
 func setUpdatePhase(phase uint32) {
-	if phase > 5 {
+	if phase > updatestate.Available {
 		return
+	}
+	if phase == updatestate.Available {
+		r, err := updatestate.Load(filepath.Join(os.Getenv("LOCALAPPDATA"), "Senja", updateStateName))
+		if err != nil {
+			return
+		}
+		next, e1 := parseReleaseVersion(r.Latest)
+		current, e2 := parseReleaseVersion(buildVersion)
+		if e1 != nil || e2 != nil || !next.greaterThan(current) {
+			phase = 4
+		} else {
+			updateLatest = r.Latest
+			updateAvailable = true
+		}
+	}
+	if phase == 4 {
+		updateAvailable = false
 	}
 	updatePhase = phase
 	logEvent("INFO", "updater.phase", fmt.Sprintf("phase=%d", phase))
 	hwnd, _, _ := findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(cssMenuClass))), 0)
 	if hwnd != 0 {
-		postMessageW.Call(hwnd, wmUpdatePhase, uintptr(phase), 0)
+		postMessageW.Call(hwnd, wmUpdatePhase, uintptr(updatestate.Encode(phase, updateAvailable)), 0)
+	}
+	if phase == updatestate.Available {
+		announceAvailableUpdate()
+	}
+}
+
+func announceAvailableUpdate() {
+	if !updateAvailable || updateLatest == "" {
+		return
+	}
+	path := filepath.Join(os.Getenv("LOCALAPPDATA"), "Senja", "update-notified.txt")
+	last, _ := os.ReadFile(path)
+	if strings.TrimSpace(string(last)) == updateLatest {
+		return
+	}
+	if notifyUpdateAvailable(updateLatest) {
+		_ = os.WriteFile(path, []byte(updateLatest), 0600)
 	}
 }
 
 func checkForUpdates(manual bool) {
 	if manual {
 		startUpdateCheckManually()
+	} else if mainHwnd != 0 {
+		postMessageW.Call(uintptr(mainHwnd), wmApp+66, 0, 0)
 	}
 }
 

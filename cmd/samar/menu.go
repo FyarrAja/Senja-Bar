@@ -74,9 +74,7 @@ func selectCommand(hwnd syscall.Handle, command uint32, cfg *config) {
 		if err := saveConfig(*cfg); err != nil {
 			logError("config.save", "unable to save automatic update setting", err)
 		}
-		if cfg.autoUpdate {
-			go checkForUpdates(false)
-		}
+		scheduleUpdateChecks(cfg)
 	case cmdExit:
 		requestExit(hwnd)
 	}
