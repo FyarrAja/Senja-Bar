@@ -8,13 +8,29 @@ import (
 	"unsafe"
 )
 
-var nativeControlBoxes = [10][4]int{{20, 102, 154, 84}, {184, 102, 154, 84}, {20, 196, 154, 84}, {184, 196, 154, 84}, {20, 294, 318, 42}, {20, 336, 318, 42}, {20, 430, 154, 48}, {184, 430, 154, 48}, {114, 488, 132, 36}, {20, 378, 318, 42}}
-var nativeControlCommands = [10]uint32{cmdStyleGlass, cmdStyleAcrylic, cmdStyleClear, cmdStyleSolid, cmdRounded, cmdStartup, cmdRefresh, cmdCheckUpdates, cmdExit, cmdAutoInstall}
-var nativeFocusOrder = [10]int{0, 1, 2, 3, 4, 5, 9, 6, 7, 8}
+var nativeControlBoxes = [72][4]int{{20, 102, 154, 84}, {184, 102, 154, 84}, {20, 196, 154, 84}, {184, 196, 154, 84}, {20, 294, 318, 42}, {20, 336, 318, 42}, {20, 430, 154, 48}, {184, 430, 154, 48}, {-104, 488, 96, 36}, {20, 378, 318, 42}, {-104, 102, 96, 42}, {-104, 152, 96, 42}, {20, 114, 318, 32}, {20, 146, 318, 32}, {20, 178, 318, 32}, {20, 210, 318, 32}, {20, 242, 318, 32}, {20, 274, 318, 32}, {20, 313, 68, 25}, {270, 313, 68, 25}, {20, 344, 318, 33}, {20, 382, 318, 33}, {20, 443, 154, 34}, {184, 443, 154, 34}, {20, 486, 318, 29}, {20, 78, 318, 29}, {310, 78, 28, 29}}
+var nativeControlCommands = [72]uint32{cmdStyleGlass, cmdStyleAcrylic, cmdStyleClear, cmdStyleSolid, cmdRounded, cmdStartup, cmdRefresh, cmdCheckUpdates, cmdExit, cmdAutoInstall, cmdTaskbarPage, cmdResources, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314}
+var nativeFocusOrder = []int{10, 11, 38, 48, 0, 1, 2, 3, 4, 5, 9, 6, 7, 37, 25, 26, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 35, 27, 28, 29, 36, 22, 23, 24, 30, 31, 32, 33, 34, 8}
 
 func (n *nativeGlassPanel) nextFocus(current, delta int) int {
+	order := nativeFocusOrder[:]
+	if n.micPage {
+		order = []int{10, 11, 38, 48, 69, 49, 65, 64, 50, 51, 68, 70, 55, 8}
+	}
+	if n.micPage && n.mic.dropdown != 0 {
+		order = []int{56, 57, 58, 59, 60, 61, 62, 63}
+	}
+	if n.systemPage {
+		order = []int{10, 11, 38, 48, 39, 40, 41, 42, 43, 44, 45, 46, 47, 8}
+	}
+	if n.resourcePage && n.resources.optionOpen == 0 {
+		order = []int{10, 11, 38, 48, 35, 36, 37, 25, 26, 12, 13, 14, 15, 18, 19, 22, 23, 8}
+		if n.resources.tuning {
+			order = []int{10, 11, 38, 48, 35, 36, 27, 28, 29, 20, 21, 24, 8}
+		}
+	}
 	pos := -1
-	for i, v := range nativeFocusOrder {
+	for i, v := range order {
 		if v == current {
 			pos = i
 			break
@@ -23,9 +39,9 @@ func (n *nativeGlassPanel) nextFocus(current, delta int) int {
 	if pos < 0 && delta < 0 {
 		pos = 0
 	}
-	for i := 0; i < len(nativeFocusOrder); i++ {
-		pos = (pos + delta + len(nativeFocusOrder)) % len(nativeFocusOrder)
-		v := nativeFocusOrder[pos]
+	for i := 0; i < len(order); i++ {
+		pos = (pos + delta + len(order)) % len(order)
+		v := order[pos]
 		if n.controlEnabled(v) {
 			return v
 		}
@@ -76,6 +92,9 @@ func (p *nativePress) advance(now time.Time) bool {
 }
 func nativeControlAt(x, y int) int {
 	for i, b := range nativeControlBoxes {
+		if i >= 12 {
+			break
+		}
 		if x >= b[0] && x < b[0]+b[2] && y >= b[1] && y < b[1]+b[3] {
 			return i
 		}
@@ -110,17 +129,18 @@ func (n *nativeGlassPanel) beginPress(i int) uint32 {
 	return n.beginPressAt(i, float32(b[0])+float32(b[2])/2, float32(b[1])+float32(b[3])/2)
 }
 func (n *nativeGlassPanel) beginPressAt(i int, cx, cy float32) uint32 {
+	cx = n.projectX(cx)
 	var saved uint32
 	nativeG("GdipSaveGraphics", n.graphics, uintptr(unsafe.Pointer(&saved)))
-	if i < 0 || i >= len(n.presses) || n.presses[i].value == 0 {
+	if i < 0 || i >= len(n.presses) || n.presses[i].value == 0 || n.reduceMotion() {
 		return saved
 	}
-	depth := .035
-	if i == 4 || i == 5 || i == 9 {
+	depth := .018
+	if i == 4 || i == 5 || i == 9 || i == 20 || i == 21 {
 		depth = .015
 	}
 	if i == 8 {
-		depth = .045
+		depth = .025
 	}
 	scale := float32(1 - depth*n.presses[i].value)
 	nativeG("GdipTranslateWorldTransform", n.graphics, nativeF(cx), nativeF(cy), 0)

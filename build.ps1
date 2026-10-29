@@ -3,6 +3,9 @@ param([switch]$Run, [string]$GoExe = 'go')
 $ErrorActionPreference = 'Stop'
 Push-Location $PSScriptRoot
 try {
+    if (-not (Test-Path -LiteralPath native/bin/SenjaNoise.dll)) { throw 'Build the neural audio module first; see docs/BUILD.md' }
+    Copy-Item -LiteralPath native/bin/SenjaNoise.dll -Destination SenjaNoise.dll -Force
+    Copy-Item -LiteralPath native/rnnoise/RNNoise-LICENSE.txt -Destination RNNoise-LICENSE.txt -Force
     & $GoExe build -trimpath -ldflags='-s -w -H=windowsgui' -o Senja.exe ./cmd/samar
     if ($LASTEXITCODE -ne 0) { throw 'Go build failed' }
     & $GoExe build -trimpath -ldflags='-s -w -H=windowsgui' -o Senja-Update.exe ./cmd/updater

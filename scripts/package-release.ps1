@@ -10,6 +10,13 @@ try {
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $stage 'Assets') -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $stage 'docs') -Force | Out-Null
+    $neural=Join-Path $root 'native/bin/SenjaNoise.dll'
+    if (!(Test-Path -LiteralPath $neural)) {throw 'Build RNNoise with scripts/build-neural-audio.ps1 before packaging'}
+    Copy-Item -LiteralPath $neural -Destination $stage
+    Copy-Item -LiteralPath (Join-Path $root 'native/rnnoise/RNNoise-LICENSE.txt') -Destination $stage
+    $neuralManifest=Get-Content -LiteralPath (Join-Path $root 'docs/RNNOISE-DEPENDENCY.json') -Raw | ConvertFrom-Json
+    if ((Get-FileHash -LiteralPath $neural -Algorithm SHA256).Hash.ToLowerInvariant() -ne $neuralManifest.sha256) {throw 'RNNoise binary hash mismatch; rebuild and update its dependency manifest'}
+    Copy-Item -LiteralPath (Join-Path $root 'docs/RNNOISE-DEPENDENCY.json') -Destination (Join-Path $stage 'docs')
     & (Join-Path $PSScriptRoot 'generate-resources.ps1') -GoExe $GoExe -Version $Version
     & $GoExe build -trimpath -ldflags="-s -w -H=windowsgui -X main.buildVersion=$Version" -o (Join-Path $stage 'Senja.exe') ./cmd/samar
     if ($LASTEXITCODE -ne 0) { throw 'Release build failed' }
@@ -24,7 +31,7 @@ try {
     # The editable installed override must start from the embedded source.
     # Shipping the repository's old override silently hides new CSS fixes.
     Copy-Item -LiteralPath (Join-Path $root 'cmd/samar/ui/menu.css') -Destination (Join-Path $stage 'Assets/menu.css')
-    foreach ($file in @('THIRD_PARTY_NOTICES.txt','DEPENDENCIES.json','BUILD.md','ARCHITECTURE.md','preview.png')) {
+    foreach ($file in @('THIRD_PARTY_NOTICES.txt','DEPENDENCIES.json','BUILD.md','ARCHITECTURE.md','NATIVE-ARCHITECTURE.md','preview.png')) {
         Copy-Item -LiteralPath (Join-Path $root ('docs/'+$file)) -Destination (Join-Path $stage 'docs')
     }
     Copy-Item -LiteralPath (Join-Path $root 'docs/licenses') -Destination (Join-Path $stage 'docs') -Recurse

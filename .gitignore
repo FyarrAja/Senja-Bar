@@ -10,3 +10,11 @@ settings.ini
 Thumbs.db
 cmd/launcher/payload.zip
 cmd/launcher/resource.syso
+dist-development/
+skill-observations/
+docs/DEVELOPMENT-STATUS.md
+native/bin/rnnoise-objects/
+native/bin/*.lib
+native/bin/*.pdb
+/SenjaNoise.dll
+/RNNoise-LICENSE.txt

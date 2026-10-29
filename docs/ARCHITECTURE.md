@@ -6,7 +6,9 @@ The persistent Go/Win32 engine owns the tray icon, taskbar materials and per-use
 
 Taskbar materials use the ExplorerTAP COM interface with checked HRESULTs. CSS commands are posted asynchronously to the engine and acknowledged after completion; this avoids synchronous input COM-call failures. Allowed commands are explicitly listed in menu_css.go. The menu has no HTTP listener, remote page, external font, or arbitrary command bridge.
 
-The native panel paints premultiplied ARGB into a reusable DIB and presents it with UpdateLayeredWindow/AC_SRC_ALPHA. Empty corners have zero alpha; the panel tint has 18% alpha. No redirected WebView or native accent backdrop sits behind the panel. It is live translucency, not a frozen desktop picture. Menu backdrop blur is not implemented; taskbar Glass/Acrylic effects remain unchanged. Native and WebView probes both produced opaque backgrounds under the previous host configuration, so the issue was not conclusively isolated to WebView2 alone.
+The native panel paints premultiplied ARGB into a reusable DIB and presents it with UpdateLayeredWindow/AC_SRC_ALPHA. Empty corners have zero alpha. A separate non-layered material host supplies supported Windows background blur while the foreground retains antialiased controls and hit testing. The material varies by Windows support; no frozen desktop image is used. Taskbar Glass/Acrylic effects remain separately controlled.
+
+Version 1.3.0 adds native resource/system engines and local microphone processing with bundled RNNoise. Detailed ownership, telemetry and microphone routing limitations are documented in [NATIVE-ARCHITECTURE.md](NATIVE-ARCHITECTURE.md). A self-monitor switch does not register a virtual microphone or send processed audio into other applications.
 
 One finite timeline animates the popup, blue selection plate and switch thumbs. A high-resolution ticker posts at most one outstanding frame up to 120 Hz and stops at the endpoint; timer resolution is restored afterward. Font and bitmap resources are reused while the panel is open. Outside-click and overflow-hide hooks exist only during the visible helper lifetime.
 

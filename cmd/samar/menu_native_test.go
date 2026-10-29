@@ -29,7 +29,7 @@ func TestNativeOutlineRasterIsContinuous(t *testing.T) {
 		t.Run(fmt.Sprint(scale), func(t *testing.T) {
 			w, h := int(360*scale), int(548*scale)
 			pixels := make([]uint32, w*h)
-			n := &nativeGlassPanel{}
+			n := &nativeGlassPanel{motionChecked: true}
 			if s := nativeG("GdipCreateBitmapFromScan0", uintptr(w), uintptr(h), uintptr(w*4), 0x000e200b, uintptr(unsafe.Pointer(&pixels[0])), uintptr(unsafe.Pointer(&n.image))); s != 0 {
 				t.Fatalf("bitmap: %d", s)
 			}
@@ -107,7 +107,7 @@ func TestNativeMenuHitTargetsExcludeCardGaps(t *testing.T) {
 	for _, p := range []struct {
 		x, y int
 		c    uint32
-	}{{80, 150, 100}, {240, 150, 101}, {80, 250, 102}, {240, 250, 103}, {300, 315, 105}, {300, 355, 110}, {300, 395, 114}, {80, 450, 111}, {240, 450, 112}, {180, 500, 140}} {
+	}{{80, 150, 100}, {240, 150, 101}, {80, 250, 102}, {240, 250, 103}, {300, 315, 105}, {300, 355, 110}, {300, 395, 114}, {80, 450, 111}, {240, 450, 112}, {-56, 500, 140}} {
 		if c := nativeCommandAt(p.x, p.y); c != p.c {
 			t.Fatalf("control at %d,%d: %d != %d", p.x, p.y, c, p.c)
 		}

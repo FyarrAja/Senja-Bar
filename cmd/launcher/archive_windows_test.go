@@ -12,7 +12,7 @@ func fixture(t *testing.T, extra string) []byte {
 	t.Helper()
 	var data bytes.Buffer
 	w := zip.NewWriter(&data)
-	for _, name := range []string{"Senja.exe", "Senja-Update.exe", "ExplorerTAP.dll", "ExplorerHooks.dll", "ProgramLog.dll", "Xaml.dll", "resources.pri", "Assets/menu.css", "LICENSE", extra} {
+	for _, name := range []string{"Senja.exe", "Senja-Update.exe", "SenjaNoise.dll", "RNNoise-LICENSE.txt", "ExplorerTAP.dll", "ExplorerHooks.dll", "ProgramLog.dll", "Xaml.dll", "resources.pri", "Assets/menu.css", "LICENSE", extra} {
 		if name == "" {
 			continue
 		}

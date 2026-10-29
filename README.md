@@ -1,8 +1,8 @@
 # Senja Bar
 
-Empat tampilan taskbar Windows, dengan pengaturan dari system tray.
+Pengaturan taskbar, aplikasi latar, pemantauan sistem dan pemrosesan mic lokal untuk Windows.
 
-Four Windows taskbar styles, controlled from the system tray.
+Windows taskbar styles, protected background resource management, system monitoring and local microphone processing.
 
 **[Unduh / Download Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/latest/download/Senja-Bar.exe)**
 
@@ -34,6 +34,14 @@ Adaptasi warna memakai sampel di sekitar taskbar pada tiap monitor. Hasilnya dap
 
 ## Mulai pakai
 
+### Baru di 1.3.0
+
+- **RAM & CPU:** trim working set aplikasi latar yang memenuhi syarat, pilihan aplikasi dan aturan otomatis; EcoQoS untuk proses latar. Tidak menjamin kenaikan FPS atau pengurangan total memori yang dialokasikan aplikasi.
+- **Sistem:** pemantauan perangkat/RAM/CPU/penyimpanan, diagnostik, laporan lokal dan pemeliharaan Windows yang dipilih pengguna.
+- **Mic:** RNNoise lokal, preset berikon, karakter bass dan kontrol level. Toggle **Dengar suara sendiri** menjalankan audio; mematikannya menghentikan capture dan playback. Output mengikuti default Windows. Gunakan headset; ada jeda pemrosesan dan belum tersedia acoustic echo cancellation.
+
+**Mic Senja belum menjadi input virtual dan belum meneruskan hasil olahan ke Discord/FiveM atau aplikasi lain.** Tidak ada audio diunggah. Hasil peredaman perlu diuji pada perangkat/lingkungan masing-masing; tidak menjamin semua ketikan, gema atau pembicara lain hilang.
+
 1. Unduh **Senja-Bar.exe** dari tautan di atas, lalu jalankan.
 2. File pendamping disiapkan di `%LOCALAPPDATA%\Senja\app` tanpa akses admin. Launcher keluar setelah Senja berjalan.
 3. Klik kanan ikon Senja di system tray. Jika tersembunyi, buka panah ikon tray terlebih dahulu.
@@ -64,7 +72,8 @@ Dalam mode manual, update tidak diterapkan otomatis setelah unduhan selesai, pan
 | Bagian | Kondisi saat ini |
 | --- | --- |
 | Sistem | Windows x64; terutama diuji pada Windows 11. Windows 10 belum terverifikasi penuh. |
-| Panel | Native, transparan, tanpa WebView2. Blur latar panel belum diterapkan. |
+| Panel | Native, transparan/blur bergantung dukungan Windows; tanpa WebView2 pada jalur utama. |
+| Mic | Monitoring lokal saja; belum ada input virtual atau penerusan hasil ke aplikasi lain. |
 | Aksesibilitas | Navigasi keyboard tersedia; integrasi screen reader belum diterapkan. |
 | Release | Belum ditandatangani secara digital. Checksum dipakai untuk memeriksa integritas unduhan. |
 | Memori | Pemakaian bergantung pada Windows dan kondisi aplikasi; tidak ada jaminan total RAM 1–2 MB. |
@@ -77,6 +86,8 @@ Proses panel berakhir saat ditutup. Animasi berhenti saat selesai; proses update
 <summary>Read the English guide</summary>
 
 ### Features
+
+Version 1.3.0 adds protected background working-set trimming/EcoQoS, native system monitoring and diagnostics, and local RNNoise microphone processing with presets and opt-in self-monitoring. Resource controls do not guarantee higher FPS or lower committed memory. **Senja does not register a virtual microphone or forward processed audio to other applications.** Monitoring uses the Windows default output, requires headphones to avoid feedback, and has processing/device latency. Acoustic echo cancellation and complete noise/other-speaker removal are not provided.
 
 Senja Bar provides four taskbar styles: **Glass**, **Acrylic**, **Clear**, and **Solid**. Glass and Acrylic adapt their tint to the Windows system theme and nearby background colors; Solid stays opaque and theme appropriate; Clear stays fully transparent. Background sampling is approximate and results vary with Windows and the backdrop.
 
@@ -112,7 +123,7 @@ In manual mode, finishing a download, dismissing the panel or starting Senja aga
 ### Requirements & limitations
 
 - Windows x64, primarily tested on Windows 11; Windows 10 is not fully verified.
-- The native panel needs no WebView2. Panel backdrop blur and screen-reader integration are not yet implemented; keyboard navigation is available.
+- The native panel needs no WebView2. Backdrop material depends on Windows support. Keyboard navigation is available; full screen-reader integration is not implemented.
 - Releases are unsigned. Checksums verify download integrity.
 - Memory use varies; total RAM usage of 1–2 MB is not guaranteed. Panel and updater processes exit when finished, and animations stop at rest.
 

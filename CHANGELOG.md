@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0 - 2026-10-30
+
+- Add protected background RAM working-set trimming and CPU EcoQoS controls, with application selection and automatic policies.
+- Add a native System panel for monitoring, diagnostics, local reports and explicit Windows maintenance actions.
+- Add local microphone processing with bundled RNNoise, readable presets, bass EQ, peak compression and opt-in self-monitoring through the Windows default output.
+- A single microphone switch starts and fully stops capture/playback. No virtual input or processed-audio routing into other applications is included.
+- Refine the native panel, preset icons, dropdowns, keyboard interaction and window material. Audio levels no longer keep whole-panel 120Hz animation running.
+- Package and verify the neural DLL with its license and source provenance.
+
 ## 1.2.0 - 2026-10-27
 
 - Add a persisted Update otomatis toggle: opt in to automatic check, verified download and apply; keep manual staged confirmation when off.

@@ -9,6 +9,8 @@ import (
 	"math"
 	"os"
 	"runtime"
+	"samar/internal/mic"
+	"samar/internal/resources"
 	"samar/internal/updatestate"
 	"strconv"
 	"syscall"
@@ -21,7 +23,17 @@ var nativePanel *nativeGlassPanel
 
 type nativeFloatRect struct{ x, y, w, h float32 }
 type nativeGlassPanel struct {
+	backdrop                                                   nativeLiveBackdrop
+	resourcePage                                               bool
+	micPage                                                    bool
+	mic                                                        nativeMic
+	systemPage                                                 bool
+	system                                                     nativeSystem
+	resources                                                  nativeResources
+	localResources                                             *resources.Manager
 	preview                                                    bool
+	keyboardFocus                                              bool
+	projected                                                  bool
 	parent                                                     uintptr
 	actual, desired                                            cssState
 	busy                                                       uint32
@@ -45,14 +57,18 @@ type nativeGlassPanel struct {
 	w, h                                                       int32
 	state                                                      cssState
 	plateX, plateY, plateFromX, plateFromY, plateToX, plateToY float64
-	switches, switchFrom, switchTo                             [3]float64
+	switches, switchFrom, switchTo                             [5]float64
 	alpha, alphaFrom, alphaTo                                  float64
 	slide, slideFrom, slideTo                                  float64
 	started                                                    time.Time
 	stop                                                       chan struct{}
 	queued                                                     chan struct{}
 	closing                                                    bool
-	presses                                                    [10]nativePress
+	presses                                                    [72]nativePress
+	navMotion, tabMotion                                       nativeMotion
+	motionChecked, motionReduced                               bool
+	hovers                                                     [72]nativeMotion
+	hoverTracking                                              bool
 	pressed, keyPressed                                        int
 }
 
@@ -96,6 +112,16 @@ func (n *nativeGlassPanel) choose(command uint32) {
 	if n.closing {
 		return
 	}
+	n.updateHover(-1)
+	if n.micAction(command) {
+		return
+	}
+	if n.systemAction(command) {
+		return
+	}
+	if n.resourceAction(command) {
+		return
+	}
 	if command == cmdRefresh && n.showReadyPrompt() {
 		n.readyDismissed = true
 		user32.NewProc("InvalidateRect").Call(n.hwnd, 0, 0)
@@ -106,6 +132,7 @@ func (n *nativeGlassPanel) choose(command uint32) {
 	}
 	if command == cmdExit {
 		if !n.preview {
+			_ = mic.Disable()
 			postMessageW.Call(n.parent, wmCSSCommand, uintptr(command), n.hwnd)
 		}
 		n.animate(true)
@@ -178,6 +205,10 @@ func (n *nativeGlassPanel) updateContrast() bool {
 }
 
 func nativeF(v float32) uintptr { return uintptr(math.Float32bits(v)) }
+
+// Pointer arguments must remain pinned across the wrapper, just as with Proc.Call.
+//
+//go:uintptrescapes
 func nativeG(name string, args ...uintptr) uintptr {
 	r, _, _ := nativeGP.NewProc(name).Call(args...)
 	return r
@@ -186,6 +217,8 @@ func (n *nativeGlassPanel) round(x, y, w, h, r int, color uint32, stroke bool) {
 	n.roundFloat(float32(x), float32(y), float32(w), float32(h), float32(r), color, stroke, 1)
 }
 func (n *nativeGlassPanel) roundFloat(x, y, w, h, r float32, color uint32, stroke bool, width float32) {
+	w = n.projectX(x+w) - n.projectX(x)
+	x = n.projectX(x)
 	var path, brush uintptr
 	nativeG("GdipCreatePath", 0, uintptr(unsafe.Pointer(&path)))
 	defer nativeG("GdipDeletePath", path)
@@ -205,6 +238,8 @@ func (n *nativeGlassPanel) roundFloat(x, y, w, h, r float32, color uint32, strok
 	}
 }
 func (n *nativeGlassPanel) line(x, y, x2, y2 int, color uint32, width float32) {
+	x = int(n.projectX(float32(x)))
+	x2 = int(n.projectX(float32(x2)))
 	var pen uintptr
 	nativeG("GdipCreatePen1", uintptr(color), nativeF(width), 2, uintptr(unsafe.Pointer(&pen)))
 	nativeG("GdipSetPenStartCap", pen, 2)
@@ -215,6 +250,10 @@ func (n *nativeGlassPanel) line(x, y, x2, y2 int, color uint32, width float32) {
 
 // Draw action icons as vectors so they keep the same stroke at every DPI.
 func (n *nativeGlassPanel) powerIcon(x, y int, color uint32) {
+	x = int(n.projectX(float32(x)))
+	projection := n.projected
+	n.projected = false
+	defer func() { n.projected = projection }()
 	var path, pen uintptr
 	nativeG("GdipCreatePath", 0, uintptr(unsafe.Pointer(&path)))
 	defer nativeG("GdipDeletePath", path)
@@ -237,7 +276,7 @@ func (n *nativeGlassPanel) updateIcon(x, y int, color uint32) {
 func (n *nativeGlassPanel) text(s string, x, y, w, h, size int, bold bool, color uint32) {
 	n.drawText(s, x, y, w, h, size, bold, color, false)
 }
-func (n *nativeGlassPanel) drawText(s string, x, y, w, h, size int, bold bool, color uint32, centered bool) {
+func (n *nativeGlassPanel) drawText(s string, x, y, w, h, size int, bold bool, color uint32, centered bool, singleLine ...bool) {
 	key := size * 2
 	if bold {
 		key++
@@ -253,14 +292,20 @@ func (n *nativeGlassPanel) drawText(s string, x, y, w, h, size int, bold bool, c
 	}
 	var brush uintptr
 	nativeG("GdipCreateSolidFill", uintptr(color), uintptr(unsafe.Pointer(&brush)))
-	bounds := nativeFloatRect{float32(x), float32(y), float32(w), float32(h)}
+	bounds := nativeFloatRect{n.projectX(float32(x)), float32(y), n.projectX(float32(x+w)) - n.projectX(float32(x)), float32(h)}
 	text := syscall.StringToUTF16(s)
 	var format uintptr
-	if centered {
+	if centered || len(singleLine) > 0 && singleLine[0] {
 		nativeG("GdipCreateStringFormat", 0, 0, uintptr(unsafe.Pointer(&format)))
 		defer nativeG("GdipDeleteStringFormat", format)
-		nativeG("GdipSetStringFormatAlign", format, 1)
-		nativeG("GdipSetStringFormatLineAlign", format, 1)
+		if len(singleLine) > 0 && singleLine[0] {
+			nativeG("GdipSetStringFormatFlags", format, 0x1000)
+			nativeG("GdipSetStringFormatTrimming", format, 3)
+		}
+		if centered {
+			nativeG("GdipSetStringFormatAlign", format, 1)
+			nativeG("GdipSetStringFormatLineAlign", format, 1)
+		}
 	}
 	nativeG("GdipDrawString", n.graphics, uintptr(unsafe.Pointer(&text[0])), uintptr(len(text)-1), font, uintptr(unsafe.Pointer(&bounds)), format, brush)
 	nativeG("GdipDeleteBrush", brush)
@@ -286,129 +331,132 @@ func (n *nativeGlassPanel) icon(index, x, y int, color uint32) {
 		n.line(x+5, y+12, x+15, y+12, color, 1.8)
 	}
 }
-func (n *nativeGlassPanel) paint() {
+func (n *nativeGlassPanel) drawPanelContents() {
 	nativeG("GdipGraphicsClear", n.graphics, 0)
 	ink, muted, surface, card, edge, exitInk := uint32(0xfff6f7fa), uint32(0xffe8ebf2), uint32(0x2e0c0d0f), uint32(0x14ffffff), uint32(0x1bffffff), uint32(0xffffb3bc)
 	if n.light {
 		ink, muted, surface, card, edge, exitInk = 0xff18202d, 0xff344156, 0x2effffff, 0x14000000, 0x25000000, 0xffa81c35
 	}
-	group, divider, secondary, brand := uint32(0x10ffffff), uint32(0x10ffffff), uint32(0x0affffff), uint32(0xffffc66b)
+	group, divider, secondary := uint32(0x10ffffff), uint32(0x10ffffff), uint32(0x0affffff)
 	if n.light {
-		group, divider, secondary, brand = 0x10000000, 0x14000000, 0x10000000, 0xffc98224
+		group, divider, secondary = 0x10000000, 0x14000000, 0x10000000
 	}
-	n.round(0, 0, 359, 547, 28, surface, false)
+	panelWidth := int(n.w) * 96 / int(menuDPI)
+	n.round(0, 0, panelWidth-1, 547, nativePanelRadius, surface, false)
 	// Keep the complete antialiased stroke inside the alpha surface. A native
 	// integer window region would cut its partially covered corner pixels off.
-	n.roundFloat(1, 1, 357, 545, 27, 0x60ffffff, true, 1.25)
-	// Sunset mark, matching the established Senja silhouette.
-	var path, brush uintptr
-	nativeG("GdipCreatePath", 0, uintptr(unsafe.Pointer(&path)))
-	nativeG("GdipAddPathArcI", path, 24, 28, 32, 28, nativeF(180), nativeF(180))
-	nativeG("GdipClosePathFigure", path)
-	nativeG("GdipCreateSolidFill", uintptr(brand), uintptr(unsafe.Pointer(&brush)))
-	nativeG("GdipFillPath", n.graphics, brush, path)
-	nativeG("GdipDeleteBrush", brush)
-	nativeG("GdipDeletePath", path)
-	n.line(24, 46, 56, 46, brand, 3)
-	n.line(30, 52, 50, 52, brand, 3)
-	n.text("Senja", 66, 18, 170, 35, 27, true, ink)
-	if n.commandError {
-		n.text("Perubahan belum diterapkan", 68, 51, 260, 18, 11, false, exitInk)
+	n.roundFloat(1, 1, float32(panelWidth-3), 545, nativePanelRadius-1, 0x38ffffff, true, 1)
+	var contentTransform uint32
+	nativeG("GdipSaveGraphics", n.graphics, uintptr(unsafe.Pointer(&contentTransform)))
+	nativeG("GdipTranslateWorldTransform", n.graphics, nativeF(float32(n.sidebarWidth())), nativeF(0), 0)
+	n.projected = true
+	n.drawSidebar(ink, muted, card)
+	if n.micPage {
+		n.drawMic(ink, muted, card, group)
+	} else if n.systemPage {
+		n.drawSystem(ink, muted, card, group)
+	} else if n.resourcePage {
+		n.drawResources(ink, muted, card, group)
 	} else {
-		n.text("Tampilan taskbar", 68, 51, 180, 18, 11, false, muted)
-	}
-	n.text("Pilih tampilan", 20, 80, 220, 22, 12, true, muted)
-	for i := 0; i < 4; i++ {
-		x, y := 20+(i%2)*164, 102+(i/2)*94
-		saved := n.beginPress(i)
-		n.round(x, y, 154, 84, 21, card, false)
-		n.round(x, y, 154, 84, 21, edge, true)
-		n.endPress(saved)
-	}
-	saved := n.beginPressAt(max(0, min(3, n.state.Style-1)), float32(n.plateX+77), float32(n.plateY+42))
-	n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 84, 21, 0xed2f77f4, false)
-	n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 84, 21, 0x73aacdff, true)
-	n.endPress(saved)
-	labels := []string{"Kaca", "Akrilik", "Bening", "Solid"}
-	descriptions := []string{"Blur lembut", "Blur lebih pekat", "Transparan penuh", "Tanpa transparansi"}
-	for i := 0; i < 4; i++ {
-		x, y := 20+(i%2)*164, 102+(i/2)*94
-		saved := n.beginPress(i)
-		labelInk, smallInk := ink, muted
-		if n.state.Style == i+1 {
-			labelInk, smallInk = 0xffffffff, 0xffffffff
+		n.text("Taskbar", 20, 18, 318, 37, 26, true, ink)
+		if n.commandError {
+			n.text("Perubahan belum diterapkan", 20, 57, 318, 22, 12, false, exitInk)
+		} else {
+			n.text("Warna, transparansi, dan sudut", 20, 57, 318, 22, 12, false, muted)
 		}
-		n.icon(i, x+18, y+12, labelInk)
-		n.text(labels[i], x+14, y+41, 130, 23, 14, true, labelInk)
-		n.text(descriptions[i], x+14, y+64, 136, 17, 10, false, smallInk)
-		n.endPress(saved)
-	}
-	if n.updatePhase == 2 {
-		n.drawDownload(ink, muted, secondary)
-	} else if n.showReadyPrompt() {
-		n.drawReady(ink, muted, secondary)
-	} else {
-		n.round(20, 294, 318, 126, 22, group, false)
-		n.line(33, 336, 325, 336, divider, 1)
-		n.line(33, 378, 325, 378, divider, 1)
-		for i, s := range []string{"Sudut membulat", "Mulai bersama Windows", "Update otomatis"} {
-			index := []int{4, 5, 9}[i]
-			saved := n.beginPress(index)
-			y := 302 + i*42
-			if i == 2 {
-				n.text(s, 32, y-3, 235, 23, 12, false, ink)
-				n.text("Unduh & terapkan otomatis", 32, y+16, 235, 16, 9, false, muted)
-			} else {
-				n.text(s, 32, y+3, 235, 24, 12, false, ink)
-			}
-			track := nativeSwitchTrack(n.switches[i], n.light)
-			n.round(284, y, 42, 25, 12, track, false)
-			n.round(287+int(n.switches[i]+.5), y+3, 19, 19, 9, 0xffffffff, false)
+		n.text("Pilih tampilan", 20, 80, 220, 22, 12, true, muted)
+		for i := 0; i < 4; i++ {
+			x, y := 20+(i%2)*164, 102+(i/2)*94
+			saved := n.beginPress(i)
+			n.round(x, y, 154, 84, 21, card, false)
+			n.round(x, y, 154, 84, 21, edge, true)
 			n.endPress(saved)
 		}
-		saved = n.beginPress(6)
-		n.round(20, 430, 154, 48, 17, card, false)
-		n.text("↻", 41, 439, 24, 30, 20, false, ink)
-		n.text("Segarkan taskbar", 67, 445, 106, 22, 12, true, ink)
+		saved := n.beginPressAt(max(0, min(3, n.state.Style-1)), float32(n.plateX+77), float32(n.plateY+42))
+		n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 84, 21, 0xed2f77f4, false)
+		n.round(int(n.plateX+.5), int(n.plateY+.5), 154, 84, 21, 0x73aacdff, true)
 		n.endPress(saved)
-		saved = n.beginPress(7)
-		n.round(184, 430, 154, 48, 17, secondary, false)
-		updateLabel, updateDetail, updateEnabled, updateMark := updatePresentation(n.updatePhase, n.updateAvailable, buildVersion)
-		if n.state.AutoInstall && n.updatePhase == updatestate.Ready {
-			updateLabel = "Update otomatis"
-			updateDetail = "Menyiapkan..."
-			updateEnabled = false
-			updateMark = false
+		labels := []string{"Kaca", "Akrilik", "Bening", "Solid"}
+		descriptions := []string{"Blur lembut", "Blur lebih pekat", "Transparan penuh", "Tanpa transparansi"}
+		for i := 0; i < 4; i++ {
+			x, y := 20+(i%2)*164, 102+(i/2)*94
+			saved := n.beginPress(i)
+			labelInk, smallInk := ink, muted
+			if n.state.Style == i+1 {
+				labelInk, smallInk = 0xffffffff, 0xffffffff
+			}
+			n.icon(i, x+18, y+12, labelInk)
+			n.text(labels[i], x+14, y+41, 130, 23, 14, true, labelInk)
+			n.text(descriptions[i], x+14, y+64, 136, 17, 10, false, smallInk)
+			n.endPress(saved)
 		}
-		updateInk := ink
-		if !updateEnabled {
-			updateInk = updateInk&0xffffff | 0x99000000
-		}
-		n.updateIcon(205, 444, updateInk)
-		labelX, labelWidth := 225, 105
-		if updateMark {
-			labelX, labelWidth = 244, 86
-		}
-		n.text(updateLabel, labelX, 437, labelWidth, 21, 12, true, updateInk)
-		n.text(updateDetail, 224, 454, 110, 18, 10, false, updateInk)
-		if updateMark {
-			n.drawUpdateNotice(time.Now())
-		}
-		n.endPress(saved)
+		if n.updatePhase == 2 {
+			n.drawDownload(ink, muted, secondary)
+		} else if n.showReadyPrompt() {
+			n.drawReady(ink, muted, secondary)
+		} else {
+			n.round(20, 294, 318, 126, 22, group, false)
+			n.line(33, 336, 325, 336, divider, 1)
+			n.line(33, 378, 325, 378, divider, 1)
+			for i, s := range []string{"Sudut membulat", "Mulai bersama Windows", "Update otomatis"} {
+				index := []int{4, 5, 9}[i]
+				saved := n.beginPress(index)
+				y := 302 + i*42
+				if i == 2 {
+					n.text(s, 32, y-3, 235, 23, 12, false, ink)
+					n.text("Unduh & terapkan otomatis", 32, y+16, 235, 16, 9, false, muted)
+				} else {
+					n.text(s, 32, y+3, 235, 24, 12, false, ink)
+				}
+				track := nativeSwitchTrack(n.switches[i], n.light)
+				n.round(284, y, 42, 25, 12, track, false)
+				n.round(287+int(n.switches[i]+.5), y+3, 19, 19, 9, 0xffffffff, false)
+				n.endPress(saved)
+			}
+			saved = n.beginPress(6)
+			n.round(20, 430, 154, 48, 17, card, false)
+			n.text("↻", 41, 439, 24, 30, 20, false, ink)
+			n.text("Segarkan taskbar", 67, 445, 106, 22, 12, true, ink)
+			n.endPress(saved)
+			saved = n.beginPress(7)
+			n.round(184, 430, 154, 48, 17, secondary, false)
+			updateLabel, updateDetail, updateEnabled, updateMark := updatePresentation(n.updatePhase, n.updateAvailable, buildVersion)
+			if n.state.AutoInstall && n.updatePhase == updatestate.Ready {
+				updateLabel = "Update otomatis"
+				updateDetail = "Menyiapkan..."
+				updateEnabled = false
+				updateMark = false
+			}
+			updateInk := ink
+			if !updateEnabled {
+				updateInk = updateInk&0xffffff | 0x99000000
+			}
+			n.updateIcon(205, 444, updateInk)
+			labelX, labelWidth := 225, 105
+			if updateMark {
+				labelX, labelWidth = 244, 86
+			}
+			n.text(updateLabel, labelX, 437, labelWidth, 21, 12, true, updateInk)
+			n.text(updateDetail, 224, 454, 110, 18, 10, false, updateInk)
+			if updateMark {
+				n.drawUpdateNotice(time.Now())
+			}
+			n.endPress(saved)
 
+		}
 	}
-	saved = n.beginPress(8)
-	n.round(114, 488, 132, 36, 18, 0x28ef4456, false)
-	n.roundFloat(114.5, 488.5, 131, 35, 17.5, 0x18ff7885, true, 1)
-	n.powerIcon(151, 498, exitInk)
-	n.drawText("Keluar", 169, 488, 44, 36, 12, true, exitInk, true)
-	n.endPress(saved)
-	if n.focus >= 0 {
+	if n.keyboardFocus && n.focus >= 0 && n.focus != 25 && (n.focus < 30 || n.focus > 34) {
 		b := nativeControlBoxes[n.focus]
 		saved := n.beginPress(n.focus)
 		n.round(b[0]+2, b[1]+2, b[2]-4, b[3]-4, 14, 0xffa9cbff, true)
 		n.endPress(saved)
 	}
+	n.drawHover()
+	nativeG("GdipRestoreGraphics", n.graphics, uintptr(contentTransform))
+	n.projected = false
+}
+func (n *nativeGlassPanel) paint() {
+	n.drawPanelContents()
 	var ps previewPaint
 	user32.NewProc("BeginPaint").Call(n.hwnd, uintptr(unsafe.Pointer(&ps)))
 	user32.NewProc("EndPaint").Call(n.hwnd, uintptr(unsafe.Pointer(&ps)))
@@ -421,6 +469,7 @@ func (n *nativeGlassPanel) paint() {
 	}
 	destination := point{n.bounds.left, n.bounds.top + menuPx(int32(n.slide+.5))}
 	cssPopupBounds = rect{destination.x, destination.y, destination.x + n.w, destination.y + n.h}
+	n.syncSoftBackdrop(destination)
 	size := point{n.w, n.h}
 	origin := point{}
 	blend := struct{ Operation, Flags, Alpha, Format byte }{Alpha: byte(n.alpha + .5), Format: 1}
@@ -430,6 +479,7 @@ func (n *nativeGlassPanel) paint() {
 }
 func (n *nativeGlassPanel) animate(close bool) {
 	n.closing = close
+	n.syncResourceLoader()
 	if close {
 		user32.NewProc("KillTimer").Call(n.hwnd, 0x4e44)
 	}
@@ -444,7 +494,7 @@ func (n *nativeGlassPanel) animate(close bool) {
 	i := max(0, min(3, n.state.Style-1))
 	n.plateToX, n.plateToY = float64(20+i%2*164), float64(102+i/2*94)
 	n.switchFrom = n.switches
-	n.switchTo = [3]float64{}
+	n.switchTo = [5]float64{}
 	if n.state.Rounded {
 		n.switchTo[0] = 17
 	}
@@ -454,11 +504,17 @@ func (n *nativeGlassPanel) animate(close bool) {
 	if n.state.AutoInstall {
 		n.switchTo[2] = 17
 	}
+	if n.resources.config.Automatic {
+		n.switchTo[3] = 17
+	}
+	if n.resources.config.EcoCPU {
+		n.switchTo[4] = 17
+	}
 	n.started = time.Now()
 	n.ensureAnimationTicker()
 }
 func (n *nativeGlassPanel) ensureAnimationTicker() {
-	if n.stop != nil {
+	if n.stop != nil || n.hwnd == 0 {
 		return
 	}
 	n.stop = make(chan struct{})
@@ -496,15 +552,41 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		return r
 	}
 	switch message {
+	case 0x102:
+		if n.resourceSearchChar(w) {
+			return 0
+		}
+	case wmApp + 76:
+		select {
+		case result := <-n.resources.results:
+			n.resources.loading = false
+			n.syncResourceLoader()
+			if result.err != nil {
+				releaseResourceRows(result.rows)
+				n.resources.message = "Daftar belum tersedia. Tekan Muat ulang."
+			} else {
+				n.resources.acceptRows(result.rows)
+				n.resources.message = "Pilihan tersimpan otomatis; hanya aplikasi idle diproses."
+			}
+		default:
+		}
+		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+		return 0
+	case 0x20a, 0x20e: // Pagination is explicit; wheel input never changes pages.
+		return 0
 	case 0x20: // WM_SETCURSOR: never inherit the shell's launch/busy cursor.
 		if int16(l&0xffff) == 1 {
 			cursor := n.arrowCursor
 			var p point
 			getCursorPos.Call(uintptr(unsafe.Pointer(&p)))
 			user32.NewProc("ScreenToClient").Call(hwnd, uintptr(unsafe.Pointer(&p)))
-			i := nativeControlAt(int(p.x)*96/int(menuDPI), int(p.y)*96/int(menuDPI))
-			if i >= 0 && n.controlEnabled(i) && n.handCursor != 0 {
-				cursor = n.handCursor
+			i := n.controlAt(int(p.x)*96/int(menuDPI), int(p.y)*96/int(menuDPI))
+			if i == 25 {
+				cursor, _, _ = loadCursorW.Call(0, 32513)
+			} else {
+				if i >= 0 && n.controlEnabled(i) && n.handCursor != 0 {
+					cursor = n.handCursor
+				}
 			}
 			user32.NewProc("SetCursor").Call(cursor)
 			return 1
@@ -603,6 +685,9 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 			duration = 140 * time.Millisecond
 		}
 		t := min(1., float64(time.Since(n.started))/float64(duration))
+		if n.reduceMotion() {
+			t = 1
+		}
 		e := 1 - math.Pow(1-t, 3)
 		lerp := func(a, b float64) float64 { return a + (b-a)*e }
 		n.alpha = lerp(n.alphaFrom, n.alphaTo)
@@ -612,6 +697,7 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 			n.switches[i] = lerp(n.switchFrom[i], n.switchTo[i])
 		}
 		progressAnimating := n.downloadMotion.advance(time.Now())
+		motionAnimating := n.advanceMotion(time.Now())
 		_, noticeAnimating := updateNoticeScale(n.noticeStarted, time.Now())
 		noticeAnimating = noticeAnimating && n.updateAvailable && n.controlEnabled(7)
 		pressAnimating := false
@@ -622,7 +708,7 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		}
 		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		user32.NewProc("UpdateWindow").Call(hwnd)
-		if t >= 1 && (n.closing || (!pressAnimating && !progressAnimating && !noticeAnimating)) {
+		if t >= 1 && (n.closing || (!pressAnimating && !progressAnimating && !noticeAnimating && !motionAnimating)) {
 			n.endAnimation()
 			if n.closing {
 				destroyWindow.Call(hwnd)
@@ -630,11 +716,22 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		}
 		return 0
 	case 0x201: // WM_LBUTTONDOWN
+		n.keyboardFocus = false
 		if n.closing {
 			return 0
 		}
 		x, y := int(int16(l&0xffff))*96/int(menuDPI), int(int16(l>>16))*96/int(menuDPI)
-		n.pressed = nativeControlAt(x, y)
+		n.pressed = n.controlAt(x, y)
+		if n.micPage && n.mic.dropdown != 0 && n.pressed < 0 {
+			n.closeMicDropdown()
+			return 0
+		}
+		if n.resources.optionOpen != 0 && n.pressed < 0 {
+			n.resources.optionOpen = 0
+			n.focus = -1
+			user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+			return 0
+		}
 		if n.pressed >= 0 && !n.controlEnabled(n.pressed) {
 			n.pressed = -1
 		}
@@ -644,14 +741,30 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		}
 		return 0
 	case 0x200: // WM_MOUSEMOVE, including captured drags outside the window.
+		x, y := int(int16(l&0xffff))*96/int(menuDPI), int(int16(l>>16))*96/int(menuDPI)
+		n.updateHover(n.controlAt(x, y))
+		if !n.hoverTracking {
+			tracking := struct {
+				Size, Flags uint32
+				Window      uintptr
+				Time        uint32
+			}{Flags: 2, Window: hwnd}
+			tracking.Size = uint32(unsafe.Sizeof(tracking))
+			user32.NewProc("TrackMouseEvent").Call(uintptr(unsafe.Pointer(&tracking)))
+			n.hoverTracking = true
+		}
 		if n.pressed >= 0 {
 			x, y := int(int16(l&0xffff))*96/int(menuDPI), int(int16(l>>16))*96/int(menuDPI)
-			if nativeControlAt(x, y) == n.pressed {
+			if n.controlAt(x, y) == n.pressed {
 				n.pressControl(n.pressed)
 			} else {
 				n.releaseControl(n.pressed, false)
 			}
 		}
+		return 0
+	case 0x2a3: // WM_MOUSELEAVE
+		n.hoverTracking = false
+		n.updateHover(-1)
 		return 0
 	case 0x215, 0x1f: // Capture loss / cancel mode must never invoke a button.
 		if n.pressed >= 0 {
@@ -669,11 +782,15 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		i := n.pressed
 		n.pressed = -1
 		user32.NewProc("ReleaseCapture").Call()
-		clicked := i >= 0 && nativeControlAt(x, y) == i
+		clicked := i >= 0 && n.controlAt(x, y) == i && n.controlEnabled(i)
 		n.releaseControl(i, clicked)
 		if clicked {
 			n.choose(nativeControlCommands[i])
 		}
+		return 0
+	case wmSystemResult:
+		n.pollSystem()
+		user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		return 0
 	case wmCSSResult:
 		if n.closing {
@@ -700,6 +817,52 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		n.animate(true)
 		return 0
 	case 0x100:
+		if n.micPage && n.mic.dropdown != 0 {
+			if w == 27 {
+				n.closeMicDropdown()
+				return 0
+			}
+			if w == 38 || w == 40 {
+				delta := 1
+				if w == 38 {
+					delta = -1
+				}
+				n.keyboardFocus = true
+				n.focus = n.nextFocus(n.focus, delta)
+				user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+				return 0
+			}
+		}
+		if w == 9 || w == 38 || w == 40 || w == 13 || w == 32 {
+			n.keyboardFocus = true
+		}
+		if w == 27 && n.resourcePage && n.resources.tuning && n.resources.optionOpen == 0 {
+			n.resourceAction(319)
+			return 0
+		}
+		if n.resources.optionOpen != 0 {
+			if w == 27 {
+				n.resources.optionOpen = 0
+				n.focus = -1
+				user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+				return 0
+			}
+			if w == 38 || w == 40 {
+				delta := 1
+				if w == 38 {
+					delta = -1
+				}
+				n.focus = 30 + (n.focus-30+delta+len(resourceOptionValues(n.resources.optionOpen)))%len(resourceOptionValues(n.resources.optionOpen))
+				user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+				return 0
+			}
+			if w != 9 && w != 13 && w != 32 {
+				return 0
+			}
+		}
+		if n.resourceSearchKey(w) {
+			return 0
+		}
 		if w == 27 {
 			n.animate(true)
 		}
@@ -710,6 +873,9 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 				delta = -1
 			}
 			n.focus = n.nextFocus(n.focus, delta)
+			if n.focus == 25 {
+				n.focusResourceSearch()
+			}
 			user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
 		}
 		if (w == 13 || w == 32) && n.focus >= 0 && l&(1<<30) == 0 {
@@ -736,6 +902,58 @@ func nativeGlassProc(hwnd uintptr, message uint32, w, l uintptr) uintptr {
 		}
 		return 0
 	case 0x113:
+		if w == 0x534d {
+			if n.micPage {
+				if n.pollMic() {
+					user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+				}
+			} else {
+				user32.NewProc("KillTimer").Call(hwnd, 0x534d)
+			}
+			return 0
+		}
+		if w == 0x5359 {
+			if n.systemPage {
+				n.pollSystem()
+				if n.system.section == "" && !n.system.busy && time.Since(n.system.lastRead) > 15*time.Second {
+					n.readSystem()
+				}
+				user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+			} else {
+				user32.NewProc("KillTimer").Call(hwnd, 0x5359)
+			}
+			return 0
+		}
+		if w == resourceLoaderTimer {
+			if n.resourceLoaderVisible() {
+				user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+			} else {
+				user32.NewProc("KillTimer").Call(hwnd, resourceLoaderTimer)
+			}
+			return 0
+		}
+		if w == 0x5254 {
+			if n.resourcePage && n.focus == 25 && !n.closing {
+				n.resources.caretVisible = !n.resources.caretVisible
+				user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+			} else {
+				user32.NewProc("KillTimer").Call(hwnd, 0x5254)
+			}
+			return 0
+		}
+		if w == 0x5253 && n.resourcePage {
+			n.pollSystem()
+			if !n.system.busy && time.Since(n.system.lastRead) > 5*time.Second {
+				n.readSystem()
+			}
+			status := resources.ReadStatus()
+			if status.Updated.After(n.resources.updated) {
+				n.resources.updated = status.Updated
+				n.resources.message = status.Message
+				user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
+			}
+			return 0
+		}
 		if w == 0x4e44 {
 			if n.updatePhase == 2 && !n.closing {
 				user32.NewProc("InvalidateRect").Call(hwnd, 0, 0)
@@ -790,14 +1008,27 @@ func runNativeGlassPanel(preview bool) bool {
 	}
 	defer nativeG("GdiplusShutdown", token)
 	n := &nativeGlassPanel{preview: preview, state: currentCSSState(), fonts: make(map[int]uintptr), slide: 12, focus: -1, pressed: -1, keyPressed: -1}
-	if preview && len(os.Args) > 1 && os.Args[1] == "--native-check" {
+	defer n.resources.dispose()
+	if preview && len(os.Args) > 1 && (os.Args[1] == "--native-check" || os.Args[1] == "--native-control") {
 		n.preview = false
 	}
 	n.actual, n.desired = n.state, n.state
 	if !n.preview {
 		n.parent, _, _ = findWindowW.Call(uintptr(unsafe.Pointer(utf16ptr(windowClass))), 0)
 		if n.parent == 0 {
-			return false
+			if len(os.Args) < 2 || os.Args[1] != "--native-control" {
+				return false
+			}
+		}
+		var supported uintptr
+		if n.parent != 0 {
+			user32.NewProc("SendMessageTimeoutW").Call(n.parent, wmApp+81, 0, 0, 2, 200, uintptr(unsafe.Pointer(&supported)))
+		}
+		if len(os.Args) > 1 && os.Args[1] == "--native-control" && supported != 1 {
+			n.localResources = resources.Start()
+			defer n.localResources.Close()
+			stopFocus := n.localResources.WatchForeground()
+			defer stopFocus()
 		}
 		var phase uintptr
 		user32.NewProc("SendMessageTimeoutW").Call(n.parent, wmUpdateQuery, 0, 0, 2, 200, uintptr(unsafe.Pointer(&phase)))
@@ -856,9 +1087,9 @@ func runNativeGlassPanel(preview bool) bool {
 	var dx, dy uint32 = 96, 96
 	syscall.NewLazyDLL("shcore.dll").NewProc("GetDpiForMonitor").Call(monitor, 0, uintptr(unsafe.Pointer(&dx)), uintptr(unsafe.Pointer(&dy)))
 	menuDPI = int32(dx)
-	menuDPI = min(menuDPI, (mi.Work.bottom-mi.Work.top)*96/556, (mi.Work.right-mi.Work.left)*96/368)
+	menuDPI = min(menuDPI, (mi.Work.bottom-mi.Work.top)*96/556, (mi.Work.right-mi.Work.left)*96/628)
 	menuDPI = max(48, menuDPI)
-	n.w, n.h = menuPx(360), menuPx(548)
+	n.w, n.h = menuPx(nativePanelWidth), menuPx(548)
 	x := mi.Work.left + (mi.Work.right-mi.Work.left-n.w)/2
 	y := mi.Work.top + (mi.Work.bottom-mi.Work.top-n.h)/2
 	n.bounds = rect{x, y, x + n.w, y + n.h}
@@ -881,6 +1112,8 @@ func runNativeGlassPanel(preview bool) bool {
 			return true
 		}
 		n.bounds = cssBounds(cursor, menuDPI, mi.Work)
+		n.bounds.left = max(mi.Work.left, min(n.bounds.right-menuPx(nativePanelWidth), mi.Work.right-menuPx(nativePanelWidth)))
+		n.bounds.right = n.bounds.left + menuPx(nativePanelWidth)
 		x, y = n.bounds.left, n.bounds.top
 		n.w, n.h = n.bounds.right-x, n.bounds.bottom-y
 		exStyle = wsExToolWindow | 8 | 0x80000
@@ -889,11 +1122,17 @@ func runNativeGlassPanel(preview bool) bool {
 		}
 	}
 	cssPopupBounds = n.bounds
-	n.hwnd, _, _ = createWindowExW.Call(exStyle, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(utf16ptr("Senja — Native Glass Preview"))), wsPopup, uintptr(x), uintptr(y+menuPx(12)), uintptr(n.w), uintptr(n.h), 0, 0, uintptr(getModuleHandle()), 0)
+	title := "Senja Bar"
+	if n.preview {
+		title = "Senja — Preview"
+	}
+	n.hwnd, _, _ = createWindowExW.Call(exStyle, uintptr(unsafe.Pointer(className)), uintptr(unsafe.Pointer(utf16ptr(title))), wsPopup, uintptr(x), uintptr(y+menuPx(12)), uintptr(n.w), uintptr(n.h), 0, 0, uintptr(getModuleHandle()), 0)
 	if n.hwnd == 0 {
 		return false
 	}
 	defer destroyWindow.Call(n.hwnd)
+	n.prepareSoftBackdrop()
+	defer n.backdrop.close()
 	// UpdateLayeredWindow already supplies the exact rounded alpha silhouette;
 	// do not clip it again with the hard, integer CreateRoundRectRgn raster.
 	n.dc, _, _ = gdi32.NewProc("CreateCompatibleDC").Call(0)
@@ -977,6 +1216,34 @@ func runNativeGlassPanel(preview bool) bool {
 	}
 	if n.updateAvailable && n.controlEnabled(7) {
 		n.noticeStarted = time.Now()
+	}
+	if n.preview && len(os.Args) > 1 && (os.Args[1] == "--native-resource-preview" || os.Args[1] == "--native-loader-preview" || os.Args[1] == "--native-tuning-preview") {
+		n.resourcePage = true
+		n.resources.config = resources.Load()
+		n.resources.config.AllBackground = os.Args[1] != "--native-loader-preview"
+		n.resources.loaded = true
+		if os.Args[1] == "--native-tuning-preview" {
+			n.resources.config.AllBackground = false
+			n.resources.tuning = true
+		}
+		if os.Args[1] == "--native-loader-preview" {
+			// Isolated visual fixture only; production scans are never delayed.
+			n.resources.loading = true
+			n.resources.loadingStarted = time.Now()
+			n.resources.config.Automatic = false
+			n.resources.config.EcoCPU = false
+			n.syncResourceLoader()
+		}
+		user32.NewProc("SetTimer").Call(n.hwnd, 0x5253, 1000, 0)
+	}
+	if len(os.Args) > 1 && os.Args[1] == "--native-control" {
+		n.resourcePage = true
+		n.resources.config = resources.Load()
+		n.resources.loaded = true
+		if !n.resources.config.AllBackground {
+			n.scanResources()
+		}
+		user32.NewProc("SetTimer").Call(n.hwnd, 0x5253, 1000, 0)
 	}
 	n.animate(false)
 	messageLoop()

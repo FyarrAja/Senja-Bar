@@ -275,6 +275,9 @@ func currentCSSState() cssState {
 	return cssState{cfg.style, cfg.rounded, isStartupEnabled(), cfg.autoInstall}
 }
 func validCSSCommand(command uint32) bool {
+	if command == cmdResources {
+		return true
+	}
 	switch command {
 	case cmdStyleGlass, cmdStyleAcrylic, cmdStyleClear, cmdStyleSolid, cmdRounded, cmdStartup, cmdRefresh, cmdCheckUpdates, cmdAutoInstall, cmdExit:
 		return true

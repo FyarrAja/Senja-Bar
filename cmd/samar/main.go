@@ -7,17 +7,26 @@ import (
 	"os"
 	"runtime"
 	"runtime/debug"
+	"samar/internal/mic"
+	"samar/internal/resources"
 	"unsafe"
 )
 
+// Development builds retain the installed startup target and never self-update.
+var developmentBuild string
+
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--mic-engine" {
+		mic.RunWorker()
+		return
+	}
 	if len(os.Args) > 1 && os.Args[1] == "--native-menu" {
 		if !runNativeGlassPanel(false) {
 			os.Exit(1)
 		}
 		return
 	}
-	if len(os.Args) > 1 && (os.Args[1] == "--native-preview" || os.Args[1] == "--native-check") {
+	if len(os.Args) > 1 && (os.Args[1] == "--native-preview" || os.Args[1] == "--native-check" || os.Args[1] == "--native-control" || os.Args[1] == "--native-resource-preview" || os.Args[1] == "--native-loader-preview" || os.Args[1] == "--native-tuning-preview") {
 		runNativeGlassPreview()
 		return
 	}
@@ -81,7 +90,7 @@ func main() {
 	}
 	cfg := loadConfig()
 	startup := isStartupEnabled()
-	if startup {
+	if startup && developmentBuild != "true" {
 		// A self-contained release can move the engine to a new versioned
 		// folder. Preserve the enabled preference, updating only its path.
 		if err := setStartup(true); err != nil {
@@ -105,6 +114,11 @@ func main() {
 		return
 	}
 	mainHwnd = hwnd
+	resourceManager = resources.Start()
+	defer mic.Disable()
+	defer resourceManager.Close()
+	stopResourceFocus := resourceManager.WatchForeground()
+	defer stopResourceFocus()
 	defer destroyWindow.Call(uintptr(hwnd))
 	tray, err := installTrayIcon(hwnd)
 	if err != nil {
@@ -121,10 +135,12 @@ func main() {
 	logEvent("INFO", "main", "entering messageLoop")
 	// Process the readiness message only after the tray/material are ready.
 	// Cleanup runs once off the window thread; failed startups keep old files.
-	if lastStyleApplyOK {
+	if lastStyleApplyOK && developmentBuild != "true" {
 		postMessageW.Call(uintptr(hwnd), wmApp+65, 0, 0)
 	}
-	scheduleUpdateChecks(&cfg)
+	if developmentBuild != "true" {
+		scheduleUpdateChecks(&cfg)
+	}
 	// Release transient startup allocations once. No periodic full-GC worker:
 	// an idle engine should remain asleep until Windows sends a message.
 	debug.FreeOSMemory()

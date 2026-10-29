@@ -20,6 +20,13 @@ func requestExit(hwnd syscall.Handle) {
 func windowProc(hwnd uintptr, message uint32, wParam uintptr, lParam uintptr) uintptr {
 	defer recoverPanic("window procedure")
 	switch message {
+	case wmApp + 81:
+		return 1
+	case wmResources:
+		if !shuttingDown && resourceManager != nil {
+			resourceManager.Reload(wParam == 1)
+		}
+		return 0
 	case wmApp + 70:
 		advanceAutomaticUpdate()
 		return 0

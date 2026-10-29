@@ -1,0 +1,9 @@
+{
+  "name": "RNNoise",
+  "version": "0.2",
+  "source": "https://github.com/xiph/rnnoise/tree/904a876dce1f9ab8860c0a5000ed151f9f6eef58",
+  "model": "rnnoise_data-0b50c45",
+  "license": "BSD-3-Clause",
+  "file": "SenjaNoise.dll",
+  "sha256": "257d0f99223f41075146b8a5b448320e24430c6de10d3ce909f49a8752482a10"
+}
