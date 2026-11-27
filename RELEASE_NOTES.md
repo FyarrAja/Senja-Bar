@@ -1,21 +1,20 @@
-**[Unduh Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.3.0/Senja-Bar.exe)**
+**[Unduh Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.3.1/Senja-Bar.exe)**
 
-## Senja Bar 1.3.0
+## Senja Bar 1.3.1
 
-- RAM & CPU: pengelolaan aplikasi latar, trim working set, EcoQoS dan aturan otomatis dengan perlindungan aplikasi aktif/game/audio.
-- Sistem: pemantauan perangkat, diagnostik, laporan lokal dan pemeliharaan Windows yang dipilih pengguna.
-- Mic lokal: RNNoise, preset berikon, karakter bass dan penguatan terkendali. Satu toggle untuk mulai dan menghentikan audio sepenuhnya.
-- Panel native lebih rapi, preset yang jelas, navigasi keyboard dan meter tanpa redraw 120Hz terus-menerus.
+- Mic lokal: kurangi noise sisa yang terus terdengar setelah ucapan berhenti pada mode RNNoise + suara otomatis. Tes regresi menjaga suku kata pelan dan jeda singkat tetap terdengar.
+- Proses resident: hentikan pemindaian proses/audio tiap 10 detik saat aturan otomatis dan EcoCPU tidak aktif. Aksi manual tetap berjalan.
+- Updater singkat dipindah ke Rust dengan alur unduh, SHA-256, staging, dan konfirmasi manual yang kompatibel. Engine taskbar, panel dan mic masih Go.
 
-**Batasan mic:** belum ada perangkat input virtual Senja. Hasil olahan belum masuk ke Discord/FiveM atau aplikasi lain. Monitoring memakai output default Windows; gunakan headset. Ada jeda pemrosesan, belum ada acoustic echo cancellation, dan hasil peredaman bergantung perangkat/lingkungan. Tidak menjamin semua noise, ketikan, gema atau suara orang lain hilang.
+**Batasan mic:** perbaikan ini berlaku pada monitor lokal Senja. Hasil olahan belum diteruskan ke input Discord/FiveM. Memilih mic fisik yang sama di Discord/FiveM tetap memakai suara mic mentah. Monitoring memakai output default Windows; gunakan headset. Belum ada acoustic echo cancellation; tes sintetis tidak membuktikan kualitas di semua perangkat dan ruangan.
 
 ## English
 
-Adds protected background RAM/CPU controls, native system monitoring/diagnostics and bundled local RNNoise microphone processing. Preset icons/descriptions and a single self-monitor switch simplify controls; audio levels no longer keep a full-panel 120Hz animation running.
+Reduces residual noise after speech in the local RNNoise + Smart Voice monitor while preserving quiet syllables in regression tests. The resident Go engine no longer polls processes/audio every ten seconds when automatic resource rules are off. The short-lived updater is now Rust; the taskbar engine, panel and mic remain Go.
 
-**Microphone processing is local only. No Senja virtual input or processed-audio routing into other applications is included.** Use headphones for monitoring; processing/device latency remains. Acoustic echo cancellation and complete noise/other-speaker removal are not provided.
+**Microphone processing is local only. No processed-audio routing into Discord/FiveM is included.** Selecting the same physical microphone there bypasses Senja processing. Use headphones for monitoring; processing/device latency remains. Acoustic echo cancellation and complete noise/other-speaker removal are not provided.
 
-Validation: full Go suite, bundled RNNoise streaming/dependency tests, launcher tests and five menu-command tests. Opt-in device tests verified audio startup and complete worker shutdown. These do not establish subjective room audio quality or remote-call results.
+Validation: full Go suite, Rust updater/protocol tests, bundled RNNoise synthetic tests, launcher tests and five menu-command tests. Real GitHub metadata and checksum-verified staging were tested without executing an installer. No subjective room-audio or Discord/FiveM routing claim is made.
 
 Windows x64; primarily tested on Windows 11. Executables are unsigned. Resource controls do not guarantee higher FPS. Existing preferences are preserved. RNNoise license and other dependency notices are included; source and build instructions are in the repository.
 

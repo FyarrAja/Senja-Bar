@@ -18,6 +18,21 @@ func TestQuietNeuralSyllablesSurviveUncertainVAD(t *testing.T) {
 	}
 }
 
+func TestNeuralAutoClosesResidualNoiseAfterSpeech(t *testing.T) {
+	p := Processor{GateDB: -38, SmartVoice: true, Neural: true, SpeechProbability: .9}
+	for block := 0; block < 30; block++ {
+		tone(&p, .1, 180)
+	}
+	p.SpeechProbability = 0
+	var residual float64
+	for block := 0; block < 350; block++ {
+		residual = tone(&p, .02, 1000)
+	}
+	if residual > .001 {
+		t.Fatalf("long noise-only tail remains audible: RMS=%g", residual)
+	}
+}
+
 func TestDeepBodyDoesNotLiftRumbleAsMuchAsVoice(t *testing.T) {
 	ratio := func(hz float64) float64 {
 		return tone(&Processor{GateDB: -60, Deep: true}, .08, hz) / tone(&Processor{GateDB: -60}, .08, hz)

@@ -34,6 +34,12 @@ Adaptasi warna memakai sampel di sekitar taskbar pada tiap monitor. Hasilnya dap
 
 ## Mulai pakai
 
+### Baru di 1.3.1
+
+- Noise sisa pada mode RNNoise + suara otomatis berkurang setelah ucapan berhenti; hasil nyata tetap bergantung pada mic dan ruangan.
+- Pemindaian proses/audio berkala berhenti saat aturan otomatis RAM/CPU tidak aktif. Updater berjalan sebagai proses Rust terpisah saat dibutuhkan.
+- Input Discord/FiveM masih belum menerima audio olahan Senja; memilih mic fisik yang sama di sana melewati pemrosesan Senja.
+
 ### Baru di 1.3.0
 
 - **RAM & CPU:** trim working set aplikasi latar yang memenuhi syarat, pilihan aplikasi dan aturan otomatis; EcoQoS untuk proses latar. Tidak menjamin kenaikan FPS atau pengurangan total memori yang dialokasikan aplikasi.

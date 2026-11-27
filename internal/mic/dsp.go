@@ -62,11 +62,6 @@ func (p *Processor) Process(samples []int16) float64 {
 			}
 		}
 		target := .015
-		if p.Neural && p.SmartVoice {
-			// RNNoise already removes noise; a gentle expander avoids chopping
-			// quiet syllables when its VAD briefly becomes uncertain.
-			target = .12
-		}
 		if p.hold > 0 {
 			target = 1
 			p.hold--

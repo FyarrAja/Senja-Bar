@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.1 - 2026-11-27
+
+- Reduce the residual noise floor after speech in local RNNoise + Smart Voice monitoring while preserving quiet syllables through brief VAD dropouts.
+- Stop ten-second process/audio scans and foreground worker wakes when automatic resource rules are inactive; manual actions still scan on demand.
+- Build the short-lived updater in Rust with compatible version, progress, checksum, and staging behavior. The resident engine and mic remain Go.
+- Preserve the mic limitation: no processed-audio routing to Discord/FiveM or virtual input supplied by this release.
+
 ## 1.3.0 - 2026-10-30
 
 - Add protected background RAM working-set trimming and CPU EcoQoS controls, with application selection and automatic policies.
