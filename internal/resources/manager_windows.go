@@ -60,6 +60,10 @@ type Manager struct {
 	once          sync.Once
 }
 
+func needsPeriodicObservation(cfg Config) bool {
+	return (cfg.AllBackground || len(cfg.Paths) > 0) && (cfg.Automatic || cfg.EcoCPU)
+}
+
 func Start() *Manager {
 	m := &Manager{requests: make(chan request, 8), wake: make(chan struct{}, 1), done: make(chan struct{}), stopped: make(chan struct{})}
 	go m.run()
@@ -320,25 +324,30 @@ func (m *Manager) run() {
 			return
 		case req := <-m.requests:
 			cfg = req.config
-			enabled := (cfg.AllBackground || len(cfg.Paths) > 0) && (cfg.Automatic || cfg.EcoCPU)
-			// Keep observations for manual-only selections, at a low sample rate.
-			observing := cfg.AllBackground || len(cfg.Paths) > 0
-			if observing && timer == nil {
+			enabled := needsPeriodicObservation(cfg)
+			if enabled && timer == nil {
 				timer = time.NewTicker(10 * time.Second)
 				ticks = timer.C
 			}
-			if !observing && timer != nil {
+			if !enabled && timer != nil {
 				timer.Stop()
 				timer = nil
 				ticks = nil
-				history = map[uint32]observation{}
 			}
 			if !enabled {
 				for pid := range states {
 					restore(pid)
 				}
+				history = map[uint32]observation{}
 			}
-			scan(req.manual)
+			if enabled || req.manual {
+				scan(req.manual)
+				if !enabled {
+					history = map[uint32]observation{}
+				}
+			} else {
+				Status{Message: "Optimasi otomatis tidak aktif."}.save()
+			}
 		case <-ticks:
 			scan(false)
 		case <-m.wake:
