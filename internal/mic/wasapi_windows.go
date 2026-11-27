@@ -17,9 +17,11 @@ var audioOLE = windows.NewLazySystemDLL("ole32.dll")
 type cableRenderer struct {
 	client, render uintptr
 	frames         uint32
+	primingFrames  uint32
 	rate           uint32
 	channels       int
 	float          bool
+	started        bool
 }
 
 func audioGUID(value string) windows.GUID {
@@ -175,11 +177,9 @@ func openCableRenderer() (_ *cableRenderer, err error) {
 	if err = audioCOM(renderer.client, 4, uintptr(unsafe.Pointer(&renderer.frames))); err != nil {
 		return nil, err
 	}
+	renderer.primingFrames = min(uint32(2400), max(uint32(480), renderer.frames/2))
 	renderID := audioGUID("{F294ACFC-3146-4483-A7BF-ADDCA7C260E2}")
 	if err = audioCOM(renderer.client, 14, uintptr(unsafe.Pointer(&renderID)), uintptr(unsafe.Pointer(&renderer.render))); err != nil {
-		return nil, err
-	}
-	if err = audioCOM(renderer.client, 10); err != nil {
 		return nil, err
 	}
 	return renderer, nil
@@ -207,8 +207,9 @@ func (r *cableRenderer) Write(pcm []int16) error {
 		return fmt.Errorf("blok audio melebihi buffer VB-CABLE")
 	}
 	deadline := time.Now().Add(80 * time.Millisecond)
+	var padding uint32
 	for {
-		var padding uint32
+		padding = 0
 		if err := audioCOM(r.client, 6, uintptr(unsafe.Pointer(&padding))); err != nil {
 			return err
 		}
@@ -228,14 +229,25 @@ func (r *cableRenderer) Write(pcm []int16) error {
 		_ = audioCOM(r.render, 4, uintptr(len(pcm)), 2)
 		return err
 	}
-	return audioCOM(r.render, 4, uintptr(len(pcm)), 0)
+	if err := audioCOM(r.render, 4, uintptr(len(pcm)), 0); err != nil {
+		return err
+	}
+	if !r.started && padding+uint32(len(pcm)) >= r.primingFrames {
+		if err := audioCOM(r.client, 10); err != nil {
+			return err
+		}
+		r.started = true
+	}
+	return nil
 }
 
 func (r *cableRenderer) Close() {
 	if r == nil {
 		return
 	}
-	_ = audioCOM(r.client, 11)
+	if r.started {
+		_ = audioCOM(r.client, 11)
+	}
 	audioRelease(r.render)
 	audioRelease(r.client)
 	audioOLE.NewProc("CoUninitialize").Call()

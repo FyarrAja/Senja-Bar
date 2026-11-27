@@ -39,3 +39,36 @@ func TestMonoPCMConvertsToStereoFloatMix(t *testing.T) {
 		}
 	}
 }
+
+func TestCableRoutePrimesBeforePlayback(t *testing.T) {
+	if _, err := routeOutputFrom(Devices(false)); err != nil {
+		t.Skip(err)
+	}
+	renderer, err := openCableRenderer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer renderer.Close()
+	if renderer.started {
+		t.Fatal("cable started with an empty buffer")
+	}
+	for packet := 0; packet < 4; packet++ {
+		if err := renderer.Write(make([]int16, 480)); err != nil {
+			t.Fatal(err)
+		}
+		if renderer.started {
+			t.Fatalf("cable started after only %d ms of audio", (packet+1)*10)
+		}
+	}
+	if err := renderer.Write(make([]int16, 480)); err != nil {
+		t.Fatal(err)
+	}
+	if !renderer.started {
+		t.Fatal("cable did not start after 50 ms of audio")
+	}
+	var padding uint32
+	if err := audioCOM(renderer.client, 6, uintptr(unsafe.Pointer(&padding))); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("remaining playback padding after start: %d frames", padding)
+}

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.4 - 2026-11-28
+
+- Prime the VB-CABLE WASAPI route with 50 ms of processed audio before starting playback; similarly pause WinMM self-monitoring until five 10 ms blocks are queued. This adds startup latency to tolerate brief scheduling gaps.
+- Register the audio worker thread with Windows MMCSS `Audio` when available, reverting registration on exit.
+- Test the full RNNoise/DSP chain with generated 48 kHz speech, including synthetic typing; compare after the model's measured delay rather than mistaking latency for clipped syllables. Real game-call quality remains unverified.
+
 ## 1.3.3 - 2026-11-28
 
 - Fix VB-CABLE routing failing with `waveOutOpen` error 4 while FiveM is running. Use WASAPI shared rendering and convert processed mono PCM to the cable's stereo float mix format.

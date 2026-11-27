@@ -34,6 +34,12 @@ Adaptasi warna memakai sampel di sekitar taskbar pada tiap monitor. Hasilnya dap
 
 ## Mulai pakai
 
+### Baru di 1.3.4
+
+- Rute ke VB-CABLE dan **Dengar suara sendiri** menunggu sekitar 50 ms audio siap sebelum playback dimulai. Ini memberi cadangan terhadap jeda singkat saat game sibuk; suara mungkin terasa sedikit lebih lambat.
+- Thread audio Senja memakai prioritas Windows MMCSS `Audio` jika tersedia, agar capture dan render tidak mudah tertunda oleh beban game.
+- Tes suara sintetis 48 kHz, termasuk ketukan keyboard, memeriksa kontinuitas setelah jeda RNNoise disejajarkan. Tes ini tidak menggantikan rekaman mic atau panggilan nyata.
+
 ### Baru di 1.3.3
 
 - Memperbaiki tombol **Kirim ke Discord/FiveM** yang sebelumnya gagal dengan `waveOutOpen ... already in use (4)` saat FiveM berjalan. Rute sekarang memakai WASAPI shared mode dan mengubah suara olahan menjadi format stereo float yang dipakai VB-CABLE.

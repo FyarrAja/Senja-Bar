@@ -7,9 +7,55 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 	"unsafe"
 )
+
+func TestMonitorPlaybackPrimesBeforeRestart(t *testing.T) {
+	var calls []string
+	invoke := func(name string, _ ...uintptr) error { calls = append(calls, name); return nil }
+	var prefill monitorPrefill
+	if err := prefill.Begin(1, invoke); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 5; i++ {
+		if err := prefill.Submitted(1, invoke); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(calls) != 2 || calls[0] != "waveOutPause" || calls[1] != "waveOutRestart" {
+		t.Fatalf("monitor startup sequence = %v", calls)
+	}
+	if err := prefill.Submitted(1, invoke); err != nil {
+		t.Fatal(err)
+	}
+	if len(calls) != 2 {
+		t.Fatalf("monitor restarted twice: %v", calls)
+	}
+}
+
+func TestDefaultOutputAcceptsPausedMonitorStartup(t *testing.T) {
+	if os.Getenv("SENJA_MONITOR_INTEGRATION") != "1" {
+		t.Skip("explicit local playback smoke test")
+	}
+	if len(Devices(false)) == 0 {
+		t.Skip("no Windows playback device")
+	}
+	f := format{Tag: 1, Channels: 1, Rate: 48000, Bytes: 96000, Align: 2, Bits: 16}
+	var out uintptr
+	if err := call("waveOutOpen", uintptr(unsafe.Pointer(&out)), uintptr(defaultPreviewOutput().ID), uintptr(unsafe.Pointer(&f)), 0, 0, 0); err != nil {
+		t.Fatal(err)
+	}
+	defer call("waveOutClose", out)
+	var prefill monitorPrefill
+	if err := prefill.Begin(out, call); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 5; i++ {
+		if err := prefill.Submitted(out, call); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
 
 func TestNativeWaveStructLayout(t *testing.T) {
 	if unsafe.Sizeof(uintptr(0)) == 8 && (unsafe.Sizeof(header{}) != 48 || unsafe.Offsetof(header{}.Flags) != 24) {

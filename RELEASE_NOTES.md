@@ -1,18 +1,18 @@
-**[Unduh Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.3.3/Senja-Bar.exe)**
+**[Unduh Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.3.4/Senja-Bar.exe)**
 
-## Senja Bar 1.3.3
+## Senja Bar 1.3.4
 
-- Memperbaiki mode **Kirim ke Discord/FiveM** yang gagal dengan `waveOutOpen ... already in use (4)` saat FiveM berjalan. Senja sekarang memakai WASAPI shared mode untuk mengirim audio olahan ke VB-CABLE yang sudah terpasang.
-- Satu lonjakan deteksi ucapan akibat ketukan keyboard tidak lagi langsung membuka gate selama 240 ms. Ucapan pelan dan jeda pendek tetap dijaga oleh tes regresi.
-- Di Discord/FiveM, pilih input `Senja Microphone` (nama VB-CABLE di PC ini) atau `CABLE Output`. Memilih mic fisik langsung tetap melewati pemrosesan Senja.
+- Mode **Kirim ke Discord/FiveM** dan **Dengar suara sendiri** kini menunggu sekitar 50 ms audio siap sebelum mulai memutar, agar jeda penjadwalan singkat tidak langsung memutus suara. Ada tambahan jeda awal.
+- Thread audio memakai prioritas Windows MMCSS `Audio` saat tersedia agar lebih tahan terhadap beban game.
+- Suara sintetis 48 kHz dengan ketukan keyboard diuji melalui RNNoise dan DSP. Setelah jeda model sekitar 30 ms diperhitungkan, tes tidak menemukan suku kata lemah akibat pemrosesan pada sampel tersebut.
 
-**Batasan:** Senja tidak memasang driver virtual sendiri dan tidak otomatis mengubah pilihan mic Discord/FiveM. Pembukaan WASAPI shared dan aliran paket senyap ke VB-CABLE lulus tes lokal saat FiveM berjalan, tetapi penerimaan suara dalam panggilan belum diverifikasi. Ketikan saat bicara, kebocoran akustik dari speaker, dan noise lain dapat tetap terdengar; gunakan headset. Belum ada acoustic echo cancellation atau pemisahan pembicara.
+**Batasan:** Perbaikan ini diuji dengan suara sintetis dan perangkat VB-CABLE lokal, belum dengan rekaman mic kamu atau panggilan Discord/FiveM. Patah-patah akibat penundaan lebih lama, perangkat capture, atau jaringan masih mungkin terjadi. Pilih `Senja Microphone`/`CABLE Output` sebagai input aplikasi; memilih mic fisik melewati Senja. Gunakan headset; belum ada acoustic echo cancellation atau pemisahan pembicara.
 
 ## English
 
-Version 1.3.3 fixes the VB-CABLE route failing with WinMM `waveOutOpen` error 4 while FiveM is running. The route now uses WASAPI shared rendering and converts processed mono PCM to the cable's stereo float mix format. A single false-positive speech frame from a keyboard transient no longer opens the closed neural gate for 240 ms. Select the cable's recording side (`CABLE Output`, possibly renamed `Senja Microphone`) as the microphone in Discord/FiveM. Routing and local self-monitoring remain exclusive.
+Version 1.3.4 primes both the WASAPI VB-CABLE route and WinMM self-monitor with roughly 50 ms of audio before starting playback. The audio worker registers with Windows MMCSS `Audio` when available. Local tests used generated 48 kHz speech and synthetic typing through RNNoise/DSP, accounting for the model's 30 ms delay. These changes add startup latency and aim to reduce short scheduling dropouts.
 
-Senja does not install a virtual driver or switch the input in other apps. Opening and sending silent packets through the installed cable passed locally with FiveM running, but real call reception and acoustic quality have not been verified. Headphones remain necessary for local monitoring; acoustic echo cancellation and complete background-noise removal are not provided.
+Senja does not install a virtual driver or switch the input in other apps. Select the cable's recording side (`CABLE Output`, possibly renamed `Senja Microphone`) in Discord/FiveM. Real call reception, the user's microphone, and long stalls have not been verified. Headphones remain necessary for local monitoring; acoustic echo cancellation and complete background-noise removal are not provided.
 
 Windows x64; primarily tested on Windows 11. Executables are unsigned. Dependency notices, source and build instructions are in the repository.
 

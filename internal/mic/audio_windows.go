@@ -90,6 +90,34 @@ type Session struct {
 	playbackSubmissions atomic.Uint32
 }
 
+type monitorPrefill struct {
+	queued int
+	paused bool
+}
+
+func (p *monitorPrefill) Begin(out uintptr, invoke func(string, ...uintptr) error) error {
+	if err := invoke("waveOutPause", out); err != nil {
+		return err
+	}
+	p.paused = true
+	return nil
+}
+
+func (p *monitorPrefill) Submitted(out uintptr, invoke func(string, ...uintptr) error) error {
+	if !p.paused {
+		return nil
+	}
+	p.queued++
+	if p.queued < 5 {
+		return nil
+	}
+	if err := invoke("waveOutRestart", out); err != nil {
+		return err
+	}
+	p.paused = false
+	return nil
+}
+
 func (s *Session) Stop() { s.once.Do(func() { close(s.stop) }); <-s.done }
 func (s *Session) Active() bool {
 	select {
@@ -190,6 +218,9 @@ func startSessionWithConfig(input Device, output *Device, deep bool, gate int, n
 	return s, nil
 }
 func (s *Session) run(input, output uint32, ready chan<- error) (err error) {
+	if endAudioThread, priorityErr := beginAudioThread(); priorityErr == nil {
+		defer endAudioThread()
+	}
 	signaled := false
 	defer func() {
 		if !signaled {
@@ -206,6 +237,7 @@ func (s *Session) run(input, output uint32, ready chan<- error) (err error) {
 	}
 	var in, out uintptr
 	var cable *cableRenderer
+	var monitorStart monitorPrefill
 	kernel := syscall.NewLazyDLL("kernel32.dll")
 	event, _, eventErr := kernel.NewProc("CreateEventW").Call(0, 1, 0, 0)
 	if event == 0 {
@@ -224,6 +256,11 @@ func (s *Session) run(input, output uint32, ready chan<- error) (err error) {
 			return
 		}
 		defer mm.NewProc("waveOutClose").Call(out)
+		if !s.samplePreview {
+			if err = monitorStart.Begin(out, call); err != nil {
+				return
+			}
+		}
 	}
 	if err = call("waveInOpen", uintptr(unsafe.Pointer(&in)), uintptr(input), uintptr(unsafe.Pointer(&f)), event, 0, 0x50000); err != nil {
 		return
@@ -382,6 +419,8 @@ func (s *Session) run(input, output uint32, ready chan<- error) (err error) {
 						return
 					}
 				} else if err = call("waveOutWrite", out, uintptr(unsafe.Pointer(&outputs[j])), unsafe.Sizeof(header{})); err != nil {
+					return
+				} else if err = monitorStart.Submitted(out, call); err != nil {
 					return
 				}
 			}
