@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -58,6 +59,7 @@ type Manager struct {
 	wake          chan struct{}
 	done, stopped chan struct{}
 	once          sync.Once
+	active        atomic.Bool
 }
 
 func needsPeriodicObservation(cfg Config) bool {
@@ -82,7 +84,7 @@ func (m *Manager) Reload(manual bool) bool {
 	}
 }
 func (m *Manager) Wake() {
-	if m != nil {
+	if m != nil && m.active.Load() {
 		select {
 		case m.wake <- struct{}{}:
 		default:
@@ -325,6 +327,7 @@ func (m *Manager) run() {
 		case req := <-m.requests:
 			cfg = req.config
 			enabled := needsPeriodicObservation(cfg)
+			m.active.Store(enabled)
 			if enabled && timer == nil {
 				timer = time.NewTicker(10 * time.Second)
 				ticks = timer.C

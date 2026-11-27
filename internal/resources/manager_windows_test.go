@@ -23,3 +23,16 @@ func TestPeriodicObservationRequiresActiveAutomaticPolicy(t *testing.T) {
 		})
 	}
 }
+
+func TestForegroundWakeIgnoredWithoutActivePolicy(t *testing.T) {
+	m := &Manager{wake: make(chan struct{}, 1)}
+	m.Wake()
+	if len(m.wake) != 0 {
+		t.Fatal("inactive policy woke resource worker")
+	}
+	m.active.Store(true)
+	m.Wake()
+	if len(m.wake) != 1 {
+		t.Fatal("active policy did not wake resource worker")
+	}
+}
