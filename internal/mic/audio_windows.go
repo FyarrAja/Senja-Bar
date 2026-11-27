@@ -205,6 +205,7 @@ func (s *Session) run(input, output uint32, ready chan<- error) (err error) {
 		defer neural.Close()
 	}
 	var in, out uintptr
+	var cable *cableRenderer
 	kernel := syscall.NewLazyDLL("kernel32.dll")
 	event, _, eventErr := kernel.NewProc("CreateEventW").Call(0, 1, 0, 0)
 	if event == 0 {
@@ -212,7 +213,13 @@ func (s *Session) run(input, output uint32, ready chan<- error) (err error) {
 	}
 	defer kernel.NewProc("CloseHandle").Call(event)
 	f := format{Tag: 1, Channels: 1, Rate: 48000, Bytes: 96000, Align: 2, Bits: 16}
-	if !s.captureOnly {
+	if s.route {
+		cable, err = openCableRenderer()
+		if err != nil {
+			return
+		}
+		defer cable.Close()
+	} else if !s.captureOnly {
 		if err = call("waveOutOpen", uintptr(unsafe.Pointer(&out)), uintptr(output), uintptr(unsafe.Pointer(&f)), event, 0, 0x50000); err != nil {
 			return
 		}
@@ -364,13 +371,17 @@ func (s *Session) run(input, output uint32, ready chan<- error) (err error) {
 					s.previewStage.Store(2)
 					return s.playSample(out, event, previewPCM)
 				}
-			} else if n > 0 && out != 0 {
+			} else if n > 0 && (out != 0 || cable != nil) {
 				// Playback volume is independent of capture gain and the processed meter.
 				for k := 0; k < n; k++ {
 					playbackFade = min(1, playbackFade+1.0/2400)
 					outputData[j][k] = int16(float64(outputData[j][k]) * s.playbackScale() * playbackFade)
 				}
-				if err = call("waveOutWrite", out, uintptr(unsafe.Pointer(&outputs[j])), unsafe.Sizeof(header{})); err != nil {
+				if cable != nil {
+					if err = cable.Write(outputData[j][:n]); err != nil {
+						return
+					}
+				} else if err = call("waveOutWrite", out, uintptr(unsafe.Pointer(&outputs[j])), unsafe.Sizeof(header{})); err != nil {
 					return
 				}
 			}

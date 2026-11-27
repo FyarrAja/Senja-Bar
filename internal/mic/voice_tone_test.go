@@ -33,6 +33,40 @@ func TestNeuralAutoClosesResidualNoiseAfterSpeech(t *testing.T) {
 	}
 }
 
+func TestSingleFalseSpeechFrameDoesNotOpenGateForKeyboard(t *testing.T) {
+	p := Processor{GateDB: -38, SmartVoice: true, Neural: true}
+	for i := 0; i < 300; i++ {
+		p.Process(make([]int16, 480))
+	}
+	p.SpeechProbability = .9 // one RNNoise false positive on an isolated key click
+	click := make([]int16, 480)
+	for i := range click {
+		click[i] = int16(.025 * 32767 * math.Sin(2*math.Pi*1500*float64(i)/48000))
+	}
+	p.Process(click)
+	var energy float64
+	for _, sample := range click {
+		energy += float64(sample) * float64(sample)
+	}
+	if rms := math.Sqrt(energy/float64(len(click))) / 32768; rms > .003 {
+		t.Fatalf("one-frame keyboard false positive opened voice gate: RMS=%g", rms)
+	}
+}
+
+func TestConfirmedNeuralSpeechOpensGatePromptly(t *testing.T) {
+	p := Processor{GateDB: -38, SmartVoice: true, Neural: true, SpeechProbability: .9}
+	for frame := 0; frame < 2; frame++ {
+		voice := make([]int16, 480)
+		for i := range voice {
+			voice[i] = int16(.08 * 32767 * math.Sin(2*math.Pi*180*float64(frame*480+i)/48000))
+		}
+		p.Process(voice)
+	}
+	if p.gain < .95 {
+		t.Fatalf("confirmed voice did not open promptly: gain=%g", p.gain)
+	}
+}
+
 func TestDeepBodyDoesNotLiftRumbleAsMuchAsVoice(t *testing.T) {
 	ratio := func(hz float64) float64 {
 		return tone(&Processor{GateDB: -60, Deep: true}, .08, hz) / tone(&Processor{GateDB: -60}, .08, hz)

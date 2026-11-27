@@ -16,6 +16,7 @@ type Processor struct {
 	noise                                                noiseReducer
 	prev, hp, bass, envelope, gain                       float64
 	hold                                                 int
+	vadSamples                                           int
 	subBass, silky, compressionEnvelope, compressionGain float64
 	lowMid, presenceLow, presenceHigh                    float64
 }
@@ -37,6 +38,22 @@ func (p *Processor) Process(samples []int16) float64 {
 		// fixed high threshold. Keyboard rejection happens before this gate.
 		threshold = max(.004, min(threshold, p.noise.floorRMS*inputGain*.9))
 	}
+	if p.Neural && p.SmartVoice {
+		voiced := p.SpeechProbability >= .15
+		if !voiced && p.SpeechProbability > .03 {
+			var energy float64
+			for _, sample := range samples {
+				x := float64(sample) / 32768
+				energy += x * x
+			}
+			voiced = len(samples) > 0 && math.Sqrt(energy/float64(len(samples))) > .002
+		}
+		if voiced {
+			p.vadSamples = min(960, p.vadSamples+len(samples))
+		} else {
+			p.vadSamples = 0
+		}
+	}
 	// Fixed makeup replaces syllable-chasing AGC. It never ramps up in a gap.
 	p.levelTarget = 1
 	if p.SmartVoice {
@@ -53,7 +70,7 @@ func (p *Processor) Process(samples []int16) float64 {
 		p.envelope = math.Max(math.Abs(p.hp), p.envelope*.999)
 		open := p.envelope > threshold
 		if p.Neural && p.SmartVoice {
-			open = p.SpeechProbability >= .15 || p.SpeechProbability > .03 && p.envelope > .002
+			open = p.vadSamples >= 960
 		}
 		if open {
 			p.hold = 2880

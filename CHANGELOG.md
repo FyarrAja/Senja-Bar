@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.3 - 2026-11-28
+
+- Fix VB-CABLE routing failing with `waveOutOpen` error 4 while FiveM is running. Use WASAPI shared rendering and convert processed mono PCM to the cable's stereo float mix format.
+- Require roughly 20 ms of consistent neural speech detection before opening a closed gate, reducing isolated keyboard false positives without losing quiet syllables in regression tests.
+- Replace the earlier format-query-only check with a real shared-mode open and silent-stream test on the installed cable. End-to-end Discord/FiveM reception and room noise still need listening tests.
+
 ## 1.3.2 - 2026-11-28
 
 - Add an explicit VB-CABLE output route for processed microphone audio; users select the cable's recording endpoint in Discord/FiveM. Route and local self-monitor are exclusive.

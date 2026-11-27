@@ -34,6 +34,11 @@ Adaptasi warna memakai sampel di sekitar taskbar pada tiap monitor. Hasilnya dap
 
 ## Mulai pakai
 
+### Baru di 1.3.3
+
+- Memperbaiki tombol **Kirim ke Discord/FiveM** yang sebelumnya gagal dengan `waveOutOpen ... already in use (4)` saat FiveM berjalan. Rute sekarang memakai WASAPI shared mode dan mengubah suara olahan menjadi format stereo float yang dipakai VB-CABLE.
+- Gate RNNoise + Auto menunggu deteksi ucapan yang bertahan sekitar 20 ms, sehingga satu lonjakan deteksi akibat ketukan keyboard tidak membuka mic selama 240 ms. Ucapan pelan tetap lulus tes regresi.
+
 ### Baru di 1.3.2
 
 - **Kirim ke Discord/FiveM** mengirim suara hasil RNNoise dan pengaturan Senja ke `CABLE Input` milik VB-CABLE yang sudah terpasang. Pilih `Senja Microphone` (nama rekaman VB-CABLE pada PC ini) atau `CABLE Output` sebagai input Discord/FiveM. Jika masih memilih mic Rexus langsung, suara akan tetap mentah.
@@ -52,7 +57,7 @@ Adaptasi warna memakai sampel di sekitar taskbar pada tiap monitor. Hasilnya dap
 - **Sistem:** pemantauan perangkat/RAM/CPU/penyimpanan, diagnostik, laporan lokal dan pemeliharaan Windows yang dipilih pengguna.
 - **Mic:** RNNoise lokal, preset berikon, karakter bass dan kontrol level. Toggle **Dengar suara sendiri** menjalankan audio; mematikannya menghentikan capture dan playback. Output mengikuti default Windows. Gunakan headset; ada jeda pemrosesan dan belum tersedia acoustic echo cancellation.
 
-**Senja belum memasang driver mic virtual sendiri.** Rute 1.3.2 memakai VB-CABLE yang sudah ada; penerimaan di Discord/FiveM perlu diuji dengan perangkat dan pengaturan input masing-masing. Tidak ada audio diunggah oleh Senja. Peredaman tidak menjamin semua ketikan, gema atau pembicara lain hilang; monitor lokal tetap memerlukan headset dan belum memiliki acoustic echo cancellation.
+**Senja belum memasang driver mic virtual sendiri.** Rute memakai VB-CABLE yang sudah ada; penerimaan di Discord/FiveM perlu diuji dengan perangkat dan pengaturan input masing-masing. Tidak ada audio diunggah oleh Senja. Peredaman tidak menjamin semua ketikan, gema atau pembicara lain hilang; monitor lokal tetap memerlukan headset dan belum memiliki acoustic echo cancellation.
 
 1. Unduh **Senja-Bar.exe** dari tautan di atas, lalu jalankan.
 2. File pendamping disiapkan di `%LOCALAPPDATA%\Senja\app` tanpa akses admin. Launcher keluar setelah Senja berjalan.

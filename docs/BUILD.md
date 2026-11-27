@@ -8,7 +8,7 @@ cargo test --manifest-path rust/senja-update-protocol/Cargo.toml --locked
 cargo test --manifest-path rust/senja-engine-core/Cargo.toml --locked
 cargo test --manifest-path rust/senja-updater/Cargo.toml --locked
 .\build.ps1
-.\scripts\package-release.ps1 -Version 1.3.2
+.\scripts\package-release.ps1 -Version 1.3.3
 ```
 
 `package-release.ps1` generates executable metadata, validates dependency hashes, and writes Senja-Bar.exe, the portable ZIP and SHA256SUMS.txt under dist/. Tagged GitHub builds publish these assets plus the matching TranslucentTB source archive.

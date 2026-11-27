@@ -5,7 +5,6 @@ package mic
 import (
 	"testing"
 	"time"
-	"unsafe"
 )
 
 func TestRouteOutputChoosesStereoCableInput(t *testing.T) {
@@ -17,18 +16,6 @@ func TestRouteOutputChoosesStereoCableInput(t *testing.T) {
 	got, err := routeOutputFrom(devices)
 	if err != nil || got.ID != 3 {
 		t.Fatalf("route output = %+v, %v; want stereo CABLE Input", got, err)
-	}
-}
-
-func TestInstalledCableAcceptsSenjaMonoFormat(t *testing.T) {
-	output, err := routeOutputFrom(Devices(false))
-	if err != nil {
-		t.Skip(err)
-	}
-	f := format{Tag: 1, Channels: 1, Rate: 48000, Bytes: 96000, Align: 2, Bits: 16}
-	var handle uintptr
-	if err := call("waveOutOpen", uintptr(unsafe.Pointer(&handle)), uintptr(output.ID), uintptr(unsafe.Pointer(&f)), 0, 0, 1); err != nil {
-		t.Fatalf("%s does not accept 48kHz mono PCM16: %v", output.Name, err)
 	}
 }
 

@@ -8,7 +8,7 @@ Taskbar materials use the ExplorerTAP COM interface with checked HRESULTs. CSS c
 
 The native panel paints premultiplied ARGB into a reusable DIB and presents it with UpdateLayeredWindow/AC_SRC_ALPHA. Empty corners have zero alpha. A separate non-layered material host supplies supported Windows background blur while the foreground retains antialiased controls and hit testing. The material varies by Windows support; no frozen desktop image is used. Taskbar Glass/Acrylic effects remain separately controlled.
 
-Version 1.3.2 adds native resource/system engines, local microphone processing with bundled RNNoise, and an opt-in processed-audio route through an already installed VB-CABLE. Detailed ownership, telemetry and routing limitations are documented in [NATIVE-ARCHITECTURE.md](NATIVE-ARCHITECTURE.md). Senja does not install its own virtual microphone driver; local self-monitoring remains separate from the cable route.
+Version 1.3.3 provides native resource/system engines, local microphone processing with bundled RNNoise, and an opt-in processed-audio route through an already installed VB-CABLE using WASAPI shared mode. Detailed ownership, telemetry and routing limitations are documented in [NATIVE-ARCHITECTURE.md](NATIVE-ARCHITECTURE.md). Senja does not install its own virtual microphone driver; local self-monitoring remains separate from the cable route.
 
 One finite timeline animates the popup, blue selection plate and switch thumbs. A high-resolution ticker posts at most one outstanding frame up to 120 Hz and stops at the endpoint; timer resolution is restored afterward. Font and bitmap resources are reused while the panel is open. Outside-click and overflow-hide hooks exist only during the visible helper lifetime.
 
