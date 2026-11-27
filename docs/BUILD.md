@@ -1,9 +1,12 @@
 # Build Senja Bar
 
-Windows x64 and Go 1.23+ (WebView2 is required only for the legacy CSS comparison):
+Windows x64, Go 1.23+, and Rust stable with the MSVC toolchain (WebView2 is required only for the legacy CSS comparison):
 
 ```powershell
 go test ./...
+cargo test --manifest-path rust/senja-update-protocol/Cargo.toml --locked
+cargo test --manifest-path rust/senja-engine-core/Cargo.toml --locked
+cargo test --manifest-path rust/senja-updater/Cargo.toml --locked
 .\build.ps1
 .\scripts\package-release.ps1 -Version 1.3.0
 ```
@@ -18,7 +21,7 @@ The checked-in `native/bin/SenjaNoise.dll` is required for microphone processing
 
 If rebuilding changes the hash, review the binary and update the dependency manifest before packaging. Version, provenance and license are in `native/rnnoise/README.md`. Set `SENJA_NEURAL_DLL` to the absolute DLL path to enable native model integration tests; hardware tests remain explicit opt-ins. `build.ps1` copies the DLL and license beside the engine.
 
-The legacy internal source directory is `cmd/samar`. The engine is Go/Win32; the on-demand menu is GDI+ with per-pixel alpha. The separate `cmd/updater` executable performs HTTP/download work only when requested; both build scripts include it. `Assets/menu.css` overrides the embedded CSS only on the legacy WebView2 path. Packaging initializes that override from the canonical `cmd/samar/ui/menu.css`.
+The legacy internal source directory is `cmd/samar`. The engine is Go/Win32; the on-demand menu is GDI+ with per-pixel alpha. The updater is now built from `rust/senja-updater` as `Senja-Update.exe`; `cmd/updater` remains the Go behavior reference during migration. `Assets/menu.css` overrides the embedded CSS only on the legacy WebView2 path. Packaging initializes that override from the canonical `cmd/samar/ui/menu.css`.
 
 To regenerate executable resources use `scripts/generate-resources.ps1`. To regenerate icons use Node.js with sharp and `node scripts/build-icons.cjs`.
 

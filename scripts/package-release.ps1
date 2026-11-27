@@ -1,5 +1,5 @@
 #requires -Version 5.1
-param([Parameter(Mandatory=$true)][ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version, [string]$GoExe='go', [string]$OutDir='dist')
+param([Parameter(Mandatory=$true)][ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version, [string]$GoExe='go', [string]$CargoExe='cargo', [string]$OutDir='dist')
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 Push-Location $root
@@ -20,8 +20,9 @@ try {
     & (Join-Path $PSScriptRoot 'generate-resources.ps1') -GoExe $GoExe -Version $Version
     & $GoExe build -trimpath -ldflags="-s -w -H=windowsgui -X main.buildVersion=$Version" -o (Join-Path $stage 'Senja.exe') ./cmd/samar
     if ($LASTEXITCODE -ne 0) { throw 'Release build failed' }
-    & $GoExe build -trimpath -ldflags="-s -w -H=windowsgui" -o (Join-Path $stage 'Senja-Update.exe') ./cmd/updater
-    if ($LASTEXITCODE -ne 0) { throw 'Updater build failed' }
+    & $CargoExe build --release --manifest-path rust/senja-updater/Cargo.toml --locked
+    if ($LASTEXITCODE -ne 0) { throw 'Rust updater build failed' }
+    Copy-Item -LiteralPath rust/senja-updater/target/release/senja-updater.exe -Destination (Join-Path $stage 'Senja-Update.exe')
     foreach ($file in @('ExplorerTAP.dll','ExplorerHooks.dll','ProgramLog.dll','Xaml.dll','resources.pri','senja.ico','LICENSE','NOTICE','TRADEMARKS.md','README.md','CHANGELOG.md')) {
         Copy-Item -LiteralPath (Join-Path $root $file) -Destination $stage
     }

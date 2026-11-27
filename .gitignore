@@ -18,3 +18,4 @@ native/bin/*.lib
 native/bin/*.pdb
 /SenjaNoise.dll
 /RNNoise-LICENSE.txt
+/rust/**/target/

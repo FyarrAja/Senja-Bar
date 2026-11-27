@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: dtolnay/rust-toolchain@stable
       - name: Validate and package
         shell: pwsh
         env:
@@ -31,6 +32,12 @@ jobs:
           $env:SENJA_NEURAL_DLL = (Resolve-Path native/bin/SenjaNoise.dll).Path
           go test ./...
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
+          cargo test --manifest-path rust/senja-update-protocol/Cargo.toml --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Rust protocol tests failed' }
+          cargo test --manifest-path rust/senja-engine-core/Cargo.toml --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Rust engine core tests failed' }
+          cargo test --manifest-path rust/senja-updater/Cargo.toml --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Rust updater tests failed' }
           node --test scripts/test-menu-commands.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Menu command tests failed' }
           ./scripts/package-release.ps1 -Version $version
