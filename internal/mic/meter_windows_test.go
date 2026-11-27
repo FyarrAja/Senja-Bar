@@ -17,3 +17,10 @@ func TestActiveMeterPreservesDistinctProcessingStates(t *testing.T) {
 		t.Fatal("invalid status did not fall back")
 	}
 }
+
+func TestRouteStatusDoesNotAppearAsLocalTest(t *testing.T) {
+	message := "Kirim ke input virtual aktif · pilih CABLE Output di Discord/FiveM"
+	if meterKindMessage(meterMessageKind(message)) != message {
+		t.Fatal("active route status collapsed to local test")
+	}
+}

@@ -1,21 +1,19 @@
-**[Unduh Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.3.1/Senja-Bar.exe)**
+**[Unduh Senja-Bar.exe](https://github.com/FyarrAja/Senja-Bar/releases/download/v1.3.2/Senja-Bar.exe)**
 
-## Senja Bar 1.3.1
+## Senja Bar 1.3.2
 
-- Mic lokal: kurangi noise sisa yang terus terdengar setelah ucapan berhenti pada mode RNNoise + suara otomatis. Tes regresi menjaga suku kata pelan dan jeda singkat tetap terdengar.
-- Proses resident: hentikan pemindaian proses/audio tiap 10 detik saat aturan otomatis dan EcoCPU tidak aktif. Aksi manual tetap berjalan.
-- Updater singkat dipindah ke Rust dengan alur unduh, SHA-256, staging, dan konfirmasi manual yang kompatibel. Engine taskbar, panel dan mic masih Go.
+- Tombol baru **Kirim ke Discord/FiveM** mengirim suara olahan Senja ke `CABLE Input` milik VB-CABLE yang sudah terpasang. Di Discord/FiveM, pilih sisi rekamannya: `CABLE Output`, atau `Senja Microphone` jika namanya sudah diganti seperti di PC ini.
+- Mode kirim mematikan monitor lokal supaya suara tidak diputar ke speaker/headset oleh Senja. Mematikannya menghentikan tangkapan dan rute.
+- Mic virtual yang namanya terpotong tidak lagi diterima sebagai sumber fisik. Kesalahan VB-CABLE kini ditampilkan jelas.
 
-**Batasan mic:** perbaikan ini berlaku pada monitor lokal Senja. Hasil olahan belum diteruskan ke input Discord/FiveM. Memilih mic fisik yang sama di Discord/FiveM tetap memakai suara mic mentah. Monitoring memakai output default Windows; gunakan headset. Belum ada acoustic echo cancellation; tes sintetis tidak membuktikan kualitas di semua perangkat dan ruangan.
+**Batasan:** Senja tidak memasang driver virtual sendiri dan tidak otomatis mengubah pilihan mic Discord/FiveM. Memilih mic fisik di sana tetap melewati pemrosesan Senja. Perangkat VB-CABLE lokal menerima format 48 kHz mono PCM16 dalam tes perangkat, tetapi penerimaan suara dalam panggilan Discord/FiveM belum diverifikasi. Kebocoran akustik dari speaker dan noise saat bicara dapat tetap terjadi; gunakan headset. Belum ada acoustic echo cancellation atau pemisahan pembicara.
 
 ## English
 
-Reduces residual noise after speech in the local RNNoise + Smart Voice monitor while preserving quiet syllables in regression tests. The resident Go engine no longer polls processes/audio every ten seconds when automatic resource rules are off. The short-lived updater is now Rust; the taskbar engine, panel and mic remain Go.
+Version 1.3.2 adds an explicit route from Senja's processed microphone stream to an already installed VB-CABLE `CABLE Input` playback endpoint. Select its recording side (`CABLE Output`, possibly renamed `Senja Microphone`) as the microphone in Discord/FiveM. Routing and local self-monitoring are exclusive. Truncated virtual capture names are rejected as physical sources, and cable errors are visible.
 
-**Microphone processing is local only. No processed-audio routing into Discord/FiveM is included.** Selecting the same physical microphone there bypasses Senja processing. Use headphones for monitoring; processing/device latency remains. Acoustic echo cancellation and complete noise/other-speaker removal are not provided.
+Senja does not install a virtual driver or switch the input in other apps. The installed cable accepted a 48 kHz mono PCM16 format query, but real Discord/FiveM call reception and acoustic quality have not been verified. Headphones remain necessary for local monitoring; acoustic echo cancellation and complete background-noise removal are not provided.
 
-Validation: full Go suite, Rust updater/protocol tests, bundled RNNoise synthetic tests, launcher tests and five menu-command tests. Real GitHub metadata and checksum-verified staging were tested without executing an installer. No subjective room-audio or Discord/FiveM routing claim is made.
-
-Windows x64; primarily tested on Windows 11. Executables are unsigned. Resource controls do not guarantee higher FPS. Existing preferences are preserved. RNNoise license and other dependency notices are included; source and build instructions are in the repository.
+Windows x64; primarily tested on Windows 11. Executables are unsigned. Dependency notices, source and build instructions are in the repository.
 
 [Guide and source](https://github.com/FyarrAja/Senja-Bar#readme)

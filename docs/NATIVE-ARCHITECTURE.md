@@ -5,7 +5,7 @@
 
 The resource manager performs periodic process/audio observation only while an automatic trim or EcoCPU rule has selected targets. With the default manual-only configuration it does not enumerate processes every ten seconds; an explicit manual action still samples on demand.
 
-`internal/mic` captures only when the user starts a test. PCM is processed in Senja's Go engine. With monitoring off, capture-only mode opens no output endpoint. With “Dengar suara sendiri” enabled, StartMonitor plays processed PCM through the explicitly selected local output at separately adjustable 0–100% monitor gain (70% default); no recording or upload occurs. Device and monitoring changes recreate the audio session cleanly inside the worker. Missing selected outputs fail explicitly instead of falling back to the system default. A physical headset may be preselected in the UI when output has not been chosen; monitoring remains off by default.
+`internal/mic` captures only when the user enables a microphone mode. PCM is processed in Senja's Go engine. Local “Dengar suara sendiri” plays processed PCM through the default Windows playback output; “Kirim ke Discord/FiveM” sends it through the installed VB-CABLE playback endpoint at full level. The modes are exclusive and both stop capture when disabled. Neither records to disk nor uploads audio through Senja. Device and mode changes recreate the audio session inside the worker.
 
 Seven presets tune input gain, gate, spectral noise reduction and bass character together while preserving device selection, enabled state and monitoring consent. Fokus dekat uses 100% DSP gain, −32dB gate, natural tone and 90% spectral reduction. The 32-bar ascending meter shows the processed peak on a −54 to 0 dBFS scale. Device icons are inferred from WinMM endpoint names, with generic/virtual fallbacks; they do not claim hardware form-factor detection.
 
@@ -14,10 +14,16 @@ The owned Go noise reducer uses a 512-sample FFT, 256-sample hop, sqrt-Hann over
 ## Windows-owned operations
 SFC, DISM, volume re-TRIM, Winsock and advanced DNS operations remain explicit Windows servicing tools. They are not a new repair algorithm authored by Senja. Existing taskbar helper DLLs and legacy optional web UI dependencies are outside this module replacement.
 
-## Virtual microphone is not implemented
+## Virtual microphone routing through installed VB-CABLE
+
+Version 1.3.2 adds an opt-in route from the physical microphone through RNNoise/DSP to the already installed VB-CABLE `CABLE Input` playback endpoint. The matching recording endpoint must be chosen in Discord/FiveM; on this PC it is renamed `Senja Microphone`. Route and local self-monitor are mutually exclusive to avoid playing the routed voice into the room. The cable output receives the processed signal at full level, independently of the self-monitor volume. If no unique VB-Audio `CABLE Input` is present, the route fails with a visible error. A truncated VB-Audio virtual capture endpoint cannot be selected as the physical source. The user must enable routing explicitly each time a worker starts. No cable installer or driver is bundled.
+
+The installed cable's playback endpoint passed a 48 kHz mono PCM16 format query on the development PC. This does not establish that Discord/FiveM receives the processed stream in every device configuration. Real call/device tests and acoustic tests remain necessary. Self-monitoring still has no playback-reference acoustic echo cancellation.
+
+## Native Senja virtual microphone is not implemented
 Applications select capture endpoints registered with the Windows audio stack. A local DSP function cannot manufacture such an endpoint. A standalone Senja audio device requires a separate Windows audio-driver project, a documented PCM transport, installation lifecycle, supported SDK/WDK build, signing, and real endpoint/latency testing. No driver binary or installation is claimed here. Do not weaken Secure Boot, driver signature enforcement, or Windows security to hide that missing capability.
 
-The next implementation must bridge the Senja DSP output to an actual registered capture endpoint, verify FiveM/Discord receive the processed signal, and test device unplug, format change, worker crash, reboot and uninstall. Until then, keep global routing disabled and the local test clearly identified.
+An independent Senja virtual microphone still needs its own driver, signing and lifecycle. The existing cable route also needs real Discord/FiveM reception tests, device unplug, format change, worker crash and reboot checks before broader compatibility claims.
 
 ## Default neural voice processing
 User approved embedded open-source noise suppression on 2026-10-29. Config defaults NeuralSuppression to true, including existing profiles without that field. RNNoise v0.2 runs locally in SenjaNoise.dll before the Go gate/EQ/limiter. The Go spectral reducer described above remains available only on the explicit non-neural path; it is not stacked on RNNoise. Missing or incompatible DLLs fail explicitly. The DLL is loaded by absolute executable-relative path, with an explicit test override.
@@ -40,4 +46,4 @@ Default output update: UI preview resolves output through WAVE_MAPPER (0xfffffff
 
 Explicit live self-monitor is now supported by a consumed LiveMonitorRequested startup flag plus Monitor runtime preference. It is off for ordinary tests and not a virtual capture endpoint. Live output is capped at 50%, uses eight 480-sample buffers and the default Windows output; acoustic echo cancellation is not implemented. Shared-meter mapping v2 adds a numeric message-kind field so live/sample phases no longer collapse to a generic status. Only numeric state/levels, never PCM, cross the mapping.
 
-Current native Mic UI uses ToggleLive exclusively: ON requests capture/playback, OFF disables the worker. Hidden test/sample APIs are not reachable via page controls. Level telemetry is displayed on 50ms polls without continuous panel interpolation/animation; other control animations remain independent. This is a local listener, not a system microphone endpoint.
+Current native Mic UI offers ToggleLive and ToggleRoute. Switching modes restarts the worker session and closes the prior output. Hidden test/sample APIs are not reachable via page controls. Level telemetry is displayed on 50ms polls without continuous panel interpolation/animation; other control animations remain independent. The registered system microphone endpoint belongs to VB-CABLE, not Senja.

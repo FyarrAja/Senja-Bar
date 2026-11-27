@@ -13,7 +13,7 @@ Operate: an everyday Windows utility with readable controls and honest state. Re
 ## Surfaces
 - RAM & CPU separates applications from automatic rules. Real memory/CPU measurements are in the header. Running processes are prioritised by working set, with per-app memory and protection status.
 - System tools are flat separated rows, with origin labels where Senja and Windows actions differ. Live measurements and errors come from the backend, never illustrative success states.
-- Mic has source selection, a processed level meter, noise-gate and character controls, and explicit start/stop of a local test. Audio routing availability is a separate informational view.
+- Mic has source selection, a processed level meter, noise-gate and character controls, plus separate switches for local self-monitoring and processed-audio routing through an already installed VB-CABLE. The modes are mutually exclusive.
 
 ## Verification
 Motion uses a shared critically damped navigation plate, a moving tab underline, short press/release feedback, subtle hover feedback, an animated mic meter and expanding dropdowns. Updates coalesce at 120 Hz only while motion is active; the mic timer does not repaint an unchanged idle meter. Positions use fractional pixels for the new navigation/meter controls. Windows client animation preferences are the default; an explicit local `Senja/ui.json` Motion preference can choose `smooth` or `reduced`.
@@ -30,4 +30,4 @@ Mic simplification: no refresh/reset/output-selector actions. Refresh input endp
 
 Mic self-listen update: add explicit live self-monitor switch with headset/latency helper, preserving sample preview as a separate action. Preset labels are plain Indonesian and paired with authored 20px stroke icons. The preset menu shows seven 44px rows in one view, each with title, short explanation and a selection check; keyboard can reach every row. No output picker, refresh or reset controls are reintroduced.
 
-Mic one-toggle simplification: Dengar suara sendiri starts/stops the entire audio worker. Removed sample and separate start/stop controls. Microphone status, default-output hint and local-routing boundary remain. Meter reads at 20Hz with half-bar quantization, without driving whole-window 120Hz animation; interactive controls retain their motion.
+Mic routing extension: Dengar suara sendiri starts/stops local playback. Kirim ke Discord/FiveM sends processed audio into the installed VB-CABLE endpoint without local playback. Both controls clearly show their active state and cannot run together. The status below the controls identifies routing failures and the external recording endpoint to select. Meter reads at 20Hz with half-bar quantization, without driving whole-window 120Hz animation; interactive controls retain their motion.

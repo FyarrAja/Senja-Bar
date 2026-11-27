@@ -72,6 +72,7 @@ func call(op string, args ...uintptr) error {
 
 type Session struct {
 	captureOnly         bool
+	route               bool
 	neural              bool
 	stop, done          chan struct{}
 	once                sync.Once
@@ -110,6 +111,12 @@ func (s *Session) SetMonitorVolume(volume int) {
 		volume = min(volume, 50)
 	}
 	s.monitorVolume.Store(int32(max(0, min(100, volume))))
+}
+func (s *Session) playbackScale() float64 {
+	if s.route {
+		return 1
+	}
+	return float64(s.monitorVolume.Load()) / 100
 }
 func (s *Session) SetSmartVoice(enabled bool) { s.smartVoice.Store(enabled) }
 
@@ -151,6 +158,9 @@ func startSessionWithConfig(input Device, output *Device, deep bool, gate int, n
 	}
 	s := &Session{stop: make(chan struct{}), done: make(chan struct{}), captureOnly: true}
 	s.neural = neural
+	if config != nil {
+		s.route = config.Route
+	}
 	outputID := uint32(0)
 	if output != nil {
 		s.captureOnly = false
@@ -358,7 +368,7 @@ func (s *Session) run(input, output uint32, ready chan<- error) (err error) {
 				// Playback volume is independent of capture gain and the processed meter.
 				for k := 0; k < n; k++ {
 					playbackFade = min(1, playbackFade+1.0/2400)
-					outputData[j][k] = int16(float64(outputData[j][k]) * float64(s.monitorVolume.Load()) / 100 * playbackFade)
+					outputData[j][k] = int16(float64(outputData[j][k]) * s.playbackScale() * playbackFade)
 				}
 				if err = call("waveOutWrite", out, uintptr(unsafe.Pointer(&outputs[j])), unsafe.Sizeof(header{})); err != nil {
 					return

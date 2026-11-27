@@ -83,6 +83,7 @@ func (n *nativeGlassPanel) advanceMotion(now time.Time) bool {
 	active = n.tabMotion.advance(now, 30) || active
 	active = n.mic.reveal.advance(now, 36) || active
 	active = n.mic.monitorMotion.advance(now, 32) || active
+	active = n.mic.routeMotion.advance(now, 32) || active
 	for i := range n.hovers {
 		active = n.hovers[i].advance(now, 40) || active
 	}

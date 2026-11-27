@@ -15,7 +15,7 @@ var nativeFocusOrder = []int{10, 11, 38, 48, 0, 1, 2, 3, 4, 5, 9, 6, 7, 37, 25, 
 func (n *nativeGlassPanel) nextFocus(current, delta int) int {
 	order := nativeFocusOrder[:]
 	if n.micPage {
-		order = []int{10, 11, 38, 48, 69, 49, 65, 64, 50, 51, 68, 70, 55, 8}
+		order = []int{10, 11, 38, 48, 69, 49, 65, 64, 50, 51, 68, 70, 71, 55, 8}
 	}
 	if n.micPage && n.mic.dropdown != 0 {
 		order = []int{56, 57, 58, 59, 60, 61, 62, 63}

@@ -102,3 +102,17 @@ func TestSeventhPresetSelectionAndLiveControl(t *testing.T) {
 		t.Fatal("self-monitor hit target active behind details")
 	}
 }
+
+func TestVirtualRouteControlIsReachableOutsideDetails(t *testing.T) {
+	n := nativeGlassPanel{micPage: true, motionChecked: true}
+	if !n.controlEnabled(71) {
+		t.Fatal("virtual microphone route control unreachable")
+	}
+	if got := n.controlAt(nativeSidebar+110, 420); got != 71 {
+		t.Fatalf("virtual route hit target = %d", got)
+	}
+	n.mic.details = true
+	if n.controlEnabled(71) {
+		t.Fatal("virtual route control active behind details")
+	}
+}

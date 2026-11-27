@@ -60,7 +60,7 @@ func (n *nativeGlassPanel) controlEnabled(i int) bool {
 		if i == 52 || i == 53 || i == 54 || i == 66 || i == 67 {
 			return false
 		}
-		return n.micPage && (i <= 55 || i >= 64 && i <= 70) && (i != 49 || !n.mic.status.Active) && (i != 52 || len(n.mic.devices) > 0) && (!n.mic.details || i == 55)
+		return n.micPage && (i <= 55 || i >= 64 && i <= 71) && (i != 49 || !n.mic.status.Active) && (i != 52 || len(n.mic.devices) > 0) && (!n.mic.details || i == 55)
 	}
 	if n.micPage {
 		return false

@@ -34,11 +34,17 @@ Adaptasi warna memakai sampel di sekitar taskbar pada tiap monitor. Hasilnya dap
 
 ## Mulai pakai
 
+### Baru di 1.3.2
+
+- **Kirim ke Discord/FiveM** mengirim suara hasil RNNoise dan pengaturan Senja ke `CABLE Input` milik VB-CABLE yang sudah terpasang. Pilih `Senja Microphone` (nama rekaman VB-CABLE pada PC ini) atau `CABLE Output` sebagai input Discord/FiveM. Jika masih memilih mic Rexus langsung, suara akan tetap mentah.
+- Mode kirim dan **Dengar suara sendiri** bergantian; mode kirim tidak memutar suara ke speaker/headset. VB-CABLE harus sudah terpasang, dan Senja tidak memasang driver. Matikan mode kirim untuk menghentikan tangkapan dan pengiriman audio.
+- Rute hanya memilih `CABLE Input (VB-Audio...)` yang tunggal. Nama input virtual yang terpotong juga ditolak sebagai sumber agar tidak membuat loop.
+
 ### Baru di 1.3.1
 
 - Noise sisa pada mode RNNoise + suara otomatis berkurang setelah ucapan berhenti; hasil nyata tetap bergantung pada mic dan ruangan.
 - Pemindaian proses/audio berkala berhenti saat aturan otomatis RAM/CPU tidak aktif. Updater berjalan sebagai proses Rust terpisah saat dibutuhkan.
-- Input Discord/FiveM masih belum menerima audio olahan Senja; memilih mic fisik yang sama di sana melewati pemrosesan Senja.
+- Pada rilis 1.3.1, input Discord/FiveM belum menerima audio olahan Senja.
 
 ### Baru di 1.3.0
 
@@ -46,7 +52,7 @@ Adaptasi warna memakai sampel di sekitar taskbar pada tiap monitor. Hasilnya dap
 - **Sistem:** pemantauan perangkat/RAM/CPU/penyimpanan, diagnostik, laporan lokal dan pemeliharaan Windows yang dipilih pengguna.
 - **Mic:** RNNoise lokal, preset berikon, karakter bass dan kontrol level. Toggle **Dengar suara sendiri** menjalankan audio; mematikannya menghentikan capture dan playback. Output mengikuti default Windows. Gunakan headset; ada jeda pemrosesan dan belum tersedia acoustic echo cancellation.
 
-**Mic Senja belum menjadi input virtual dan belum meneruskan hasil olahan ke Discord/FiveM atau aplikasi lain.** Tidak ada audio diunggah. Hasil peredaman perlu diuji pada perangkat/lingkungan masing-masing; tidak menjamin semua ketikan, gema atau pembicara lain hilang.
+**Senja belum memasang driver mic virtual sendiri.** Rute 1.3.2 memakai VB-CABLE yang sudah ada; penerimaan di Discord/FiveM perlu diuji dengan perangkat dan pengaturan input masing-masing. Tidak ada audio diunggah oleh Senja. Peredaman tidak menjamin semua ketikan, gema atau pembicara lain hilang; monitor lokal tetap memerlukan headset dan belum memiliki acoustic echo cancellation.
 
 1. Unduh **Senja-Bar.exe** dari tautan di atas, lalu jalankan.
 2. File pendamping disiapkan di `%LOCALAPPDATA%\Senja\app` tanpa akses admin. Launcher keluar setelah Senja berjalan.
@@ -79,7 +85,7 @@ Dalam mode manual, update tidak diterapkan otomatis setelah unduhan selesai, pan
 | --- | --- |
 | Sistem | Windows x64; terutama diuji pada Windows 11. Windows 10 belum terverifikasi penuh. |
 | Panel | Native, transparan/blur bergantung dukungan Windows; tanpa WebView2 pada jalur utama. |
-| Mic | Monitoring lokal saja; belum ada input virtual atau penerusan hasil ke aplikasi lain. |
+| Mic | Rute hasil olahan ke VB-CABLE tersedia jika perangkatnya terpasang; tidak ada driver Senja sendiri. |
 | Aksesibilitas | Navigasi keyboard tersedia; integrasi screen reader belum diterapkan. |
 | Release | Belum ditandatangani secara digital. Checksum dipakai untuk memeriksa integritas unduhan. |
 | Memori | Pemakaian bergantung pada Windows dan kondisi aplikasi; tidak ada jaminan total RAM 1–2 MB. |
@@ -93,7 +99,7 @@ Proses panel berakhir saat ditutup. Animasi berhenti saat selesai; proses update
 
 ### Features
 
-Version 1.3.0 adds protected background working-set trimming/EcoQoS, native system monitoring and diagnostics, and local RNNoise microphone processing with presets and opt-in self-monitoring. Resource controls do not guarantee higher FPS or lower committed memory. **Senja does not register a virtual microphone or forward processed audio to other applications.** Monitoring uses the Windows default output, requires headphones to avoid feedback, and has processing/device latency. Acoustic echo cancellation and complete noise/other-speaker removal are not provided.
+Version 1.3.2 can send Senja-processed audio to an already installed VB-CABLE `CABLE Input` endpoint. Select its recording side (`CABLE Output`, possibly renamed `Senja Microphone`) in Discord/FiveM; selecting the physical microphone bypasses Senja. Routing and local self-monitoring are exclusive. Senja does not install its own virtual microphone driver. Resource controls do not guarantee higher FPS or lower committed memory. Local monitoring uses the Windows default output and requires headphones to avoid feedback. Acoustic echo cancellation and complete noise/other-speaker removal are not provided.
 
 Senja Bar provides four taskbar styles: **Glass**, **Acrylic**, **Clear**, and **Solid**. Glass and Acrylic adapt their tint to the Windows system theme and nearby background colors; Solid stays opaque and theme appropriate; Clear stays fully transparent. Background sampling is approximate and results vary with Windows and the backdrop.
 

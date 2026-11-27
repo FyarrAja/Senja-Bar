@@ -20,6 +20,7 @@ type nativeMic struct {
 	status                            mic.Status
 	level, reveal                     nativeMotion
 	monitorMotion                     nativeMotion
+	routeMotion                       nativeMotion
 	dropdown, offset, closingDropdown int
 }
 
@@ -39,6 +40,7 @@ func init() {
 	nativeControlCommands[68] = 811
 	nativeControlCommands[69] = 812
 	nativeControlCommands[70] = 813
+	nativeControlCommands[71] = 814
 }
 func (n *nativeGlassPanel) layoutMicControls() {
 	nativeControlBoxes[49] = [4]int{20, 92, 318, 44}
@@ -48,6 +50,7 @@ func (n *nativeGlassPanel) layoutMicControls() {
 	nativeControlBoxes[51] = [4]int{20, 292, 318, 24}
 	nativeControlBoxes[68] = [4]int{20, 316, 318, 24}
 	nativeControlBoxes[70] = [4]int{20, 348, 318, 44}
+	nativeControlBoxes[71] = [4]int{20, 400, 318, 44}
 	nativeControlBoxes[66] = [4]int{}
 	nativeControlBoxes[67] = [4]int{}
 	nativeControlBoxes[52] = [4]int{}
@@ -89,13 +92,25 @@ func (n *nativeGlassPanel) micAction(command uint32) bool {
 	} else if n.micPage && command >= 820 && command <= 827 {
 		n.selectMicOption(int(command - 820))
 		return true
-	} else if !n.micPage || command < 800 || command > 813 {
+	} else if !n.micPage || command < 800 || command > 814 {
 		return false
 	} else {
 		m := &n.mic
 		m.message = ""
 		status := mic.ReadStatus()
 		switch command {
+		case 814:
+			if n.preview {
+				break
+			}
+			m.config = mic.ToggleRoute(mic.Load(), status.Active)
+			if err := mic.Save(m.config); err != nil {
+				m.message = err.Error()
+			} else if !status.Active {
+				if err := mic.Launch(); err != nil {
+					m.message = err.Error()
+				}
+			}
 		case 813:
 			if n.preview {
 				break
@@ -131,6 +146,7 @@ func (n *nativeGlassPanel) micAction(command uint32) bool {
 				}
 				m.config.Monitor = false
 				m.config.LiveMonitorRequested = false
+				m.config.Route, m.config.RouteRequested = false, false
 				m.config.PreviewSample = true
 				m.config.Enabled = true
 				if err := mic.Save(m.config); err != nil {
@@ -158,6 +174,7 @@ func (n *nativeGlassPanel) micAction(command uint32) bool {
 				m.config = mic.PrepareTest(m.config)
 			} else {
 				m.config.Monitor, m.config.PreviewSample, m.config.LiveMonitorRequested = false, false, false
+				m.config.Route, m.config.RouteRequested = false, false
 			}
 			if err := mic.Save(m.config); err != nil {
 				m.message = err.Error()
@@ -214,7 +231,7 @@ func (n *nativeGlassPanel) drawMic(ink, muted, card, group uint32) {
 		n.drawText("RNNoise meredam noise secara lokal. Auto memakai deteksi ucapan dan penguatan tetap supaya volume tidak mengejar tiap suku kata. Deep menambah body bass, tanpa mengubah pitch. Belum ada pemisah identitas pembicara.", 20, 154, 318, 120, 13, false, muted, false)
 		n.line(20, 292, 338, 292, card, 1)
 		n.text("Mikrofon untuk aplikasi lain", 20, 310, 318, 27, 16, true, ink)
-		n.drawText("Aktifkan Dengar suara sendiri untuk menjalankan audio ke output default Windows. Matikan untuk menghentikan audio sepenuhnya. Gunakan headset; ada jeda pemrosesan. Belum menjadi input FiveM/Discord.", 20, 352, 318, 110, 13, false, muted, false)
+		n.drawText("Dengar suara sendiri memutar ke output default Windows. Kirim ke Discord/FiveM memakai VB-CABLE yang sudah terpasang. Pilih CABLE Output atau Senja Microphone sebagai input di aplikasi. Kedua mode tidak berjalan bersamaan.", 20, 352, 318, 110, 13, false, muted, false)
 		n.text("Tekan ‹ untuk kembali", 20, 486, 318, 24, 12, false, muted)
 		return
 	}
@@ -305,9 +322,21 @@ func (n *nativeGlassPanel) drawMic(ink, muted, card, group uint32) {
 	n.round(289, 360, 36, 20, 10, nativeSwitchTrack(m.monitorMotion.value, n.light), false)
 	n.roundFloat(292+float32(m.monitorMotion.value)*13/17, 363, 14, 14, 7, 0xffffffff, false, 1)
 	n.endPress(saved)
-	n.text("Mengikuti output default Windows", 20, 405, 318, 18, 11, false, muted)
-	message := "Aktifkan dengar suara sendiri untuk mulai."
-	if s.Active && m.config.Monitor {
+	saved = n.beginPress(71)
+	n.round(20, 400, 318, 44, 10, card, false)
+	n.drawDeviceIcon("virtual", 32, 411, muted)
+	n.text("Kirim ke Discord/FiveM", 57, 405, 216, 21, 12, true, ink)
+	n.text("Pilih Senja Microphone / CABLE Output", 57, 425, 220, 15, 10, false, muted)
+	position = 0
+	if m.config.Route && s.Active {
+		position = 17
+	}
+	n.move(&m.routeMotion, position)
+	n.round(289, 412, 36, 20, 10, nativeSwitchTrack(m.routeMotion.value, n.light), false)
+	n.roundFloat(292+float32(m.routeMotion.value)*13/17, 415, 14, 14, 7, 0xffffffff, false, 1)
+	n.endPress(saved)
+	message := "Pilih mode dengar atau kirim untuk mulai."
+	if s.Active && (m.config.Monitor || m.config.Route) {
 		message = s.Message
 	}
 	if m.message != "" {
@@ -315,8 +344,8 @@ func (n *nativeGlassPanel) drawMic(ink, muted, card, group uint32) {
 	} else if !s.Active && s.Message != "" && s.Message != "Mikrofon belum aktif" && s.Message != "Mikrofon dihentikan" {
 		message = s.Message
 	}
-	n.drawText(message, 20, 438, 318, 36, 11, false, muted, false)
-	n.text("Pemrosesan lokal · belum masuk ke FiveM/Discord", 20, 488, 318, 20, 10, false, muted)
+	n.drawText(message, 20, 452, 318, 32, 11, false, muted, false)
+	n.text("Monitor: output default · Rute: VB-CABLE", 20, 490, 318, 20, 10, false, muted)
 	n.drawMicDropdown(ink, muted)
 }
 func (n *nativeGlassPanel) pollMic() bool {

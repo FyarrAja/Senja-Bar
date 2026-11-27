@@ -106,6 +106,7 @@ var activeMeterMessages = []string{
 	"Menyiapkan mic · tunggu sebentar",
 	"Bicara 3 detik · contoh hanya di RAM",
 	"Memutar sekali · tangkapan mic dihentikan",
+	"Kirim ke input virtual aktif · pilih CABLE Output di Discord/FiveM",
 }
 
 func meterMessageKind(message string) uint32 {

@@ -28,6 +28,8 @@ type Config struct {
 	NeuralSuppression    bool
 	PreviewSample        bool
 	LiveMonitorRequested bool
+	Route                bool
+	RouteRequested       bool
 }
 type Status struct {
 	Active  bool
@@ -62,6 +64,7 @@ func PrepareTest(c Config) Config {
 	c.Monitor = false
 	c.PreviewSample = false
 	c.LiveMonitorRequested = false
+	c.Route, c.RouteRequested = false, false
 	return c
 }
 
@@ -70,10 +73,17 @@ func PrepareTest(c Config) Config {
 func ToggleLive(c Config, active bool) Config {
 	on := !(active && c.Monitor)
 	c.Enabled, c.Monitor, c.LiveMonitorRequested = on, on, on
+	c.Route, c.RouteRequested = false, false
 	c.PreviewSample = false
 	if on {
 		c.MonitorVolume = min(50, c.MonitorVolume)
 	}
+	return c
+}
+func ToggleRoute(c Config, active bool) Config {
+	on := !(active && c.Route)
+	c.Enabled, c.Route, c.RouteRequested = on, on, on
+	c.Monitor, c.LiveMonitorRequested, c.PreviewSample = false, false, false
 	return c
 }
 func Disable() error {
@@ -83,6 +93,7 @@ func Disable() error {
 	}
 	c.Enabled = false
 	c.Monitor, c.PreviewSample, c.LiveMonitorRequested = false, false, false
+	c.Route, c.RouteRequested = false, false
 	return Save(c)
 }
 func writeJSON(name string, v any) error {
@@ -103,15 +114,12 @@ func ReadStatus() Status {
 	if s, ok := readMeter(); ok {
 		return s
 	}
+	return readStatusFile()
+}
+func readStatusFile() Status {
 	var s Status
 	b, _ := os.ReadFile(filepath.Join(directory(), "mic-status.json"))
 	_ = json.Unmarshal(b, &s)
-	// Do not surface the retired external-cable adapter's persisted error.
-	if strings.Contains(s.Message, "CABLE") {
-		s.Message = "Mikrofon belum aktif"
-		s.Active = false
-		s.Level = 0
-	}
 	if time.Since(s.Updated) > 3*time.Second {
 		s.Active = false
 		s.Level = 0
@@ -150,8 +158,10 @@ func RunWorker() {
 	}
 	if !c.PreviewSample {
 		liveRequested := c.LiveMonitorRequested
+		routeRequested := c.RouteRequested
 		c = PrepareTest(c)
 		c.Monitor = liveRequested
+		c.Route = routeRequested
 	}
 	if err := Save(c); err != nil {
 		_ = writeJSON("mic-status.json", Status{Message: err.Error(), Updated: time.Now()})
@@ -178,6 +188,9 @@ func RunWorker() {
 		s := Status{Active: session.Active(), Level: session.Level(), Message: "Uji mic aktif · pemrosesan lokal Senja", Updated: time.Now()}
 		if c.Monitor {
 			s.Message = "Dengar langsung aktif · gunakan headset"
+		}
+		if c.Route {
+			s.Message = "Kirim ke input virtual aktif · pilih CABLE Output di Discord/FiveM"
 		}
 		if c.PreviewSample {
 			switch session.previewStage.Load() {
@@ -207,6 +220,7 @@ func RunWorker() {
 		if !s.Active {
 			current := Load()
 			current.Enabled, current.Monitor, current.PreviewSample, current.LiveMonitorRequested = false, false, false, false
+			current.Route, current.RouteRequested = false, false
 			_ = Save(current)
 			return
 		}
@@ -220,12 +234,16 @@ func RunWorker() {
 			next.LiveMonitorRequested = false
 			_ = Save(next)
 		}
+		if next.RouteRequested {
+			next.RouteRequested = false
+			_ = Save(next)
+		}
 		if !next.Enabled {
 			session.Stop()
 			_ = writeJSON("mic-status.json", Status{Message: "Mikrofon dihentikan", Updated: time.Now()})
 			return
 		}
-		if next.Input != c.Input || next.Monitor != c.Monitor || next.NeuralSuppression != c.NeuralSuppression || next.PreviewSample != c.PreviewSample {
+		if next.Input != c.Input || next.Monitor != c.Monitor || next.Route != c.Route || next.NeuralSuppression != c.NeuralSuppression || next.PreviewSample != c.PreviewSample {
 			session.Stop()
 			replacement, err := startConfigured(next)
 			if err != nil {
@@ -256,6 +274,16 @@ func startConfigured(c Config) (*Session, error) {
 	if !found {
 		return nil, fmt.Errorf("mikrofon tidak ditemukan; muat ulang perangkat")
 	}
+	if c.Route && c.Monitor {
+		return nil, fmt.Errorf("pilih satu mode audio: input virtual atau dengar sendiri")
+	}
+	if c.Route {
+		output, err := routeOutputFrom(Devices(false))
+		if err != nil {
+			return nil, err
+		}
+		return startSessionWithConfig(input, &output, c.Deep, c.Gate, c.NeuralSuppression, &c)
+	}
 	if !c.Monitor && !c.PreviewSample {
 		return startSessionWithConfig(input, nil, c.Deep, c.Gate, c.NeuralSuppression, &c)
 	}
@@ -263,6 +291,24 @@ func startConfigured(c Config) (*Session, error) {
 	// Old per-PC output names in migrated profiles are deliberately ignored.
 	output := defaultPreviewOutput()
 	return startSessionWithConfig(input, &output, c.Deep, c.Gate, c.NeuralSuppression, &c)
+}
+
+func routeOutputFrom(devices []Device) (Device, error) {
+	var found Device
+	for _, d := range devices {
+		name := strings.ToLower(d.Name)
+		if !strings.HasPrefix(name, "cable input (") || !strings.Contains(name, "vb-audio") {
+			continue
+		}
+		if found.Name != "" {
+			return Device{}, fmt.Errorf("lebih dari satu CABLE Input; pilih perangkat virtual secara manual")
+		}
+		found = d
+	}
+	if found.Name == "" {
+		return Device{}, fmt.Errorf("VB-CABLE Input tidak ditemukan; periksa instalasi VB-CABLE")
+	}
+	return found, nil
 }
 
 func defaultPreviewOutput() Device {

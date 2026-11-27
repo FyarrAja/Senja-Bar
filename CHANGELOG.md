@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.2 - 2026-11-28
+
+- Add an explicit VB-CABLE output route for processed microphone audio; users select the cable's recording endpoint in Discord/FiveM. Route and local self-monitor are exclusive.
+- Reject truncated virtual capture names as microphone sources to prevent feedback loops. Surface cable routing errors instead of suppressing them.
+- Verify the installed stereo CABLE Input accepts Senja's 48 kHz mono PCM16 format. Discord/FiveM end-to-end reception and acoustic quality still require device-level testing.
+
 ## 1.3.1 - 2026-11-27
 
 - Reduce the residual noise floor after speech in local RNNoise + Smart Voice monitoring while preserving quiet syllables through brief VAD dropouts.
