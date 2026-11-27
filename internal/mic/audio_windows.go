@@ -5,7 +5,6 @@ package mic
 import (
 	"fmt"
 	"runtime"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -138,7 +137,7 @@ func startSession(input Device, output *Device, deep bool, gate int, neural bool
 }
 
 func startSessionWithConfig(input Device, output *Device, deep bool, gate int, neural bool, config *Config) (*Session, error) {
-	if strings.Contains(strings.ToLower(input.Name), "cable") {
+	if DeviceKind(input.Name, true) == "virtual" {
 		return nil, fmt.Errorf("pilih mikrofon fisik sebagai sumber")
 	}
 	found := false
